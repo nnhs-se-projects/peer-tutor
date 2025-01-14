@@ -48,10 +48,29 @@ route.post("/createEntry", async (req, res) => {
   res.status(201).end();
 });
 
-route.get("/editEntry/:id", async (req, res) => {
-  const entry = await Entry.findById(req.params.id);
-  console.log(entry);
-  res.send(entry);
+// rout to student home page
+route.get("/stuHome", async (req, res) => {
+  res.render("stuHome");
+});
+
+// rout to tutor home page
+route.get("/tutHome", async (req, res) => {
+  res.render("tutHome");
+});
+
+// rout to tutor leader home page
+route.get("/leadHome", async (req, res) => {
+  res.render("leadHome");
+});
+
+// rout to teacher home page
+route.get("/teachHome", async (req, res) => {
+  res.render("teachHome");
+});
+
+// rout to admin home page
+route.get("/adminHome", async (req, res) => {
+  res.render("adminHome");
 });
 
 // delegate all authentication to the auth.js router
