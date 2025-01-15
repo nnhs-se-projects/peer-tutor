@@ -2,8 +2,9 @@ const express = require("express");
 const route = express.Router();
 const Entry = require("../model/entry");
 
-// easy way to assign static data (e.g., array of strings) to a variable
-const habitsOfMind = require("../model/habitsOfMind.json");
+// assigning variable to the JSON file
+const gradeSelection = require("../model/grades.json");
+const mathClasses = require("../model/mathClasses.json");
 
 // pass a path (e.g., "/") and a callback function to the get method
 //  when the client makes an HTTP GET request to the specified path,
@@ -29,10 +30,6 @@ route.get("/", async (req, res) => {
   res.render("index", { entries: formattedEntries });
 });
 
-route.get("/createEntry", (req, res) => {
-  res.render("createEntry", { habits: habitsOfMind });
-});
-
 route.post("/createEntry", async (req, res) => {
   const entry = new Entry({
     // When the time zone offset is absent, date-only forms are interpreted as
@@ -46,6 +43,16 @@ route.post("/createEntry", async (req, res) => {
   await entry.save();
 
   res.status(201).end();
+});
+
+// route to render grades
+route.get("/tutHome", (req, res) => {
+  res.render("tutHome", { grades: gradeSelection });
+});
+
+// route to render Math classes
+route.get("/tutHome", (req, res) => {
+  res.render("tutHome", { classes: mathClasses });
 });
 
 // rout to student home page

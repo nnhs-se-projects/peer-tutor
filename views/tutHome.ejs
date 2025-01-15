@@ -2,12 +2,39 @@
 <%- include('include/_header') %>
 <!-- /include header -->
 
+<!-- include stuNavBar -->
+<%- include('include/_stuNavBar') %>
+<!-- /include stuNavBar -->
+
 <!-- Main Site -->
 <main>
-  <div class="indexTopBar">
-    <img src="img/SE-GitHub-image.png" alt="Huskie Code Logo" />
-    <h1>Peer Tutor Website</h1>
-    <h2>Tutor Home Page</h2>
+  <div class="createEntry-form">
+    <h1 class="create-edit-title">Tutor Expertise Sheet</h1>
+
+    <!-- Student Name -->
+    <label>Full Name</label>
+    <input type="text" id="tutName" name="tutName" required />
+
+    <!-- Student Email -->
+    <label>Email</label>
+    <input type="email" id="tutEmail" name="tutEmail" required />
+
+    <!-- Student Grade -->
+    <label>Grade</label>
+    <fieldset>
+      <% for(let grade of grades) { %>
+      <label>
+        <input
+          type="radio"
+          class="habits"
+          name="grade"
+          value="<%= grade %>"
+        /><%= grade %>
+      </label>
+      <% } %>
+    </fieldset>
+
+    <input type="submit" class="submit" value="Submit" />
   </div>
 </main>
 
