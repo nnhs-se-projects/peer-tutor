@@ -45,12 +45,6 @@ styling for the authentication page .authForm {
   align-items: center;
 }
 
-.indexTopBar img {
-  flex-shrink: 0;
-  width: 75px;
-  height: 75px;
-}
-
 .indexTopBar h1 {
   margin-right: auto;
 }
@@ -62,6 +56,8 @@ styling for the authentication page .authForm {
   justify-content: center;
   align-items: center;
   gap: 10px;
+  width: 300px;
+  height: 300px;
 }
 
 .entries-display {
@@ -96,8 +92,8 @@ styling for the authentication page .authForm {
 }
 
 .footer {
-  background-color: #21bbeb; /* Light gray background color */
-  border: 1px solid #21bbeb; /* Light gray border */
+  background-color: #ffc17a; /* Light gray background color */
+  border: 1px solid #ffc17a; /* Light gray border */
   padding: 10px; /* Padding inside the container */
   margin-top: 20px; /* Margin on top of the footer */
   text-align: center; /* Center the text */
@@ -167,7 +163,7 @@ styling for the authentication page .authForm {
   padding: 25px;
   margin: 20px 0;
   border-radius: 10px;
-  background-color: #21bbeb;
+  background-color: #ffc17a;
 }
 
 .editFunctions {
@@ -202,7 +198,7 @@ form textarea {
 
 form input[type="submit"] {
   padding: 10px 20px;
-  background-color: #007bff;
+  background-color: #ff8800;
   color: white;
   border: none;
   border-radius: 5px;
@@ -210,5 +206,13 @@ form input[type="submit"] {
 }
 
 form input[type="submit"]:hover {
-  background-color: #0056b3;
+  background-color: #ff8800;
+}
+
+.footer {
+  text-align: center;
+  color: white; /* Optional: Adjust text color */
+  background-color: #ff8800;
+  margin: 0; /* Remove margin */
+  padding: 10px; /* Optional: Adjust padding */
 }

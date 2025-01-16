@@ -45,32 +45,22 @@ route.post("/createEntry", async (req, res) => {
   res.status(201).end();
 });
 
-// route to render grades
+// route to render Math classes and grades
 route.get("/tutHome", (req, res) => {
-  res.render("tutHome", { grades: gradeSelection });
+  res.render("tutHome", { mathClasses, grades: gradeSelection });
 });
 
-// route to render Math classes
-route.get("/tutHome", (req, res) => {
-  res.render("tutHome", { classes: mathClasses });
-});
-
-// rout to student home page
+// route to student home page
 route.get("/stuHome", async (req, res) => {
   res.render("stuHome");
 });
 
-// rout to tutor home page
-route.get("/tutHome", async (req, res) => {
-  res.render("tutHome");
-});
-
-// rout to tutor leader home page
+// route to tutor leader home page
 route.get("/leadHome", async (req, res) => {
   res.render("leadHome");
 });
 
-// rout to teacher home page
+// route to teacher home page
 route.get("/teachHome", async (req, res) => {
   res.render("teachHome");
 });

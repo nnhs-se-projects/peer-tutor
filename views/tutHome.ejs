@@ -1,10 +1,4 @@
-<!-- include header -->
-<%- include('include/_header') %>
-<!-- /include header -->
-
-<!-- include stuNavBar -->
-<%- include('include/_stuNavBar') %>
-<!-- /include stuNavBar -->
+<%- include('include/_header') %> <%- include('include/_stuNavBar') %>
 
 <!-- Main Site -->
 <main>
@@ -32,6 +26,16 @@
         /><%= grade %>
       </label>
       <% } %>
+    </fieldset>
+
+    <!-- Student Math Classes -->
+    <label>Math Classes</label>
+    <fieldset>
+      <select name="mathClasses" multiple>
+        <% for(let mathClass of mathClasses) { %>
+        <option value="<%= mathClass %>"><%= mathClass %></option>
+        <% } %>
+      </select>
     </fieldset>
 
     <input type="submit" class="submit" value="Submit" />
