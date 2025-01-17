@@ -10,67 +10,76 @@
     <h2>Tutor Home Page</h2>
   </div>
 
-  <div>
-    <label>Tutee Name <textarea class="content"></textarea></label>
-    <label>Tutee ID <textarea class="content"></textarea></label>
-    <label>
+  <form>
+    <!-- Basic Information -->
+    <div>
+      <label for="tuteeName">Tutee Name</label>
+      <input type="text" id="tuteeName" name="tuteeName" />
+
+      <label for="tuteeID">Tutee ID</label>
+      <input type="text" id="tuteeID" name="tuteeID" />
+
+      <label for="sessionDate">Date</label>
+      <input type="date" id="sessionDate" name="sessionDate" />
+    </div>
+
+    <!-- Tutee Grade -->
+    <div>
       <label>Tutee Grade</label>
-    <label>
-      <input type="radio" class="content" name="Grade" value="9" /> 9
-    </label>
-    <br />
-    <label>
-      <input type="radio" class="content" name="Grade" value="10" /> 10
-    </label>
-    <br />
-    <label>
-      <input type="radio" class="content" name="Grade" value="11" /> 11
-    </label>
-    <br />
-    <label>
-      <input type="radio" class="content" name="Grade" value="12" /> 12
-    </label>
+      <label><input type="radio" name="grade" value="9" /> 9</label>
+      <label><input type="radio" name="grade" value="10" /> 10</label>
+      <label><input type="radio" name="grade" value="11" /> 11</label>
+      <label><input type="radio" name="grade" value="12" /> 12</label>
+    </div>
 
-<label for="sessionPeriod">Session Period</label>
-<select id="sessionPeriod" name="Period">
-  <option value="4th">4th</option>
-  <option value="5th">5th</option>
-  <option value="6th">6th</option>
-  <option value="WIN">WIN</option>
-  <option value="RAT">RAT</option>
-</select>
+    <!-- Session Details -->
+    <div>
+      <label for="sessionPeriod">Session Period</label>
+      <select id="sessionPeriod" name="sessionPeriod">
+        <option value="">Select a Period</option>
+        <option value="4th">4th</option>
+        <option value="5th">5th</option>
+        <option value="6th">6th</option>
+        <option value="WIN">WIN</option>
+        <option value="RAT">RAT</option>
+      </select>
 
-<label for="sessionPlace"> Where the Session Took Place </label>
-<select id="sessionPlace" name="Place">
-  <option value="Literacy Center">Literacy Center</option>
-  <option value="Community Center">Community Center</option>
-  <option value="Rent-A-Tutor">Rent-A-Tutor</option>
-  <option value="WIN">WIN</option>
-</select>
+      <label for="sessionPlace">Session Location</label>
+      <select id="sessionPlace" name="sessionPlace">
+        <option value="">Select a Place</option>
+        <option value="Literacy Center">Literacy Center</option>
+        <option value="Community Center">Community Center</option>
+        <option value="Rent-A-Tutor">Rent-A-Tutor</option>
+        <option value="WIN">WIN</option>
+      </select>
+    </div>
 
-<label for="sessionClass"> Math </label>
-<select id="sessionClass" name="Class">
-  <option value="Literacy Center">Literacy Center</option>
-  <option value="Community Center">Community Center</option>
-  <option value="Rent-A-Tutor">Rent-A-Tutor</option>
-  <option value="WIN">WIN</option>
-</select>
+    <!-- Course Selection -->
+    <div>
+      <label for="subject">Select a Subject</label>
+      <select id="subject" name="subject" onchange="updateClasses()">
+        <option value="">Select a Subject</option>
+        <option value="Math">Math</option>
+        <option value="English">English</option>
+        <option value="CTE">CTE</option>
+        <option value="Fine Arts">Fine Arts</option>
+        <option value="Wellness">Wellness</option>
+        <option value="World & Classical Language">
+          World & Classical Language
+        </option>
+        <option value="Science">Science</option>
+        <option value="Social Studies">Social Studies</option>
+      </select>
 
+      <label for="class">Select a Class</label>
+      <select id="class" name="class">
+        <option value="">Select a Class</option>
+      </select>
 
-
-    <label>Date <input type="date" class="date" /></label>
-
-    <label
-      >Journal Entry <textarea class="content">my journal entry</textarea>
-    </label>
-    <input type="submit" class="submit" value="Submit" />
-  </div>
+      <label for="teacher">Select a Teacher</label>
+      <select id="teacher" name="teacher">
+        <option value="">Select a Teacher</option>
+      </select>
+    </div>
+  </form>
 </main>
-
-<!-- /Main Site -->
-
-<script src="/js/tutHome.js"></script>
-
-<!-- include footer -->
-<%- include('include/_footer') %>
-<!-- /include footer -->
