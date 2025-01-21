@@ -4,7 +4,16 @@ const Entry = require("../model/entry");
 
 // assigning variable to the JSON file
 const gradeSelection = require("../model/grades.json");
+
+// assigning variables to the JSON files
+const commArtsClasses = require("../model/commArtsClasses.json");
+const cteClasses = require("../model/cteClasses.json");
+const fineArtsClasses = require("../model/fineArtsClasses.json");
+const historyClasses = require("../model/historyClasses.json");
+const languageClasses = require("../model/languageClasses.json");
 const mathClasses = require("../model/mathClasses.json");
+const scienceClasses = require("../model/scienceClasses.json");
+const wellnessClasses = require("../model/wellnessClasses.json");
 
 // pass a path (e.g., "/") and a callback function to the get method
 //  when the client makes an HTTP GET request to the specified path,
@@ -45,9 +54,19 @@ route.post("/createEntry", async (req, res) => {
   res.status(201).end();
 });
 
-// route to render Math classes and grades
+// route to render classes, grades
 route.get("/tutHome", (req, res) => {
-  res.render("tutHome", { mathClasses, grades: gradeSelection });
+  res.render("tutHome", {
+    commArtsClasses,
+    cteClasses,
+    fineArtsClasses,
+    grades: gradeSelection,
+    historyClasses,
+    languageClasses,
+    mathClasses,
+    scienceClasses,
+    wellnessClasses,
+  });
 });
 
 // route to student home page

@@ -38,6 +38,76 @@
       </select>
     </fieldset>
 
+    <!-- Student Communication Arts Classes -->
+    <label>Communication Arts Classes</label>
+    <fieldset>
+      <select name="commArtsClasses" multiple>
+        <% for(let commArtsClass of commArtsClasses) { %>
+        <option value="<%= commArtsClass %>"><%= commArtsClass %></option>
+        <% } %>
+      </select>
+    </fieldset>
+
+    <!-- Student CTE Classes -->
+    <label>CTE Classes</label>
+    <fieldset>
+      <select name="cteClasses" multiple>
+        <% for(let cteClass of cteClasses) { %>
+        <option value="<%= cteClass %>"><%= cteClass %></option>
+        <% } %>
+      </select>
+    </fieldset>
+
+    <!-- Student Fine Arts Classes -->
+    <label>Fine Arts Classes</label>
+    <fieldset>
+      <select name="fineArtsClasses" multiple>
+        <% for(let fineArtsClass of fineArtsClasses) { %>
+        <option value="<%= fineArtsClass %>"><%= fineArtsClass %></option>
+        <% } %>
+      </select>
+    </fieldset>
+
+    <!-- Student History Classes -->
+    <label>History Classes</label>
+    <fieldset>
+      <select name="historyClasses" multiple>
+        <% for(let historyClass of historyClasses) { %>
+        <option value="<%= historyClass %>"><%= historyClass %></option>
+        <% } %>
+      </select>
+    </fieldset>
+
+    <!-- Student Language Classes -->
+    <label>Language Classes</label>
+    <fieldset>
+      <select name="languageClasses" multiple>
+        <% for(let languageClass of languageClasses) { %>
+        <option value="<%= languageClass %>"><%= languageClass %></option>
+        <% } %>
+      </select>
+    </fieldset>
+
+    <!-- Student Science Classes -->
+    <label>Science Classes</label>
+    <fieldset>
+      <select name="scienceClasses" multiple>
+        <% for(let scienceClass of scienceClasses) { %>
+        <option value="<%= scienceClass %>"><%= scienceClass %></option>
+        <% } %>
+      </select>
+    </fieldset>
+
+    <!-- Student Wellness Classes -->
+    <label>Wellness Classes</label>
+    <fieldset>
+      <select name="wellnessClasses" multiple>
+        <% for(let wellnessClass of wellnessClasses) { %>
+        <option value="<%= wellnessClass %>"><%= wellnessClass %></option>
+        <% } %>
+      </select>
+    </fieldset>
+
     <input type="submit" class="submit" value="Submit" />
   </div>
 </main>
