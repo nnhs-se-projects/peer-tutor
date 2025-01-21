@@ -56,17 +56,7 @@ route.post("/createEntry", async (req, res) => {
 
 // route to render classes, grades
 route.get("/tutHome", (req, res) => {
-  res.render("tutHome", {
-    commArtsClasses,
-    cteClasses,
-    fineArtsClasses,
-    grades: gradeSelection,
-    historyClasses,
-    languageClasses,
-    mathClasses,
-    scienceClasses,
-    wellnessClasses,
-  });
+  res.render("tutHome");
 });
 
 // route to student home page
@@ -84,9 +74,24 @@ route.get("/teachHome", async (req, res) => {
   res.render("teachHome");
 });
 
-// rout to admin home page
+// route to admin home page
 route.get("/adminHome", async (req, res) => {
   res.render("adminHome");
+});
+
+// route to expertise form page
+route.get("/expertiseForm", async (req, res) => {
+  res.render("expertiseForm", {
+    commArtsClasses,
+    cteClasses,
+    fineArtsClasses,
+    grades: gradeSelection,
+    historyClasses,
+    languageClasses,
+    mathClasses,
+    scienceClasses,
+    wellnessClasses,
+  });
 });
 
 // delegate all authentication to the auth.js router
