@@ -5,6 +5,8 @@ const Entry = require("../model/entry");
 // assigning variable to the JSON file
 const gradeSelection = require("../model/grades.json");
 
+const newReturningOptions = require("../model/newReturningOptions.json");
+
 // assigning variables to the JSON files
 const commArtsClasses = require("../model/commArtsClasses.json");
 const cteClasses = require("../model/cteClasses.json");
@@ -82,10 +84,11 @@ route.get("/adminHome", async (req, res) => {
 // route to expertise form page
 route.get("/expertiseForm", async (req, res) => {
   res.render("expertiseForm", {
+    grades: gradeSelection,
+    options: newReturningOptions,
     commArtsClasses,
     cteClasses,
     fineArtsClasses,
-    grades: gradeSelection,
     historyClasses,
     languageClasses,
     mathClasses,

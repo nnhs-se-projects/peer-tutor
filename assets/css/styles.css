@@ -61,17 +61,33 @@ body {
   margin-right: auto;
 }
 
-.logo {
+/* Ensure the parent container of the h2 uses flexbox */
+.parent-container {
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
-  gap: 50px;
-  width: 300px;
-  height: 300px;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
 }
 
+/* Center the text within the h2 element */
+.h2 {
+  font-size: 2em;
+  color: #000000;
+  text-align: center; /* Center the text */
+}
+
+/* Ensure the container uses flexbox */
+.logo-container {
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  height: 100%; /* Ensure the container takes up the full height if needed */
+}
+
+/* Style the image if necessary */
+.peer-tutor-logo {
+  max-width: 100%; /* Ensure the image scales properly */
+  height: auto; /* Maintain aspect ratio */
+}
 .entries-display {
   display: flex;
   flex-direction: column;
@@ -82,12 +98,12 @@ body {
 
 .entries-title {
   font-size: 2em; /* Optional: Adjust font size */
-  color: #ffffff; /* Optional: Adjust text color */
+  color: #000000; /* Optional: Adjust text color */
 }
 
 .entries-text {
   font-size: 1em; /* Optional: Adjust font size */
-  color: #c7c7c7; /* Optional: Adjust text color */
+  color: #000000; /* Optional: Adjust text color */
 }
 
 .createEntry-form {
@@ -134,13 +150,14 @@ body {
 }
 
 .title {
-  font-size: large;
+  font-size: 4em;
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
   gap: 10px;
+  color: #000000;
 }
 
 .navbar {
@@ -188,8 +205,16 @@ body {
 }
 
 .entry-box p {
-  color: rgb(255, 255, 255);
+  color: rgb(240, 169, 121);
   margin: 10px 0;
+}
+
+.formQuestions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: #000000;
+  font-size: 1.3em;
 }
 
 form div {
@@ -221,10 +246,28 @@ form input[type="submit"]:hover {
   background-color: #ff8800;
 }
 
-.footer {
+
+/* Ensure the body and html take up the full height */
+html, body {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main content should take up all available space */
+main {
+  flex: 1;
+}
+
+/* Footer should stick to the bottom */
+footer {
+  text-align: center; /* Optional: Add your desired text alignment */
   text-align: center;
   color: white; /* Optional: Adjust text color */
   background-color: #ff8800;
   margin: 0; /* Remove margin */
   padding: 10px; /* Optional: Adjust padding */
+}
+
 }

@@ -2,19 +2,20 @@
 
 <!-- Main Site -->
 <main>
+  <div class="parent-container">
+    <h2 class="h2">Tutor Expertise Form</h2>
+  </div>
   <div class="createEntry-form">
-    <h1 class="create-edit-title">Tutor Expertise Sheet</h1>
-
     <!-- Student Name -->
-    <label>Full Name</label>
+    <label class="formQuestions">Full Name</label>
     <input type="text" id="tutName" name="tutName" required />
 
     <!-- Student Email -->
-    <label>Email</label>
+    <label class="formQuestions">Email</label>
     <input type="email" id="tutEmail" name="tutEmail" required />
 
     <!-- Student Grade -->
-    <label>Grade</label>
+    <label class="formQuestions">Grade</label>
     <fieldset>
       <% for(let grade of grades) { %>
       <label>
@@ -28,8 +29,23 @@
       <% } %>
     </fieldset>
 
+    <!-- Student New/Returning -->
+    <label class="formQuestions">New or Returning?</label>
+    <fieldset>
+      <% for(let option of options) { %>
+      <label>
+        <input
+          type="radio"
+          class="options"
+          name="option"
+          value="<%= option %>"
+        /><%= option %>
+      </label>
+      <% } %>
+    </fieldset>
+
     <!-- Student Math Classes -->
-    <label>Math Classes</label>
+    <label class="formQuestions">Math Classes</label>
     <fieldset>
       <select name="mathClasses" multiple>
         <% for(let mathClass of mathClasses) { %>
@@ -39,7 +55,7 @@
     </fieldset>
 
     <!-- Student Communication Arts Classes -->
-    <label>Communication Arts Classes</label>
+    <label class="formQuestions">Communication Arts Classes</label>
     <fieldset>
       <select name="commArtsClasses" multiple>
         <% for(let commArtsClass of commArtsClasses) { %>
@@ -49,7 +65,7 @@
     </fieldset>
 
     <!-- Student CTE Classes -->
-    <label>CTE Classes</label>
+    <label class="formQuestions">CTE Classes</label>
     <fieldset>
       <select name="cteClasses" multiple>
         <% for(let cteClass of cteClasses) { %>
@@ -59,7 +75,7 @@
     </fieldset>
 
     <!-- Student Fine Arts Classes -->
-    <label>Fine Arts Classes</label>
+    <label class="formQuestions">Fine Arts Classes</label>
     <fieldset>
       <select name="fineArtsClasses" multiple>
         <% for(let fineArtsClass of fineArtsClasses) { %>
@@ -69,7 +85,7 @@
     </fieldset>
 
     <!-- Student History Classes -->
-    <label>History Classes</label>
+    <label class="formQuestions">History Classes</label>
     <fieldset>
       <select name="historyClasses" multiple>
         <% for(let historyClass of historyClasses) { %>
@@ -79,7 +95,7 @@
     </fieldset>
 
     <!-- Student Language Classes -->
-    <label>Language Classes</label>
+    <label class="formQuestions">Language Classes</label>
     <fieldset>
       <select name="languageClasses" multiple>
         <% for(let languageClass of languageClasses) { %>
@@ -89,7 +105,7 @@
     </fieldset>
 
     <!-- Student Science Classes -->
-    <label>Science Classes</label>
+    <label class="formQuestions">Science Classes</label>
     <fieldset>
       <select name="scienceClasses" multiple>
         <% for(let scienceClass of scienceClasses) { %>
@@ -99,7 +115,7 @@
     </fieldset>
 
     <!-- Student Wellness Classes -->
-    <label>Wellness Classes</label>
+    <label class="formQuestions">Wellness Classes</label>
     <fieldset>
       <select name="wellnessClasses" multiple>
         <% for(let wellnessClass of wellnessClasses) { %>
