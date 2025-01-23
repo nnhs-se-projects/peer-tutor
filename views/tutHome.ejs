@@ -13,7 +13,16 @@
   <form>
     <!-- Basic Information -->
     <div>
-      <label for="tuteeName">Tutee Name</label>
+      <label for="tuteeName">Tutee First Name</label>
+      <input type="text" id="tuteeName" name="tuteeName" />
+
+      <label for="tuteeName">Tutee Last Name</label>
+      <input type="text" id="tuteeName" name="tuteeName" />
+
+      <label for="tuteeName">Tutor First Name</label>
+      <input type="text" id="tuteeName" name="tuteeName" />
+
+      <label for="tuteeName">Tutor Last Name</label>
       <input type="text" id="tuteeName" name="tuteeName" />
 
       <label for="tuteeID">Tutee ID</label>
@@ -83,6 +92,33 @@
         <option value="">Select a Teacher</option>
       </select>
     </div>
+
+    <label for="Focus of Session">Focus of Session</label>
+    <select id="Focus of Session" name="Focus of Session">
+      <option value="">Select a Focus</option>
+      <option value="Conversation">Conversation</option>
+      <option value="FERP">FERP(Final Review Packet)</option>
+      <option value="TestCorrections">
+        Test corrections or retake requirement
+      </option>
+      <option value="WritingEnhancements">
+        Writing enhancement or paper edit
+      </option>
+      <option value="Homework">Homework</option>
+      <option value="TestOrQuizReview">Test or quiz review</option>
+      <option value="Concept review">
+        Concept or concept review (no immediate test)
+      </option>
+      <option value="Presentation">Speaking / Presentation</option>
+      <option value="Organization">Organization</option>
+      <option value="Study skills">
+        General study skills or test taking skills
+      </option>
+      <option value="Comprehension">Comprehension</option>
+    </select>
+
+    <label for="workaccomplished">Assignment and Work Accomplished</label>
+    <input type="text" id="workaccomplished" name="workaccomplished" />
   </form>
 
   <script src="js/tutHome.js"></script>
