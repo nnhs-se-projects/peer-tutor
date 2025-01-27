@@ -53,10 +53,25 @@
       <label>
         <input
           type="radio"
-          class="options"
+          class="lunchPeriod"
           name="lunchPeriod"
           value="<%= lunchPeriod %>"
         /><%= lunchPeriod %>
+      </label>
+      <% } %>
+    </fieldset>
+
+    <!-- Student Tutoring Days -->
+    <label class="formQuestions">Tutoring Days (check 2-3)</label>
+    <fieldset>
+      <% for(let dayOfTheWeek of daysOfTheWeek) { %>
+      <label>
+        <input
+          type="checkbox"
+          class="dayOfTheWeek"
+          name="dayOfTheWeek"
+          value="<%= dayOfTheWeek %>"
+        /><%= dayOfTheWeek %>
       </label>
       <% } %>
     </fieldset>

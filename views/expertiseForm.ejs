@@ -2,10 +2,9 @@
 
 <!-- Main Site -->
 <main>
-  <div class="parent-container">
-    <h2 class="h2">Tutor Expertise Form</h2>
-  </div>
   <div class="createEntry-form">
+    <h1 class="create-edit-title">Tutor Expertise Sheet</h1>
+
     <!-- Student Name -->
     <label class="formQuestions">First Name</label>
     <input type="text" id="firstName" name="firstName" required />
@@ -39,7 +38,7 @@
         <input
           type="radio"
           class="options"
-          name="option"
+          name="newReturning"
           value="<%= option %>"
         /><%= option %>
       </label>
@@ -61,179 +60,79 @@
       <% } %>
     </fieldset>
 
-    <!-- Student dot -->
-    <label class="formQuestions">Lunch Period</label>
+    <!-- Student Tutoring Days -->
+    <label class="formQuestions">Tutoring Days (check 2-3)</label>
     <fieldset>
-      <% for(let lunchPeriod of lunchPeriods) { %>
+      <% for(let dayOfTheWeek of daysOfTheWeek) { %>
       <label>
         <input
-          type="radio"
-          class="lunchPeriod"
-          name="lunchPeriod"
-          value="<%= lunchPeriod %>"
-        /><%= lunchPeriod %>
+          type="checkbox"
+          class="dayOfTheWeek"
+          name="dayOfTheWeek"
+          value="<%= dayOfTheWeek %>"
+        /><%= dayOfTheWeek %>
       </label>
       <% } %>
     </fieldset>
 
-    <!-- Student Math Classes -->
-    <label class="formQuestions">Math Classes</label>
-    <fieldset>
-      <select id="mathClasses" name="mathClasses" multiple>
-        <% for(let mathClass of mathClasses) { %>
-        <option value="<%= mathClass %>"><%= mathClass %></option>
-        <% } %>
-      </select>
-      <ul id="selectedMathClasses"></ul>
+    <!-- Student Classes -->
+    <label class="formQuestions">Classes</label>
+    <input
+      type="text"
+      id="courseSearch"
+      placeholder="Search for a class..."
+      oninput="filterCourseList()"
+    />
+    <fieldset id="courseList">
+      <% for(let course of courseList) { %>
+      <label>
+        <input type="checkbox" class="courseCheckbox" name="courseList" value="<%= course %>" />
+        <%= course %>
+      </label>
+      <% } %>
     </fieldset>
-
-    <!-- Student Communication Arts Classes -->
-    <label class="formQuestions">Communication Arts Classes</label>
-    <fieldset>
-      <select id="commArtsClasses" name="commArtsClasses" multiple>
-        <% for(let commArtsClass of commArtsClasses) { %>
-        <option value="<%= commArtsClass %>"><%= commArtsClass %></option>
-        <% } %>
-      </select>
-      <ul id="selectedCommArtsClasses"></ul>
-    </fieldset>
-
-    <!-- Student CTE Classes -->
-    <label class="formQuestions">CTE Classes</label>
-    <fieldset>
-      <select id="cteClasses" name="cteClasses" multiple>
-        <% for(let cteClass of cteClasses) { %>
-        <option value="<%= cteClass %>"><%= cteClass %></option>
-        <% } %>
-      </select>
-      <ul id="selectedCteClasses"></ul>
-    </fieldset>
-
-    <!-- Student Fine Arts Classes -->
-    <label class="formQuestions">Fine Arts Classes</label>
-    <fieldset>
-      <select id="fineArtsClasses" name="fineArtsClasses" multiple>
-        <% for(let fineArtsClass of fineArtsClasses) { %>
-        <option value="<%= fineArtsClass %>"><%= fineArtsClass %></option>
-        <% } %>
-      </select>
-      <ul id="selectedFineArtsClasses"></ul>
-    </fieldset>
-
-    <!-- Student History Classes -->
-    <label class="formQuestions">History Classes</label>
-    <fieldset>
-      <select id="historyClasses" name="historyClasses" multiple>
-        <% for(let historyClass of historyClasses) { %>
-        <option value="<%= historyClass %>"><%= historyClass %></option>
-        <% } %>
-      </select>
-      <ul id="selectedHistoryClasses"></ul>
-    </fieldset>
-
-    <!-- Student Language Classes -->
-    <label class="formQuestions">Language Classes</label>
-    <fieldset>
-      <select id="languageClasses" name="languageClasses" multiple>
-        <% for(let languageClass of languageClasses) { %>
-        <option value="<%= languageClass %>"><%= languageClass %></option>
-        <% } %>
-      </select>
-      <ul id="selectedLanguageClasses"></ul>
-    </fieldset>
-
-    <!-- Student Science Classes -->
-    <label class="formQuestions">Science Classes</label>
-    <fieldset>
-      <select id="scienceClasses" name="scienceClasses" multiple>
-        <% for(let scienceClass of scienceClasses) { %>
-        <option value="<%= scienceClass %>"><%= scienceClass %></option>
-        <% } %>
-      </select>
-      <ul id="selectedScienceClasses"></ul>
-    </fieldset>
-
-    <!-- Student Wellness Classes -->
-    <label class="formQuestions">Wellness Classes</label>
-    <fieldset>
-      <select id="wellnessClasses" name="wellnessClasses" multiple>
-        <% for(let wellnessClass of wellnessClasses) { %>
-        <option value="<%= wellnessClass %>"><%= wellnessClass %></option>
-        <% } %>
-      </select>
-      <ul id="selectedWellnessClasses"></ul>
-    </fieldset>
-
+    <ul id="selectedCourses"></ul>    </fieldset>
     <input type="submit" class="submit" value="Submit" />
   </div>
 </main>
 
-<!-- /Main Site -->
-
-<script src="/js/expertiseForm.js"></script>
-
-<!-- include footer -->
 <%- include('include/_footer') %>
-<!-- /include footer -->
 
 <script>
+  // Function to filter the course list based on search input
+  function filterCourseList() {
+    const searchInput = document.getElementById("courseSearch").value.toLowerCase();
+    const checkboxes = document.querySelectorAll("#courseList .courseCheckbox");
+
+    checkboxes.forEach(checkbox => {
+      const label = checkbox.parentElement;
+      const optionText = checkbox.value.toLowerCase();
+      if (optionText.startsWith(searchInput)) {
+        label.style.display = "";
+      } else {
+        label.style.display = "none";
+      }
+    });
+  }
+
   // Function to update the selected items list
-  function updateSelectedItems(selectElement, listElementId) {
-    const selectedOptions = Array.from(selectElement.selectedOptions);
-    const listElement = document.getElementById(listElementId);
+  function updateSelectedItems() {
+    const selectedCheckboxes = document.querySelectorAll("#courseList .courseCheckbox:checked");
+    const listElement = document.getElementById("selectedCourses");
     listElement.innerHTML = ""; // Clear the list
 
-    selectedOptions.forEach((option) => {
+    selectedCheckboxes.forEach(checkbox => {
       const li = document.createElement("li");
-      li.textContent = option.text;
+      li.textContent = checkbox.value;
       listElement.appendChild(li);
     });
   }
 
-  // Add event listeners to the select elements
-  document
-    .getElementById("mathClasses")
-    .addEventListener("change", function () {
-      updateSelectedItems(this, "selectedMathClasses");
-    });
-
-  document
-    .getElementById("commArtsClasses")
-    .addEventListener("change", function () {
-      updateSelectedItems(this, "selectedCommArtsClasses");
-    });
-
-  document.getElementById("cteClasses").addEventListener("change", function () {
-    updateSelectedItems(this, "selectedCteClasses");
+  // Add event listener to the checkboxes
+  document.querySelectorAll("#courseList .courseCheckbox").forEach(checkbox => {
+    checkbox.addEventListener("change", updateSelectedItems);
   });
 
-  document
-    .getElementById("fineArtsClasses")
-    .addEventListener("change", function () {
-      updateSelectedItems(this, "selectedFineArtsClasses");
-    });
-
-  document
-    .getElementById("historyClasses")
-    .addEventListener("change", function () {
-      updateSelectedItems(this, "selectedHistoryClasses");
-    });
-
-  document
-    .getElementById("languageClasses")
-    .addEventListener("change", function () {
-      updateSelectedItems(this, "selectedLanguageClasses");
-    });
-
-  document
-    .getElementById("scienceClasses")
-    .addEventListener("change", function () {
-      updateSelectedItems(this, "selectedScienceClasses");
-    });
-
-  document
-    .getElementById("wellnessClasses")
-    .addEventListener("change", function () {
-      updateSelectedItems(this, "selectedWellnessClasses");
-    });
+  // Add event listener to the search input
+  document.getElementById("courseSearch").addEventListener("input", filterCourseList);
 </script>
