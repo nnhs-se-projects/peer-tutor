@@ -76,9 +76,29 @@ route.get("/adminHome", async (req, res) => {
 // delegate all authentication to the auth.js router
 route.use("/auth", require("./auth"));
 
-// route to tutor form
+// Route to render the tutor form
 route.get("/tutorForm", async (req, res) => {
   res.render("tutorForm");
+});
+
+// Route to handle tutor form submissions
+route.post("/tutorForm", async (req, res) => {
+  try {
+    // Log form data to the console
+    console.log("Tutor form data:", req.body);
+
+    // Example of saving data to the database (optional)
+    const tutorEntry = new Entry({
+      tuteeName: req.body.tuteeName,
+    });
+    await tutorEntry.save();
+
+    // Respond to the client
+    res.status(201).send("Form submitted successfully!");
+  } catch (error) {
+    console.error("Error submitting form:", error);
+    res.status(500).send("An error occurred while submitting the form.");
+  }
 });
 
 module.exports = route;

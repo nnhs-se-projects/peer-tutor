@@ -448,3 +448,41 @@ function updateTeachers(subject) {
     });
   }
 }
+
+const form = document.querySelector("form#tutorForm");
+
+form.addEventListener("submit", async (event) => {
+  // Prevent the default form submission behavior
+  event.preventDefault();
+
+  // Get the values entered by the user
+  const tuteeName = document.querySelector("input#tuteeName").value;
+
+  // Create an object to store the form data
+  const tutorData = { tuteeName };
+
+  try {
+    // Send the data to the server
+    const response = await fetch("/tutorForm", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(tutorData),
+    });
+
+    // Handle the response
+    if (response.ok) {
+      console.log("Submitted"); // Confirm successful submission
+      alert("Your form has been submitted!");
+      // Optionally redirect the user after successful submission
+      window.location = "/tutHome";
+    } else {
+      console.error("Error submitting the form");
+      alert("An error occurred while submitting the form. Please try again.");
+    }
+  } catch (error) {
+    console.error("Network error:", error);
+    alert("A network error occurred. Please try again.");
+  }
+});
