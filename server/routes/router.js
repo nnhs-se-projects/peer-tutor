@@ -6,6 +6,7 @@ const Entry = require("../model/entry");
 const gradeSelection = require("../model/grades.json");
 
 const newReturningOptions = require("../model/newReturningOptions.json");
+const lunchPeriods = require("../model/lunchPeriods.json");
 
 // assigning variables to the JSON files
 const commArtsClasses = require("../model/commArtsClasses.json");
@@ -86,6 +87,7 @@ route.get("/expertiseForm", async (req, res) => {
   res.render("expertiseForm", {
     grades: gradeSelection,
     options: newReturningOptions,
+    lunchPeriods,
     commArtsClasses,
     cteClasses,
     fineArtsClasses,
