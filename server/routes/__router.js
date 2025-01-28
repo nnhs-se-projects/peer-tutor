@@ -10,7 +10,14 @@ const lunchPeriods = require("../model/lunchPeriods.json");
 const daysOfTheWeek = require("../model/daysOfTheWeek.json");
 
 // assigning variables to the JSON files
-const courseList = require("../model/courseList.json");
+const commArtsClasses = require("../model/commArtsClasses.json");
+const cteClasses = require("../model/cteClasses.json");
+const fineArtsClasses = require("../model/fineArtsClasses.json");
+const historyClasses = require("../model/historyClasses.json");
+const languageClasses = require("../model/languageClasses.json");
+const mathClasses = require("../model/mathClasses.json");
+const scienceClasses = require("../model/scienceClasses.json");
+const wellnessClasses = require("../model/wellnessClasses.json");
 
 // pass a path (e.g., "/") and a callback function to the get method
 //  when the client makes an HTTP GET request to the specified path,
@@ -83,16 +90,18 @@ route.get("/expertiseForm", async (req, res) => {
     options: newReturningOptions,
     lunchPeriods,
     daysOfTheWeek,
-    courseList,
+    commArtsClasses,
+    cteClasses,
+    fineArtsClasses,
+    historyClasses,
+    languageClasses,
+    mathClasses,
+    scienceClasses,
+    wellnessClasses,
   });
 });
 
 // delegate all authentication to the auth.js router
 route.use("/auth", require("./auth"));
-
-// Route to render the tutor form
-route.get("/tutorForm", async (req, res) => {
-  res.render("tutorForm");
-});
 
 module.exports = route;
