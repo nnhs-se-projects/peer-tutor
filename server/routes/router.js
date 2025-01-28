@@ -2,15 +2,8 @@ const express = require("express");
 const route = express.Router();
 const Entry = require("../model/entry");
 
-// assigning variable to the JSON file
-const gradeSelection = require("../model/grades.json");
-
-const newReturningOptions = require("../model/newReturningOptions.json");
-const lunchPeriods = require("../model/lunchPeriods.json");
-const daysOfTheWeek = require("../model/daysOfTheWeek.json");
-
-// assigning variables to the JSON files
-const courseList = require("../model/courseList.json");
+// easy way to assign static data (e.g., array of strings) to a variable
+const habitsOfMind = require("../model/habitsOfMind.json");
 
 // pass a path (e.g., "/") and a callback function to the get method
 //  when the client makes an HTTP GET request to the specified path,
@@ -36,6 +29,10 @@ route.get("/", async (req, res) => {
   res.render("index", { entries: formattedEntries });
 });
 
+route.get("/createEntry", (req, res) => {
+  res.render("createEntry", { habits: habitsOfMind });
+});
+
 route.post("/createEntry", async (req, res) => {
   const entry = new Entry({
     // When the time zone offset is absent, date-only forms are interpreted as
@@ -51,48 +48,32 @@ route.post("/createEntry", async (req, res) => {
   res.status(201).end();
 });
 
-// route to render classes, grades
-route.get("/tutHome", (req, res) => {
-  res.render("tutHome");
-});
-
-// route to student home page
+// rout to student home page
 route.get("/stuHome", async (req, res) => {
   res.render("stuHome");
 });
 
-// route to tutor leader home page
+// rout to tutor home page
+route.get("/tutHome", async (req, res) => {
+  res.render("tutHome");
+});
+
+// rout to tutor leader home page
 route.get("/leadHome", async (req, res) => {
   res.render("leadHome");
 });
 
-// route to teacher home page
+// rout to teacher home page
 route.get("/teachHome", async (req, res) => {
   res.render("teachHome");
 });
 
-// route to admin home page
+// rout to admin home page
 route.get("/adminHome", async (req, res) => {
   res.render("adminHome");
 });
 
-// route to expertise form page
-route.get("/expertiseForm", async (req, res) => {
-  res.render("expertiseForm", {
-    grades: gradeSelection,
-    options: newReturningOptions,
-    lunchPeriods,
-    daysOfTheWeek,
-    courseList,
-  });
-});
-
 // delegate all authentication to the auth.js router
 route.use("/auth", require("./auth"));
-
-// Route to render the tutor form
-route.get("/tutorForm", async (req, res) => {
-  res.render("tutorForm");
-});
 
 module.exports = route;
