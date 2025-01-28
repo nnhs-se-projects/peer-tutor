@@ -1,52 +1,17 @@
-styling for the authentication page .authForm {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
-  gap: 100px;
-  margin: 0 auto;
-}
+/* styling for the authentication page */
 
-.authForm img {
-  width: 100px;
-  height: 100px;
+.authForm {
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
-}
-
-.g_id_signin {
-  display: flex;
-  flex-direction: row;
+  flex-direction: column;
   flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
   gap: 10px;
 }
 
-.authTitle {
-  font-size: x-large;
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
-}
-
-.html,
-body {
-  height: 100%;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.main {
-  flex: 1;
+.authForm img {
+  width: 100px;
+  height: 100px;
 }
 
 .indexTopBar {
@@ -57,86 +22,14 @@ body {
   align-items: center;
 }
 
+.indexTopBar img {
+  flex-shrink: 0;
+  width: 100px;
+  height: 100px;
+}
+
 .indexTopBar h1 {
   margin-right: auto;
-}
-
-/* Ensure the parent container of the h2 uses flexbox */
-.parent-container {
-  display: flex;
-  justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
-}
-
-/* Center the text within the h2 element */
-.h2 {
-  font-size: 2em;
-  color: #000000;
-  text-align: center; /* Center the text */
-}
-
-/* Ensure the container uses flexbox */
-.logo-container {
-  display: flex;
-  justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
-  height: 100%; /* Ensure the container takes up the full height if needed */
-}
-
-/* Style the image if necessary */
-.peer-tutor-logo {
-  max-width: 100%; /* Ensure the image scales properly */
-  height: auto; /* Maintain aspect ratio */
-}
-.entries-display {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 0 auto;
-  width: 75%;
-}
-
-.entries-title {
-  font-size: 2em; /* Optional: Adjust font size */
-  color: #000000; /* Optional: Adjust text color */
-}
-
-.entries-text {
-  font-size: 1em; /* Optional: Adjust font size */
-  color: #000000; /* Optional: Adjust text color */
-}
-
-.createEntry-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 0 auto;
-  width: 75%;
-}
-
-.create-edit-title {
-  font-size: 2em; /* Optional: Adjust font size */
-  color: #ffffff; /* Optional: Adjust text color */
-}
-
-.title {
-  font-size: 4em;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  color: #000000;
-}
-
-.navbar {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
 }
 
 .entry {
@@ -155,107 +48,4 @@ body {
 
 .entryContent {
   flex-grow: 1;
-}
-
-.entry-box {
-  border: 4px solid #000000;
-  padding: 25px;
-  margin: 20px 0;
-  border-radius: 10px;
-  background-color: #ffc17a;
-}
-
-.editFunctions {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-}
-
-.formQuestions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  color: #000000;
-  font-size: 1.3em;
-}
-
-form div {
-  margin-bottom: 15px;
-}
-
-form label {
-  display: block;
-  margin-bottom: 5px;
-}
-
-form input[type="date"],
-form textarea {
-  width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
-}
-
-form input[type="submit"] {
-  padding: 10px 20px;
-  background-color: #ff8800;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-form input[type="submit"]:hover {
-  background-color: #ff8800;
-}
-
-/* Ensure the body and html take up the full height */
-html,
-body {
-  height: 100%;
-  margin: 100;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Main content should take up all available space */
-main {
-  flex: 1;
-}
-
-/* Footer should stick to the bottom */
-footer {
-  display: flex; /* Use flexbox */
-  justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
-  text-align: center; /* Center the text */
-  color: white; /* White text color */
-  background-color: #ff8800; /* Background color */
-  height: 5px; /* Adjust height to make it smaller */
-}
-
-.footer {
-  text-align: center; /* Center the text */
-  color: rgb(255, 255, 255); /* White text color */
-  align-items: center; /* Align to the bottom */
-  position: fixed; /* Fixed position */
-}
-
-/* Style the multi-select dropdown */
-select[multiple] {
-  width: 100%;
-  height: 150px; /* Adjust height as needed */
-  overflow: auto;
-}
-
-/* Style the bullet points list */
-ul {
-  list-style-type: disc;
-  padding-left: 20px;
-}
-
-ul li {
-  margin: 5px 0;
 }
