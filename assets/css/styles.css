@@ -37,6 +37,18 @@ styling for the authentication page .authForm {
   align-items: center;
 }
 
+.html,
+body {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+}
+
 .indexTopBar {
   display: flex;
   flex-direction: row;
@@ -45,25 +57,37 @@ styling for the authentication page .authForm {
   align-items: center;
 }
 
-.indexTopBar img {
-  flex-shrink: 0;
-  width: 75px;
-  height: 75px;
-}
-
 .indexTopBar h1 {
   margin-right: auto;
 }
 
-.indexPhoto {
+/* Ensure the parent container of the h2 uses flexbox */
+.parent-container {
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
 }
 
+/* Center the text within the h2 element */
+.h2 {
+  font-size: 2em;
+  color: #000000;
+  text-align: center; /* Center the text */
+}
+
+/* Ensure the container uses flexbox */
+.logo-container {
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  height: 100%; /* Ensure the container takes up the full height if needed */
+}
+
+/* Style the image if necessary */
+.peer-tutor-logo {
+  max-width: 100%; /* Ensure the image scales properly */
+  height: auto; /* Maintain aspect ratio */
+}
 .entries-display {
   display: flex;
   flex-direction: column;
@@ -74,12 +98,12 @@ styling for the authentication page .authForm {
 
 .entries-title {
   font-size: 2em; /* Optional: Adjust font size */
-  color: #ffffff; /* Optional: Adjust text color */
+  color: #000000; /* Optional: Adjust text color */
 }
 
 .entries-text {
   font-size: 1em; /* Optional: Adjust font size */
-  color: #c7c7c7; /* Optional: Adjust text color */
+  color: #000000; /* Optional: Adjust text color */
 }
 
 .createEntry-form {
@@ -95,44 +119,15 @@ styling for the authentication page .authForm {
   color: #ffffff; /* Optional: Adjust text color */
 }
 
-.footer {
-  background-color: #21bbeb; /* Light gray background color */
-  border: 1px solid #21bbeb; /* Light gray border */
-  padding: 10px; /* Padding inside the container */
-  margin-top: 20px; /* Margin on top of the footer */
-  text-align: center; /* Center the text */
-}
-
-.footer nav {
-  display: flex;
-  justify-content: center; /* Center the content horizontally */
-  margin-bottom: 10px; /* Margin below the navigation links */
-}
-
-.footer a {
-  color: #ffffff; /* Link color */
-  text-decoration: none; /* Remove underline from links */
-  margin: 0 10px; /* Margin between links */
-}
-
-.footer a:hover {
-  text-decoration: underline; /* Underline links on hover */
-}
-
-.footer p {
-  text-align: center; /* Center the text */
-  margin: 0; /* Remove margin from the paragraph */
-  color: #ffffff; /* Gray text color */
-}
-
 .title {
-  font-size: large;
+  font-size: 4em;
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
   gap: 10px;
+  color: #000000;
 }
 
 .navbar {
@@ -167,7 +162,7 @@ styling for the authentication page .authForm {
   padding: 25px;
   margin: 20px 0;
   border-radius: 10px;
-  background-color: #21bbeb;
+  background-color: #ffc17a;
 }
 
 .editFunctions {
@@ -179,9 +174,12 @@ styling for the authentication page .authForm {
   gap: 10px;
 }
 
-.entry-box p {
-  color: rgb(255, 255, 255);
-  margin: 10px 0;
+.formQuestions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: #000000;
+  font-size: 1.3em;
 }
 
 form div {
@@ -202,7 +200,7 @@ form textarea {
 
 form input[type="submit"] {
   padding: 10px 20px;
-  background-color: #007bff;
+  background-color: #ff8800;
   color: white;
   border: none;
   border-radius: 5px;
@@ -210,5 +208,54 @@ form input[type="submit"] {
 }
 
 form input[type="submit"]:hover {
-  background-color: #0056b3;
+  background-color: #ff8800;
+}
+
+/* Ensure the body and html take up the full height */
+html,
+body {
+  height: 100%;
+  margin: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main content should take up all available space */
+main {
+  flex: 1;
+}
+
+/* Footer should stick to the bottom */
+footer {
+  display: flex; /* Use flexbox */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  text-align: center; /* Center the text */
+  color: white; /* White text color */
+  background-color: #ff8800; /* Background color */
+  height: 5px; /* Adjust height to make it smaller */
+}
+
+.footer {
+  text-align: center; /* Center the text */
+  color: rgb(255, 255, 255); /* White text color */
+  align-items: center; /* Align to the bottom */
+  position: fixed; /* Fixed position */
+}
+
+/* Style the multi-select dropdown */
+select[multiple] {
+  width: 100%;
+  height: 150px; /* Adjust height as needed */
+  overflow: auto;
+}
+
+/* Style the bullet points list */
+ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+ul li {
+  margin: 5px 0;
 }
