@@ -90,4 +90,9 @@ route.get("/expertiseForm", async (req, res) => {
 // delegate all authentication to the auth.js router
 route.use("/auth", require("./auth"));
 
+// Route to render the tutor form
+route.get("/tutorForm", async (req, res) => {
+  res.render("tutorForm");
+});
+
 module.exports = route;
