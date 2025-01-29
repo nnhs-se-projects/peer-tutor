@@ -1,4 +1,119 @@
-styling for the authentication page .authForm {
+/* General form styles */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 0 auto;
+  width: 75%;
+}
+
+label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="date"],
+select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+  margin-right: 10px;
+}
+
+input[type="submit"],
+a.submit {
+  background-color: #ff8800;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none; /* Remove underline from links */
+  display: inline-block; /* Ensure proper padding for links */
+  text-align: center; /* Center text for links */
+}
+
+input[type="submit"]:hover,
+a.submit:hover {
+  background-color: #ff6600;
+}
+
+/* Specific styles for the form container */
+.createEntry-form,
+.indexTopBar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.indexTopBar img {
+  max-width: 100px;
+  margin-bottom: 20px;
+}
+
+.indexTopBar h1,
+.indexTopBar h2 {
+  margin: 0;
+  text-align: center;
+}
+
+fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+ul li {
+  margin: 5px 0;
+}
+
+/* Two-column layout for the form */
+.form-columns {
+  display: flex;
+  justify-content: space-between;
+}
+
+.form-column {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.form-column:last-child {
+  margin-right: 0;
+}
+
+/* Style the multi-select dropdown */
+select[multiple] {
+  width: 100%;
+  height: 150px; /* Adjust height as needed */
+  overflow: auto;
+}
+
+/* Style the bullet points list */
+ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+ul li {
+  margin: 5px 0;
+}
+
+/* Authentication page styles */
+.authForm {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
@@ -37,7 +152,8 @@ styling for the authentication page .authForm {
   align-items: center;
 }
 
-.html,
+/* Ensure the body and html take up the full height */
+html,
 body {
   height: 100%;
   margin: 0;
@@ -45,20 +161,27 @@ body {
   flex-direction: column;
 }
 
-.main {
+/* Main content should take up all available space */
+main {
   flex: 1;
 }
 
-.indexTopBar {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: space-between;
-  align-items: center;
+/* Footer should stick to the bottom */
+footer {
+  display: flex; /* Use flexbox */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  text-align: center; /* Center the text */
+  color: white; /* White text color */
+  background-color: hsl(214, 94%, 42%); /* Background color */
+  height: 5px; /* Adjust height to make it smaller */
 }
 
-.indexTopBar h1 {
-  margin-right: auto;
+.footer {
+  text-align: center; /* Center the text */
+  color: rgb(255, 255, 255); /* White text color */
+  align-items: center; /* Align to the bottom */
+  position: fixed; /* Fixed position */
 }
 
 /* Ensure the parent container of the h2 uses flexbox */
@@ -88,6 +211,7 @@ body {
   max-width: 100%; /* Ensure the image scales properly */
   height: auto; /* Maintain aspect ratio */
 }
+
 .entries-display {
   display: flex;
   flex-direction: column;
@@ -208,54 +332,5 @@ form input[type="submit"] {
 }
 
 form input[type="submit"]:hover {
-  background-color: #ff8800;
-}
-
-/* Ensure the body and html take up the full height */
-html,
-body {
-  height: 100%;
-  margin: 100;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Main content should take up all available space */
-main {
-  flex: 1;
-}
-
-/* Footer should stick to the bottom */
-footer {
-  display: flex; /* Use flexbox */
-  justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
-  text-align: center; /* Center the text */
-  color: white; /* White text color */
-  background-color: #ff8800; /* Background color */
-  height: 5px; /* Adjust height to make it smaller */
-}
-
-.footer {
-  text-align: center; /* Center the text */
-  color: rgb(255, 255, 255); /* White text color */
-  align-items: center; /* Align to the bottom */
-  position: fixed; /* Fixed position */
-}
-
-/* Style the multi-select dropdown */
-select[multiple] {
-  width: 100%;
-  height: 150px; /* Adjust height as needed */
-  overflow: auto;
-}
-
-/* Style the bullet points list */
-ul {
-  list-style-type: disc;
-  padding-left: 20px;
-}
-
-ul li {
-  margin: 5px 0;
+  background-color: #ff6600;
 }
