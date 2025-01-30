@@ -302,7 +302,7 @@ kbd {
     --primary-focus: rgba(16, 149, 193, 0.25);
     --primary-inverse: #fff;
     --secondary: hsl(205, 15%, 41%);
-    --secondary-hover: hsl(205, 10%, 50%);
+    --secondary-hover: hsl(214, 94%, 52%);
     --secondary-focus: rgba(115, 130, 140, 0.25);
     --secondary-inverse: #fff;
     --contrast: hsl(205, 20%, 94%);
@@ -407,7 +407,7 @@ kbd {
   --primary-hover: hsl(195, 80%, 50%);
   --primary-focus: rgba(16, 149, 193, 0.25);
   --primary-inverse: #fff;
-  --secondary: hsl(205, 15%, 41%);
+  --secondary: hsl(214, 94%, 52%);
   --secondary-hover: hsl(205, 10%, 50%);
   --secondary-focus: rgba(115, 130, 140, 0.25);
   --secondary-inverse: #fff;
@@ -431,7 +431,7 @@ kbd {
   --form-element-active-border-color: var(--primary);
   --form-element-focus-color: var(--primary-focus);
   --form-element-disabled-background-color: hsl(205, 25%, 23%);
-  --form-element-disabled-border-color: hsl(205, 20%, 32%);
+  --form-element-disabled-border-color: hsl(214, 94%, 52%);
   --form-element-disabled-opacity: 0.5;
   --form-element-invalid-border-color: #b71c1c;
   --form-element-invalid-active-border-color: #c62828;
@@ -443,7 +443,7 @@ kbd {
   --switch-color: var(--primary-inverse);
   --switch-checked-background-color: var(--primary);
   --range-border-color: #24333e;
-  --range-active-border-color: hsl(205, 25%, 23%);
+  --range-active-border-color: hsl(214, 94%, 52%); /* Updated hover color */
   --range-thumb-border-color: var(--background-color);
   --range-thumb-color: var(--secondary);
   --range-thumb-hover-color: var(--secondary-hover);

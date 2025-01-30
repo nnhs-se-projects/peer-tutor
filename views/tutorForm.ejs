@@ -3,12 +3,11 @@
 <!-- Main Site -->
 <main>
   <div class="createEntry-form">
-    <h1 class="create-edit-title">Tutor Form Page</h1>
-
     <form>
       <div class="form-columns">
-        <!-- Left Column (Tutor Information) -->
+        <!-- Left Column (Tutor Information and Session Details) -->
         <div class="form-column">
+          <h1 style="text-align: center">Tutor:</h1>
           <label class="formQuestions" for="tutorFirstName"
             >Tutor First Name</label
           >
@@ -23,38 +22,9 @@
             >Tutor Last Name</label
           >
           <input type="text" id="tutorLastName" name="tutorLastName" required />
-        </div>
-
-        <!-- Right Column (Other Information) -->
-        <div class="form-column">
-          <label class="formQuestions" for="tuteeFirstName"
-            >Tutee First Name</label
-          >
-          <input
-            type="text"
-            id="tuteeFirstName"
-            name="tuteeFirstName"
-            required
-          />
-
-          <label class="formQuestions" for="tuteeLastName"
-            >Tutee Last Name</label
-          >
-          <input type="text" id="tuteeLastName" name="tuteeLastName" required />
-
-          <label class="formQuestions" for="tuteeID">Tutee ID</label>
-          <input type="text" id="tuteeID" name="tuteeID" required />
 
           <label class="formQuestions" for="sessionDate">Date</label>
           <input type="date" id="sessionDate" name="sessionDate" required />
-
-          <label class="formQuestions">Tutee Grade</label>
-          <fieldset>
-            <label><input type="radio" name="grade" value="9" /> 9</label>
-            <label><input type="radio" name="grade" value="10" /> 10</label>
-            <label><input type="radio" name="grade" value="11" /> 11</label>
-            <label><input type="radio" name="grade" value="12" /> 12</label>
-          </fieldset>
 
           <label class="formQuestions" for="sessionPeriod"
             >Session Period</label
@@ -146,6 +116,36 @@
             name="workaccomplished"
             required
           />
+        </div>
+
+        <!-- Right Column (Tutee Information) -->
+        <div class="form-column">
+          <h1 style="text-align: center">Tutee:</h1>
+          <label class="formQuestions" for="tuteeFirstName"
+            >Tutee First Name</label
+          >
+          <input
+            type="text"
+            id="tuteeFirstName"
+            name="tuteeFirstName"
+            required
+          />
+
+          <label class="formQuestions" for="tuteeLastName"
+            >Tutee Last Name</label
+          >
+          <input type="text" id="tuteeLastName" name="tuteeLastName" required />
+
+          <label class="formQuestions" for="tuteeID">Tutee ID</label>
+          <input type="text" id="tuteeID" name="tuteeID" required />
+
+          <label class="formQuestions">Tutee Grade</label>
+          <fieldset>
+            <label><input type="radio" name="grade" value="9" /> 9</label>
+            <label><input type="radio" name="grade" value="10" /> 10</label>
+            <label><input type="radio" name="grade" value="11" /> 11</label>
+            <label><input type="radio" name="grade" value="12" /> 12</label>
+          </fieldset>
         </div>
       </div>
 
