@@ -31,7 +31,7 @@ input[type="checkbox"] {
 .createEntry-form {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: left;
   margin-bottom: 20px;
 }
 
@@ -43,6 +43,12 @@ input[type="checkbox"] {
 /* Reduce margin space between navbar bottom and columns in tutorForm.ejs */
 .createEntry-form {
   margin-top: 10px; /* Adjust this value as needed */
+}
+
+.createEntry-form-box {
+  padding: 20px;
+  margin: 75px;
+  background-color: #a5c9ff;
 }
 
 /* Reduce spacing for the navigation bar */

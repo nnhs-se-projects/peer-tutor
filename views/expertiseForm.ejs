@@ -5,103 +5,114 @@
   <div class="createEntry-form">
     <h1>Tutor Expertise Form</h1>
 
-    <!-- Student Name -->
-    <label class="formQuestions">First Name</label>
-    <input type="text" id="firstName" name="firstName" required />
-    <label class="formQuestions">Last Name</label>
-    <input type="text" id="lastName" name="lastName" required />
+    <form>
+      <!-- Student Name -->
+      <label class="formQuestions">First Name</label>
+      <input type="text" id="firstName" name="firstName" required />
+      <label class="formQuestions">Last Name</label>
+      <input type="text" id="lastName" name="lastName" required />
 
-    <!-- Student Email -->
-    <label class="formQuestions">Email</label>
-    <input type="email" id="tutEmail" name="tutEmail" required />
+      <!-- Student Email -->
+      <label class="formQuestions">Email</label>
+      <input type="email" id="tutEmail" name="tutEmail" required />
 
-    <!-- Student Grade -->
-    <label class="formQuestions">Grade</label>
-    <fieldset>
-      <% for(let grade of grades) { %>
-      <label>
-        <input
-          type="radio"
-          class="habits"
-          name="grade"
-          value="<%= grade %>"
-        /><%= grade %>
-      </label>
-      <% } %>
-    </fieldset>
+      <!-- Student Grade -->
+      <label class="formQuestions">Grade</label>
+      <fieldset>
+        <% for(let grade of grades) { %>
+        <label>
+          <input
+            type="radio"
+            class="habits"
+            name="grade"
+            value="<%= grade %>"
+          /><%= grade %>
+        </label>
+        <% } %>
+      </fieldset>
 
-    <!-- Student New/Returning -->
-    <label class="formQuestions">New or Returning?</label>
-    <fieldset>
-      <% for(let option of options) { %>
-      <label>
-        <input
-          type="radio"
-          class="options"
-          name="newReturning"
-          value="<%= option %>"
-        /><%= option %>
-      </label>
-      <% } %>
-    </fieldset>
+      <!-- Student New/Returning -->
+      <label class="formQuestions">New or Returning?</label>
+      <fieldset>
+        <% for(let option of options) { %>
+        <label>
+          <input
+            type="radio"
+            class="options"
+            name="newReturning"
+            value="<%= option %>"
+          /><%= option %>
+        </label>
+        <% } %>
+      </fieldset>
 
-    <!-- Student Lunch Period -->
-    <label class="formQuestions">Lunch Period</label>
-    <fieldset>
-      <% for(let lunchPeriod of lunchPeriods) { %>
-      <label>
-        <input
-          type="radio"
-          class="lunchPeriod"
-          name="lunchPeriod"
-          value="<%= lunchPeriod %>"
-        /><%= lunchPeriod %>
-      </label>
-      <% } %>
-    </fieldset>
+      <!-- Student Lunch Period -->
+      <label class="formQuestions">Lunch Period</label>
+      <fieldset>
+        <% for(let lunchPeriod of lunchPeriods) { %>
+        <label>
+          <input
+            type="checkbox"
+            class="lunchPeriod"
+            name="lunchPeriod"
+            value="<%= lunchPeriod %>"
+          /><%= lunchPeriod %>
+        </label>
+        <% } %>
+      </fieldset>
 
-    <!-- Student Tutoring Days -->
-    <label class="formQuestions">Tutoring Days (check 2-3)</label>
-    <fieldset>
-      <% for(let dayOfTheWeek of daysOfTheWeek) { %>
-      <label>
-        <input
-          type="checkbox"
-          class="dayOfTheWeek"
-          name="dayOfTheWeek"
-          value="<%= dayOfTheWeek %>"
-        /><%= dayOfTheWeek %>
-      </label>
-      <% } %>
-    </fieldset>
+      <!-- Student Tutoring Days -->
+      <label class="formQuestions">Tutoring Days (check 2-3)</label>
+      <fieldset>
+        <% for(let dayOfTheWeek of daysOfTheWeek) { %>
+        <label>
+          <input
+            type="checkbox"
+            class="dayOfTheWeek"
+            name="dayOfTheWeek"
+            value="<%= dayOfTheWeek %>"
+          /><%= dayOfTheWeek %>
+        </label>
+        <% } %>
+      </fieldset>
+    </form>
+  </div>
 
+  <div class="createEntry-form-box">
     <div class="form-columns">
-        <!-- Left Column (Tutor Information and Session Details) -->
-        <div class="form-column"></div>
-    <!-- Right Column (Student Classes) -->
-        <div class="form-column"></div>
-    <!-- Student Classes -->
-    <label class="formQuestions">Classes</label>
-    <input
-      type="text"
-      id="courseSearch"
-      placeholder="Search for a class..."
-      oninput="filterCourseList()"
-    />
-    <fieldset id="courseList">
-      <% for(let course of courseList) { %>
-      <label style="display: none">
+      <!-- Left Column (Tutor Information and Session Details) -->
+      <div class="form-column">
+        <!-- Student Classes -->
+        <label class="formQuestions">Courses I can tutor:</label>
         <input
-          type="checkbox"
-          class="courseCheckbox"
-          name="courseList"
-          value="<%= course %>"
+          type="text"
+          id="courseSearch"
+          placeholder="Search for a class..."
+          oninput="filterCourseList()"
         />
-        <%= course %>
-      </label>
-      <% } %>
-    </fieldset>
-    <ul id="selectedCourses"></ul>
+        <fieldset id="courseList">
+          <% for(let course of courseList) { %>
+          <label style="display: none">
+            <input
+              type="checkbox"
+              class="courseCheckbox"
+              name="courseList"
+              value="<%= course %>"
+            />
+            <%= course %>
+          </label>
+          <% } %>
+        </fieldset>
+      </div>
+      <!-- Right Column-->
+      <div class="form-column">
+        <label class="formQuestions">Selected Courses:</label>
+        <ul id="selectedCourses"></ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="createEntry-form">
     <input type="submit" class="submit" value="Submit" />
   </div>
 </main>
@@ -121,7 +132,7 @@
       const optionText = checkbox.value.toLowerCase();
       if (searchInput === "") {
         label.style.display = "none";
-      } else if (optionText.startsWith(searchInput)) {
+      } else if (optionText.includes(searchInput)) {
         label.style.display = "";
       } else {
         label.style.display = "none";
@@ -155,4 +166,30 @@
   document
     .getElementById("courseSearch")
     .addEventListener("input", filterCourseList);
+
+  // Add event listener to the form submission
+  document
+    .getElementById("expertiseForm")
+    .addEventListener("submit", function (event) {
+      event.preventDefault(); // Prevent the default form submission
+
+      // Perform form submission via AJAX or fetch
+      const formData = new FormData(this);
+      fetch(this.action, {
+        method: this.method,
+        body: formData,
+      })
+        .then((response) => {
+          if (response.ok) {
+            window.location.href = "/tutHome"; // Redirect to Tutor Homepage
+          } else {
+            // Handle error
+            alert("Form submission failed.");
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          alert("Form submission failed.");
+        });
+    });
 </script>
