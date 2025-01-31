@@ -3,6 +3,7 @@
  */
 
 const mongoose = require("mongoose");
+const sesh = require("./session");
 
 const schema = new mongoose.Schema({
   // tutee last name
@@ -30,36 +31,42 @@ const schema = new mongoose.Schema({
     required: true,
   },
 
+  // if tutor is returning or not
   returning: {
     type: Boolean,
     required: true,
   },
 
+  // lunch period of tutor
   period: {
     type: Number,
     required: true,
   },
+  // days tutor is available
   daysAvailable: {
     type: [String],
     required: true,
   },
 
+  // classes tutor is able to tutor
   classes: {
     type: [String],
     required: true,
   },
 
+  // if tutor is tutorLeader or not
   tutorLeader: {
     type: Boolean,
     required: true,
   },
+  // attendance of tutee number of day missed
   attendance: {
     type: Number,
     required: true,
   },
   // session history of tutee
   sessionHistory: {
-    type: [session],
+    type: [sesh],
     required: true,
   },
 });

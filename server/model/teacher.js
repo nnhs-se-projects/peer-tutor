@@ -3,7 +3,6 @@
  */
 
 const mongoose = require("mongoose");
-const sesh = require("./session");
 
 const schema = new mongoose.Schema({
   // tutee email
@@ -21,23 +20,13 @@ const schema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  // ID number of  tutee
-  IDnumber: {
-    type: Number,
-    required: true,
-  },
-  // grade of tutee
-  grade: {
-    type: Number,
-    required: true,
-  },
-  // session history of tutee
-  sessionHistory: {
-    type: [sesh],
+  // if teacher is an admin
+  admin: {
+    type: Boolean,
     required: true,
   },
 });
 
-const Tutee = mongoose.model("Tutee", schema);
+const Teacher = mongoose.model("Teacher", schema);
 
-module.exports = Tutee;
+module.exports = Teacher;
