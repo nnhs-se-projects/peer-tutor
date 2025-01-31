@@ -3,7 +3,7 @@
 <!-- Main Site -->
 <main>
   <div class="createEntry-form">
-    <h1>Tutor Expertise Sheet</h1>
+    <h1>Tutor Expertise Form</h1>
 
     <!-- Student Name -->
     <label class="formQuestions">First Name</label>
@@ -75,6 +75,11 @@
       <% } %>
     </fieldset>
 
+    <div class="form-columns">
+        <!-- Left Column (Tutor Information and Session Details) -->
+        <div class="form-column"></div>
+    <!-- Right Column (Student Classes) -->
+        <div class="form-column"></div>
     <!-- Student Classes -->
     <label class="formQuestions">Classes</label>
     <input
@@ -85,13 +90,18 @@
     />
     <fieldset id="courseList">
       <% for(let course of courseList) { %>
-      <label>
-        <input type="checkbox" class="courseCheckbox" name="courseList" value="<%= course %>" />
+      <label style="display: none">
+        <input
+          type="checkbox"
+          class="courseCheckbox"
+          name="courseList"
+          value="<%= course %>"
+        />
         <%= course %>
       </label>
       <% } %>
     </fieldset>
-    <ul id="selectedCourses"></ul>    </fieldset>
+    <ul id="selectedCourses"></ul>
     <input type="submit" class="submit" value="Submit" />
   </div>
 </main>
@@ -101,13 +111,17 @@
 <script>
   // Function to filter the course list based on search input
   function filterCourseList() {
-    const searchInput = document.getElementById("courseSearch").value.toLowerCase();
+    const searchInput = document
+      .getElementById("courseSearch")
+      .value.toLowerCase();
     const checkboxes = document.querySelectorAll("#courseList .courseCheckbox");
 
-    checkboxes.forEach(checkbox => {
+    checkboxes.forEach((checkbox) => {
       const label = checkbox.parentElement;
       const optionText = checkbox.value.toLowerCase();
-      if (optionText.startsWith(searchInput)) {
+      if (searchInput === "") {
+        label.style.display = "none";
+      } else if (optionText.startsWith(searchInput)) {
         label.style.display = "";
       } else {
         label.style.display = "none";
@@ -117,11 +131,13 @@
 
   // Function to update the selected items list
   function updateSelectedItems() {
-    const selectedCheckboxes = document.querySelectorAll("#courseList .courseCheckbox:checked");
+    const selectedCheckboxes = document.querySelectorAll(
+      "#courseList .courseCheckbox:checked"
+    );
     const listElement = document.getElementById("selectedCourses");
     listElement.innerHTML = ""; // Clear the list
 
-    selectedCheckboxes.forEach(checkbox => {
+    selectedCheckboxes.forEach((checkbox) => {
       const li = document.createElement("li");
       li.textContent = checkbox.value;
       listElement.appendChild(li);
@@ -129,10 +145,14 @@
   }
 
   // Add event listener to the checkboxes
-  document.querySelectorAll("#courseList .courseCheckbox").forEach(checkbox => {
-    checkbox.addEventListener("change", updateSelectedItems);
-  });
+  document
+    .querySelectorAll("#courseList .courseCheckbox")
+    .forEach((checkbox) => {
+      checkbox.addEventListener("change", updateSelectedItems);
+    });
 
   // Add event listener to the search input
-  document.getElementById("courseSearch").addEventListener("input", filterCourseList);
+  document
+    .getElementById("courseSearch")
+    .addEventListener("input", filterCourseList);
 </script>

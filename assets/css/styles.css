@@ -263,7 +263,8 @@ footer {
   flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 40px;
+  margin-top: -50px;
 }
 
 .entry {
