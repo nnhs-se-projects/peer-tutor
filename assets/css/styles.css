@@ -362,3 +362,21 @@ input[type="submit"]:hover,
 a.submit:hover {
   background-color: #ff6600;
 }
+
+/* Full-width blue button */
+.full-width-button {
+  width: 100%;
+  background-color: #0066ff; /* Blue color */
+  color: white;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none; /* Remove underline from links */
+  display: inline-block; /* Ensure proper padding for links */
+}
+
+.full-width-button:hover {
+  background-color: #0056d6; /* Darker blue on hover */
+}
