@@ -35,20 +35,15 @@ input[type="checkbox"] {
   margin-bottom: 20px;
 }
 
-.indexTopBar img {
-  max-width: 100px;
-  margin-bottom: 20px;
-}
-
-/* Reduce margin space between navbar bottom and columns in tutorForm.ejs */
-.createEntry-form {
-  margin-top: 10px; /* Adjust this value as needed */
-}
-
 .createEntry-form-box {
   padding: 20px;
   margin: 75px;
   background-color: #a5c9ff;
+}
+
+.indexTopBar img {
+  max-width: 100px;
+  margin-bottom: 20px;
 }
 
 /* Reduce spacing for the navigation bar */
@@ -59,6 +54,10 @@ input[type="checkbox"] {
 /* Reduce spacing for the headings above the form */
 .create-edit-title {
   margin-bottom: 10px; /* Adjust this value as needed */
+}
+
+h1 {
+  margin-top: 10px; /* Adjust this value as needed */
 }
 
 .form-column h1 {
@@ -119,15 +118,26 @@ ul li {
   margin: 5px 0;
 }
 
-/* Authentication page styles */
+/* Styling for the authentication form */
 .authForm {
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  gap: 100px;
-  margin: 0 auto;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  background-color: #f9f9f9; /* Light background color */
+  border: 1px solid #ccc; /* Light border */
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  width: 300px; /* Fixed width */
+  margin: 0 auto; /* Center horizontally */
+}
+
+.g_id_signin {
+  width: 100%; /* Full width */
+  display: flex;
+  justify-content: center;
 }
 
 .authForm img {

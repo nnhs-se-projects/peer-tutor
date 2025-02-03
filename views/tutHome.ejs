@@ -8,18 +8,29 @@
 
   <div class="container">
     <h3 class="h3">Tutor Forms</h3>
-    <button>
-      <a class="full-width-button" href="/tutorForm" role="button"
-        >Session Form</a
-      >
-    </button>
-
-    <button>
-      <a class="full-width-button" href="/expertiseForm" role="button"
-        >Expertise Form</a
-      >
-    </button>
+    <div class="form-columns">
+      <div class="column">
+        <a href="/tutorForm" class="full-width-button" role="button"
+          >Session Form</a
+        >
+      </div>
+      <div class="column">
+        <a href="/expertiseForm" class="full-width-button" role="button"
+          >Expertise Form</a
+        >
+      </div>
+    </div>
   </div>
-
-  <script src="js/tutHome.js"></script>
 </main>
+
+<style>
+  .row {
+    display: flex;
+  }
+  .column {
+    flex: 50%;
+    padding: 10px;
+  }
+</style>
+
+<script src="js/tutHome.js"></script>
