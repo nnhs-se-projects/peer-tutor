@@ -36,9 +36,10 @@ input[type="checkbox"] {
 }
 
 .createEntry-form-box {
-  padding: 20px;
+  padding: 25px;
   margin: 75px;
-  background-color: #a5c9ff;
+  background-color: #9bc6ff;
+  margin-top: 0%;
 }
 
 .indexTopBar img {
@@ -48,7 +49,8 @@ input[type="checkbox"] {
 
 /* Reduce spacing for the navigation bar */
 .navbar {
-  margin-bottom: 0px; /* Adjust this value as needed */
+  margin-top: auto;
+  margin-bottom: auto; /* Adjust this value as needed */
 }
 
 /* Reduce spacing for the headings above the form */
@@ -57,16 +59,27 @@ input[type="checkbox"] {
 }
 
 h1 {
+  font-size: 0.75em;
   margin-top: 10px; /* Adjust this value as needed */
+  margin-bottom: 100px; /* Adjust this value as needed to add more space */
 }
 
 .form-column h1 {
   margin-bottom: 10px; /* Adjust this value as needed */
 }
 
+/* Styling for the .heading class */
+.heading {
+  font-size: 2.5em; /* Medium-sized title */
+  color: #ff8800; /* Black text color */
+  text-align: center; /* Center the text */
+  margin-top: 0%; /* Adjust this value as needed */
+  margin-bottom: 10px; /* Adjust this value as needed */
+}
+
 .indexTopBar h1,
 .indexTopBar h2 {
-  margin: 0;
+  margin: auto;
   text-align: center;
 }
 
@@ -186,28 +199,18 @@ main {
 }
 
 /* Footer should stick to the bottom */
-footer {
+footer,
+.footer {
   display: flex; /* Use flexbox */
   justify-content: center; /* Center horizontally */
   align-items: center; /* Center vertically */
   text-align: center; /* Center the text */
-  color: white; /* White text color */
-  background-color: #ff8800; /* Background color */
-  height: 5px; /* Adjust height to make it smaller */
-}
-
-.footer {
-  text-align: center; /* Center the text */
   color: rgb(255, 255, 255); /* White text color */
-  align-items: center; /* Align to the bottom */
-  position: fixed; /* Fixed position */
-}
-
-/* Ensure the parent container of the h2 uses flexbox */
-.parent-container {
-  display: flex;
-  justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
+  font-size: large;
+  background-color: #ff8800; /* Background color */
+  width: 100%; /* Full width */
+  position: static; /* Fixed position */
+  bottom: 0; /* Stick to the bottom */
 }
 
 /* Center the text within the h2 element */
@@ -215,13 +218,23 @@ footer {
   font-size: 2em;
   color: #000000;
   text-align: center; /* Center the text */
+  justify-content: flex-start; /* Align items at the top */
+}
+
+/* Ensure the container uses flexbox */
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Align items at the top */
+  align-items: center; /* Center horizontally */
+  height: min-content; /* Adjust height as needed */
 }
 
 /* Ensure the container uses flexbox */
 .logo-container {
   display: flex;
   justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
+  align-items: flex-start; /* Align items at the top */
   height: 100%; /* Ensure the container takes up the full height if needed */
 }
 
