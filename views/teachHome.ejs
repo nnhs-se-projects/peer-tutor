@@ -1,16 +1,35 @@
-<%- include('include/_header') %>
+<%- include('include/_header') %> <%- include('include/_teachNavBar') %>
 
 <!-- Main Site -->
 <main>
-  <div class="indexTopBar">
-    <h2>Teacher Home Page</h2>
+  <h1 class="heading">Teacher Resources</h1>
+  <div class="createEntry-form-box">
+    <h3 class="h3">Database Tables</h3>
+    <div class="form-columns">
+      <div class="column">
+        <a href="/tutorTable" class="full-width-button" role="button"
+          >Tutor Database Table</a
+        >
+      </div>
+      <div class="column">
+        <a href="/sessionTable" class="full-width-button" role="button"
+          >Session Database Table</a
+        >
+      </div>
+    </div>
   </div>
 </main>
 
-<!-- /Main Site -->
-
-<script src="/js/teachHome.js"></script>
-
-<!-- include footer -->
 <%- include('include/_footer') %>
-<!-- /include footer -->
+
+<style>
+  .row {
+    display: flex;
+  }
+  .column {
+    flex: 50%;
+    padding: 10px;
+  }
+</style>
+
+<script src="js/teachHome.js"></script>

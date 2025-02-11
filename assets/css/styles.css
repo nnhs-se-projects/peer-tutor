@@ -403,3 +403,15 @@ a.submit:hover {
 .full-width-button:hover {
   background-color: #0056d6; /* Darker blue on hover */
 }
+
+.bordered-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.bordered-table th,
+.bordered-table td {
+  border: 1px solid black;
+  padding: 8px;
+  text-align: left;
+}

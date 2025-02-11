@@ -87,6 +87,12 @@ route.get("/expertiseForm", async (req, res) => {
   });
 });
 
+// route to render the tutor table
+route.get("/tutorTable", async (req, res) => {
+  const entries = await Entry.find();
+  res.render("tutorTable", { entries });
+});
+
 // delegate all authentication to the auth.js router
 route.use("/auth", require("./auth"));
 
