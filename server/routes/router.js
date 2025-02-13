@@ -1,6 +1,7 @@
 const express = require("express");
 const route = express.Router();
 const Entry = require("../model/entry");
+const Session = require("../model/session"); // Import the Session schema
 
 // assigning variable to the JSON file
 const gradeSelection = require("../model/grades.json");
@@ -93,6 +94,34 @@ route.use("/auth", require("./auth"));
 // Route to render the tutor form
 route.get("/tutorForm", async (req, res) => {
   res.render("tutorForm");
+});
+
+// Route to handle tutor form submission
+route.post("/submitTutorForm", async (req, res) => {
+  try {
+    const newSession = new Session({
+      tutorFirstName: req.body.tutorFirstName,
+      tutorLastName: req.body.tutorLastName,
+      sessionDate: req.body.sessionDate,
+      sessionPeriod: req.body.sessionPeriod,
+      sessionPlace: req.body.sessionPlace,
+      subject: req.body.subject,
+      class: req.body.class,
+      teacher: req.body.teacher,
+      FocusOfSession: req.body.FocusOfSession,
+      workaccomplished: req.body.workaccomplished,
+      tuteeFirstName: req.body.tuteeFirstName,
+      tuteeLastName: req.body.tuteeLastName,
+      tuteeID: req.body.tuteeID,
+      grade: req.body.grade,
+    });
+    await newSession.save();
+    res.json({ success: true });
+    res.redirect("/tutHome"); // Redirect to the homepage or list of entries
+  } catch (error) {
+    console.error("Error saving session:", error);
+    res.status(500).json({ success: false, error: "Failed to save session" });
+  }
 });
 
 module.exports = route;

@@ -448,3 +448,68 @@ function updateTeachers(subject) {
     });
   }
 }
+
+const submitButton = document.querySelector("button[type='submit']");
+
+submitButton.addEventListener("click", async (event) => {
+  event.preventDefault(); // Prevent the default form submission
+
+  // Get the values entered by the user
+  const tutorFirstName = document.querySelector("input#tutorFirstName").value;
+  const tutorLastName = document.querySelector("input#tutorLastName").value;
+  const sessionDate = document.querySelector("input#sessionDate").value;
+  const sessionPeriod = document.querySelector("select#sessionPeriod").value;
+  const sessionPlace = document.querySelector("select#sessionPlace").value;
+  const subject = document.querySelector("select#subject").value;
+  const classValue = document.querySelector("select#class").value;
+  const teacher = document.querySelector("select#teacher").value;
+  const FocusOfSession = document.querySelector("select#FocusOfSession").value;
+  const workaccomplished = document.querySelector(
+    "input#workaccomplished"
+  ).value;
+  const tuteeFirstName = document.querySelector("input#tuteeFirstName").value;
+  const tuteeLastName = document.querySelector("input#tuteeLastName").value;
+  const tuteeID = document.querySelector("input#tuteeID").value;
+  const gradeButtons = document.querySelectorAll("input[name='grade']:checked");
+  const grade = gradeButtons.length > 0 ? gradeButtons[0].value : null;
+
+  const formData = {
+    tutorFirstName,
+    tutorLastName,
+    sessionDate,
+    sessionPeriod,
+    sessionPlace,
+    subject,
+    class: classValue,
+    teacher,
+    FocusOfSession,
+    workaccomplished,
+    tuteeFirstName,
+    tuteeLastName,
+    tuteeID,
+    grade,
+  };
+
+  try {
+    const response = await fetch("/submitTutorForm", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formData),
+    });
+
+    // Show an alert based on the response and redirect to the homepage
+    if (response.ok) {
+      alert("Form successfully submitted!");
+      window.location = "/"; // Redirect to the homepage
+    } else {
+      const errorData = await response.json();
+      console.error("Error submitting form:", errorData);
+      alert("There was an error submitting the form.");
+    }
+  } catch (error) {
+    console.error("Network error:", error);
+    alert("There was a network error submitting the form.");
+  }
+});
