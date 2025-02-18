@@ -449,7 +449,7 @@ function updateTeachers(subject) {
   }
 }
 
-const submitButton = document.querySelector("button[type='submit']");
+const submitButton = document.querySelector("input.submit");
 
 submitButton.addEventListener("click", async (event) => {
   event.preventDefault(); // Prevent the default form submission
