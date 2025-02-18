@@ -7,16 +7,63 @@
     <table id="studentTable" class="bordered-table">
       <thead>
         <tr>
-          <th>Tutor Name</th>
-          <th>Grade</th>
-          <th>Total Sessions (all school year)</th>
+          <th onclick="sortTable(0)">
+            <div class="header-text">Tutor Name</div>
+            <div class="sort-icon-container">
+              <span class="sort-icon">↑↓</span>
+            </div>
+          </th>
+          <th onclick="sortTable(1)">
+            <div class="header-text">Tutor Grade</div>
+            <div class="sort-icon-container">
+              <span class="sort-icon">↑↓</span>
+            </div>
+          </th>
+          <th onclick="sortTable(2)">
+            <div class="header-text">Tutor ID</div>
+            <div class="sort-icon-container">
+              <span class="sort-icon">↑↓</span>
+            </div>
+          </th>
+          <th onclick="sortTable(3)">
+            <div class="header-text">Classes</div>
+            <div class="sort-icon-container">
+              <span class="sort-icon">↑↓</span>
+            </div>
+          </th>
+          <th onclick="sortTable(4)">
+            <div class="header-text">Days</div>
+            <div class="sort-icon-container">
+              <span class="sort-icon">↑↓</span>
+            </div>
+          </th>
+          <th onclick="sortTable(5)">
+            <div class="header-text">Lunch</div>
+            <div class="sort-icon-container">
+              <span class="sort-icon">↑↓</span>
+            </div>
+          </th>
+          <th onclick="sortTable(6)">
+            <div class="header-text">Total Sessions</div>
+            <div class="sort-icon-container">
+              <span class="sort-icon">↑↓</span>
+            </div>
+          </th>
         </tr>
       </thead>
       <tbody>
         <% entries.forEach(entry => { %>
         <tr>
           <td><%= entry.tutorName %></td>
-          <td><%= entry.grade %></td>
+          <td><%= entry.tutorGrade %></td>
+          <td><%= entry.tutorID %></td>
+          <td>
+            <%= entry.classesCanTeach ? entry.classesCanTeach.join(', ') : '' %>
+          </td>
+          <td>
+            <%= entry.daysCanTeach ? entry.daysCanTeach.join(', ') : '' %>
+          </td>
+          <td><%= entry.lunchPeriod %></td>
           <td><%= entry.totalSessions %></td>
         </tr>
         <% }) %>
@@ -26,3 +73,5 @@
 </main>
 
 <%- include('include/_footer') %>
+
+<script src="js/tutorTable.js"></script>

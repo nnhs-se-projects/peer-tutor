@@ -93,6 +93,12 @@ route.get("/tutorTable", async (req, res) => {
   res.render("tutorTable", { entries });
 });
 
+// route to render the session table
+route.get("/sessionTable", async (req, res) => {
+  const entries = await Entry.find();
+  res.render("sessionTable", { entries });
+});
+
 // delegate all authentication to the auth.js router
 route.use("/auth", require("./auth"));
 
