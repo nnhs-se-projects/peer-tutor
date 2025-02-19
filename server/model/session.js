@@ -53,7 +53,7 @@ const schema = new mongoose.Schema({
   // completion status of the session
   // true if completed, false if not
   completed: {
-    type: Boolean,
+    type: String,
     required: true,
   },
 });
