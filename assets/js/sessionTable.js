@@ -1,29 +1,37 @@
-let currentSort = {};
+let currentSort = { columnIndex: null, isDescending: false };
 
 function sortTable(columnIndex) {
   const table = document.getElementById("studentTable");
   const rows = Array.from(table.rows).slice(1); // Get rows excluding header
   const isNumeric = columnIndex === 6 || columnIndex === 2; // Numerical columns
+  const isDateColumn = columnIndex === 0;
+
+  // Determine the sort order
   const reverse =
-    currentSort.columnIndex === columnIndex && !currentSort.isDescending;
+    currentSort.columnIndex === columnIndex ? !currentSort.isDescending : false;
 
   // Sort the rows based on the column clicked
-  rows.sort((rowA, rowB) => {
-    const cellA = rowA.cells[columnIndex].innerText;
-    const cellB = rowB.cells[columnIndex].innerText;
+  rows.sort((a, b) => {
+    let cellA = a.cells[columnIndex].innerText;
+    let cellB = b.cells[columnIndex].innerText;
 
-    let valueA = isNumeric ? parseFloat(cellA) : cellA.toLowerCase();
-    let valueB = isNumeric ? parseFloat(cellB) : cellB.toLowerCase();
-
-    if (valueA > valueB) return reverse ? -1 : 1;
-    if (valueA < valueB) return reverse ? 1 : -1;
-    return 0;
+    if (isDateColumn) {
+      // Date column sorting
+      const dateA = new Date(cellA);
+      const dateB = new Date(cellB);
+      return reverse ? dateB - dateA : dateA - dateB;
+    } else if (isNumeric) {
+      // Numeric column sorting
+      return reverse ? cellB - cellA : cellA - cellB;
+    } else {
+      return reverse ? cellB.localeCompare(cellA) : cellA.localeCompare(cellB);
+    }
   });
 
-  // Reorder the rows in the table
+  // Append sorted rows back to the table
   rows.forEach((row) => table.appendChild(row));
 
-  // Update sorting state and icon
+  // Update sorting state
   currentSort = { columnIndex, isDescending: reverse };
   updateSortIcons(columnIndex, reverse);
 }
@@ -37,5 +45,5 @@ function updateSortIcons(columnIndex, isDescending) {
 
   // Update the clicked column's icon
   const icon = headers[columnIndex].querySelector(".sort-icon");
-  icon.textContent = isDescending ? "↓↑" : "↑↓";
+  icon.textContent = isDescending ? "↓" : "↑";
 }
