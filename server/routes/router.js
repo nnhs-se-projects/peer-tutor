@@ -99,6 +99,7 @@ route.get("/tutorForm", async (req, res) => {
 // Route to handle tutor form submission
 route.post("/submitTutorForm", async (req, res) => {
   try {
+    console.log(req.body);
     const newSession = new Session({
       tutorFirstName: req.body.tutorFirstName,
       tutorLastName: req.body.tutorLastName,
@@ -117,7 +118,6 @@ route.post("/submitTutorForm", async (req, res) => {
     });
     await newSession.save();
     res.json({ success: true });
-    res.redirect("/tutHome"); // Redirect to the homepage or list of entries
   } catch (error) {
     console.error("Error saving session:", error);
     res.status(500).json({ success: false, error: "Failed to save session" });
