@@ -457,37 +457,41 @@ submitButton.addEventListener("click", async (event) => {
   // Get the values entered by the user
   const tutorFirstName = document.querySelector("input#tutorFirstName").value;
   const tutorLastName = document.querySelector("input#tutorLastName").value;
+  const tutorID = document.querySelector("input#tutorID").value;
   const sessionDate = document.querySelector("input#sessionDate").value;
   const sessionPeriod = document.querySelector("select#sessionPeriod").value;
   const sessionPlace = document.querySelector("select#sessionPlace").value;
   const subject = document.querySelector("select#subject").value;
   const classValue = document.querySelector("select#class").value;
   const teacher = document.querySelector("select#teacher").value;
-  const FocusOfSession = document.querySelector("select#FocusOfSession").value;
-  const workaccomplished = document.querySelector(
-    "input#workaccomplished"
+  const focusOfSession = document.querySelector("select#focusOfSession").value;
+  const workAccomplished = document.querySelector(
+    "input#workAccomplished"
   ).value;
   const tuteeFirstName = document.querySelector("input#tuteeFirstName").value;
   const tuteeLastName = document.querySelector("input#tuteeLastName").value;
   const tuteeID = document.querySelector("input#tuteeID").value;
-  const gradeButtons = document.querySelectorAll("input[name='grade']:checked");
-  const grade = gradeButtons.length > 0 ? gradeButtons[0].value : null;
+  const gradeButtons = document.querySelectorAll(
+    "input[name='tuteeGrade']:checked"
+  );
+  const tuteeGrade = gradeButtons.length > 0 ? gradeButtons[0].value : null;
 
   const formData = {
     tutorFirstName,
     tutorLastName,
+    tutorID,
     sessionDate,
     sessionPeriod,
     sessionPlace,
     subject,
     class: classValue,
     teacher,
-    FocusOfSession,
-    workaccomplished,
+    focusOfSession,
+    workAccomplished,
     tuteeFirstName,
     tuteeLastName,
     tuteeID,
-    grade,
+    tuteeGrade,
   };
 
   try {

@@ -103,18 +103,19 @@ route.post("/submitTutorForm", async (req, res) => {
     const newSession = new Session({
       tutorFirstName: req.body.tutorFirstName,
       tutorLastName: req.body.tutorLastName,
+      tutorID: req.body.tutorID,
       sessionDate: req.body.sessionDate,
       sessionPeriod: req.body.sessionPeriod,
       sessionPlace: req.body.sessionPlace,
       subject: req.body.subject,
       class: req.body.class,
       teacher: req.body.teacher,
-      FocusOfSession: req.body.FocusOfSession,
-      workaccomplished: req.body.workaccomplished,
+      focusOfSession: req.body.focusOfSession,
+      workAccomplished: req.body.workAccomplished,
       tuteeFirstName: req.body.tuteeFirstName,
       tuteeLastName: req.body.tuteeLastName,
       tuteeID: req.body.tuteeID,
-      grade: req.body.grade,
+      tuteeGrade: req.body.tuteeGrade,
     });
     await newSession.save();
     res.json({ success: true });

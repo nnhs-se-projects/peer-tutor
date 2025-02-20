@@ -15,6 +15,11 @@ const schema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  // tutor ID
+  tutorID: {
+    type: String,
+    required: true,
+  },
   // date of the session
   sessionDate: {
     type: Date,
@@ -46,12 +51,12 @@ const schema = new mongoose.Schema({
     required: true,
   },
   // focus of the session
-  FocusOfSession: {
+  focusOfSession: {
     type: String,
     required: true,
   },
   // assignment worked on during the session
-  workaccomplished: {
+  workAccomplished: {
     type: String,
     required: true,
   },
@@ -71,7 +76,7 @@ const schema = new mongoose.Schema({
     required: true,
   },
   // tutee grade
-  grade: {
+  tuteeGrade: {
     type: String,
     required: true,
   },
