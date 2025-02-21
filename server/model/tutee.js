@@ -6,24 +6,24 @@ const mongoose = require("mongoose");
 const sesh = require("./session");
 
 const schema = new mongoose.Schema({
+  // ID number of  tutee
+  tuteeID: {
+    type: Number,
+    required: true,
+  },
   // tutee email
   email: {
     type: String,
     required: true,
   },
   // tutee last name
-  last: {
+  tuteeLastName: {
     type: String,
     required: true,
   },
   // tutee first name
-  first: {
+  tuteeFirstName: {
     type: String,
-    required: true,
-  },
-  // ID number of  tutee
-  IDnumber: {
-    type: Number,
     required: true,
   },
   // grade of tutee

@@ -5,18 +5,18 @@
 const mongoose = require("mongoose");
 
 const schema = new mongoose.Schema({
-  // tutee email
+  // teacher email
   email: {
     type: String,
     required: true,
   },
-  // tutee last name
-  last: {
+  // teacher first name
+  teacherFirstName: {
     type: String,
     required: true,
   },
-  // tutee first name
-  first: {
+  // teacher last name
+  teacherLastName: {
     type: String,
     required: true,
   },
