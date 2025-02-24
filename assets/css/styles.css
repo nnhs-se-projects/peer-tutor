@@ -480,3 +480,26 @@ tr:hover {
 .sort-icon-container:hover::before {
   opacity: 1;
 }
+
+.search-input {
+  background-color: transparent;
+  border: 1px solid white;
+  color: white;
+  padding: 5px;
+  outline: none;
+  width: 100%;
+}
+
+.search-input::placeholder {
+  color: rgba(
+    255,
+    255,
+    255,
+    0.7
+  ); /* Slightly transparent white for the placeholder */
+}
+
+.search-input:focus {
+  border-color: white;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+}
