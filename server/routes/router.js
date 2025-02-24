@@ -2,6 +2,7 @@ const express = require("express");
 const route = express.Router();
 const Entry = require("../model/entry");
 const Session = require("../model/session"); // Import the Session schema
+const Tutor = require("../model/tutor"); // Import the Tutor schema
 
 // assigning variable to the JSON file
 const gradeSelection = require("../model/grades.json");
@@ -122,6 +123,39 @@ route.post("/submitTutorForm", async (req, res) => {
   } catch (error) {
     console.error("Error saving session:", error);
     res.status(500).json({ success: false, error: "Failed to save session" });
+  }
+});
+
+// Route to render the tutor form
+route.get("/expertiseForm", async (req, res) => {
+  res.render("expertiseForm");
+});
+
+// Route to handle tutor form submission
+route.post("/submitExpertiseForm", async (req, res) => {
+  try {
+    console.log(req.body);
+    const newTutor = new Tutor({
+      tutorFirstName: req.body.tutorFirstName,
+      tutorLastName: req.body.tutorLastName,
+      tutorID: req.body.tutorID,
+      email: req.body.email,
+      grade: req.body.grade,
+      returning: req.body.returning,
+      lunchPeriod: req.body.lunchPeriod,
+      daysAvailable: req.body.daysAvailable,
+      classes: req.body.classes,
+      tutorLeader: req.body.tutorLeader,
+      attendance: req.body.attendance,
+      sessionHistory: req.body.sessionHistory,
+    });
+    await newTutor.save();
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error saving expertise sheet:", error);
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to save expertise sheet" });
   }
 });
 
