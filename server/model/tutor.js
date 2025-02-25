@@ -3,7 +3,7 @@
  */
 
 const mongoose = require("mongoose");
-const sesh = require("./session");
+const ses = require("./session");
 
 const schema = new mongoose.Schema({
   // tutor last name
@@ -66,10 +66,12 @@ const schema = new mongoose.Schema({
     required: true,
   },
   // session history of tutor
-  sessionHistory: {
-    type: [sesh],
-    required: true,
-  },
+  sessionHistory: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ses",
+    },
+  ],
 });
 
 const Tutor = mongoose.model("Tutor", schema);

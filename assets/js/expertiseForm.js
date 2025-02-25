@@ -9,10 +9,10 @@ submitButton.addEventListener("click", async (event) => {
   event.preventDefault(); // Prevent the default form submission
 
   // Get the values entered by the user
-  const tutorFirstName = document.querySelector("input#tutorFirstName").value;
-  const tutorLastName = document.querySelector("input#tutorLastName").value;
+  const tutorFirstName = document.querySelector("input#firstName").value;
+  const tutorLastName = document.querySelector("input#lastName").value;
   const tutorID = document.querySelector("input#tutorID").value;
-  const email = document.querySelector("input#email").value;
+  const email = document.querySelector("input#tutEmail").value;
   const grade = document.querySelector("input[name='grade']:checked").value;
   const returning =
     document.querySelector("input[name='newReturning']:checked").value ===
@@ -26,10 +26,8 @@ submitButton.addEventListener("click", async (event) => {
   const classes = Array.from(
     document.querySelectorAll("input[name='courseList']:checked")
   ).map((input) => input.value);
-  const tutorLeader =
-    document.querySelector("input[name='tutorLeader']:checked").value ===
-    "true";
-  const attendance = document.querySelector("input#attendance").value;
+  const tutorLeader = false;
+  const attendance = 0;
   const sessionHistory = []; // Assuming session history is not part of the form submission
 
   const formData = {
@@ -48,7 +46,7 @@ submitButton.addEventListener("click", async (event) => {
   };
 
   try {
-    const response = await fetch("/submitTutorForm", {
+    const response = await fetch("/submitExpertiseForm", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
