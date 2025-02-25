@@ -90,7 +90,8 @@ route.get("/expertiseForm", async (req, res) => {
 // route to render the tutor table
 route.get("/tutorTable", async (req, res) => {
   const entries = await Entry.find();
-  res.render("tutorTable", { entries });
+  const grades = require("../model/grades.json");
+  res.render("tutorTable", { entries, grades });
 });
 
 // route to render the session table

@@ -1,41 +1,100 @@
-let currentSort = {};
+function toggleSearch(column) {
+  const headerText = document.getElementById(`headerText${column}`);
+  const searchInput = document.getElementById(`searchInput${column}`);
+  const icons = headerText.nextElementSibling;
 
-function sortTable(columnIndex) {
-  const table = document.getElementById("studentTable");
-  const rows = Array.from(table.rows).slice(1); // Get rows excluding header
-  const isNumeric = columnIndex === 6 || columnIndex === 2; // Numerical columns
-  const reverse =
-    currentSort.columnIndex === columnIndex && !currentSort.isDescending;
+  // Calculate the width of the header and apply it to the search input
+  const headerHeight = headerText.offsetHeight + 5;
+  const headerWidth = headerText.offsetWidth + icons.offsetWidth + 100;
 
-  // Sort the rows based on the column clicked
-  rows.sort((rowA, rowB) => {
-    const cellA = rowA.cells[columnIndex].innerText;
-    const cellB = rowB.cells[columnIndex].innerText;
+  if (
+    searchInput.style.display === "none" ||
+    searchInput.style.display === ""
+  ) {
+    headerText.style.display = "none";
+    searchInput.style.display = "inline-block";
+    searchInput.style.height = `${headerHeight}px`;
+    searchInput.style.width = `${headerWidth}px`;
 
-    let valueA = isNumeric ? parseFloat(cellA) : cellA.toLowerCase();
-    let valueB = isNumeric ? parseFloat(cellB) : cellB.toLowerCase();
-
-    if (valueA > valueB) return reverse ? -1 : 1;
-    if (valueA < valueB) return reverse ? 1 : -1;
-    return 0;
-  });
-
-  // Reorder the rows in the table
-  rows.forEach((row) => table.appendChild(row));
-
-  // Update sorting state and icon
-  currentSort = { columnIndex, isDescending: reverse };
-  updateSortIcons(columnIndex, reverse);
+    icons.style.display = "none";
+    searchInput.focus();
+  } else {
+    if (searchInput.value === "") {
+      headerText.style.display = "block";
+      searchInput.style.display = "none";
+      icons.style.display = "flex";
+    }
+  }
 }
 
-function updateSortIcons(columnIndex, isDescending) {
-  // Reset all sort icons
-  const headers = document.querySelectorAll("th");
-  headers.forEach((header) => {
-    header.querySelector(".sort-icon").textContent = "↑↓";
+document.addEventListener("click", function (event) {
+  document.querySelectorAll(".search-input").forEach((input, index) => {
+    if (
+      !input.contains(event.target) &&
+      !document
+        .querySelector(`.search-icon[onclick='toggleSearch(${index})']`)
+        .contains(event.target)
+    ) {
+      if (input.value === "") {
+        input.style.display = "none";
+        document.getElementById(`headerText${index}`).style.display = "block";
+        document.getElementById(
+          `headerText${index}`
+        ).nextElementSibling.style.display = "flex";
+      }
+    }
+  });
+});
+
+function filterTable(column) {
+  const input = document
+    .getElementById(`searchInput${column}`)
+    .value.toLowerCase();
+  const table = document.getElementById("studentTable");
+  const rows = table.getElementsByTagName("tr");
+
+  for (let i = 1; i < rows.length; i++) {
+    const cells = rows[i].getElementsByTagName("td");
+    if (cells[column]) {
+      const cellText = cells[column].textContent || cells[column].innerText;
+      rows[i].style.display = cellText.toLowerCase().includes(input)
+        ? ""
+        : "none";
+    }
+  }
+}
+
+let currentSort = { columnIndex: null, isDescending: false };
+
+function sortTable(column) {
+  const table = document.getElementById("studentTable");
+  let rows = Array.from(table.getElementsByTagName("tr")).slice(1);
+  const isNumeric = column === 6 || column === 2;
+
+  const reverse =
+    currentSort.columnIndex === column ? !currentSort.isDescending : false;
+  rows.sort((rowA, rowB) => {
+    let cellA = rowA.getElementsByTagName("td")[column].textContent.trim();
+    let cellB = rowB.getElementsByTagName("td")[column].textContent.trim();
+
+    if (isNumeric) {
+      return reverse ? cellB - cellA : cellA - cellB;
+    } else {
+      return reverse ? cellB.localeCompare(cellA) : cellA.localeCompare(cellB);
+    }
   });
 
-  // Update the clicked column's icon
-  const icon = headers[columnIndex].querySelector(".sort-icon");
-  icon.textContent = isDescending ? "↓↑" : "↑↓";
+  rows.forEach((row) => table.appendChild(row));
+
+  currentSort = { columnIndex: column, isDescending: reverse };
+  updateSortIcons(column, reverse);
+}
+
+function updateSortIcons(column, isDescending) {
+  document.querySelectorAll(".sort-icon").forEach((icon) => {
+    icon.textContent = "↑↓";
+  });
+
+  const icon = document.getElementById(`sortIcon${column}`);
+  icon.textContent = isDescending ? "↓" : "↑";
 }

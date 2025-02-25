@@ -1,49 +1,100 @@
+function toggleSearch(column) {
+  const headerText = document.getElementById(`headerText${column}`);
+  const searchInput = document.getElementById(`searchInput${column}`);
+  const icons = headerText.nextElementSibling;
+
+  // Calculate the width of the header and apply it to the search input
+  const headerHeight = headerText.offsetHeight + 5;
+  const headerWidth = headerText.offsetWidth + icons.offsetWidth + 100;
+
+  if (
+    searchInput.style.display === "none" ||
+    searchInput.style.display === ""
+  ) {
+    headerText.style.display = "none";
+    searchInput.style.display = "inline-block";
+    searchInput.style.height = `${headerHeight}px`;
+    searchInput.style.width = `${headerWidth}px`;
+
+    icons.style.display = "none";
+    searchInput.focus();
+  } else {
+    if (searchInput.value === "") {
+      headerText.style.display = "block";
+      searchInput.style.display = "none";
+      icons.style.display = "flex";
+    }
+  }
+}
+
+document.addEventListener("click", function (event) {
+  document.querySelectorAll(".search-input").forEach((input, index) => {
+    if (
+      !input.contains(event.target) &&
+      !document
+        .querySelector(`.search-icon[onclick='toggleSearch(${index})']`)
+        .contains(event.target)
+    ) {
+      if (input.value === "") {
+        input.style.display = "none";
+        document.getElementById(`headerText${index}`).style.display = "block";
+        document.getElementById(
+          `headerText${index}`
+        ).nextElementSibling.style.display = "flex";
+      }
+    }
+  });
+});
+
+function filterTable(column) {
+  const input = document
+    .getElementById(`searchInput${column}`)
+    .value.toLowerCase();
+  const table = document.getElementById("studentTable");
+  const rows = table.getElementsByTagName("tr");
+
+  for (let i = 1; i < rows.length; i++) {
+    const cells = rows[i].getElementsByTagName("td");
+    if (cells[column]) {
+      const cellText = cells[column].textContent || cells[column].innerText;
+      rows[i].style.display = cellText.toLowerCase().includes(input)
+        ? ""
+        : "none";
+    }
+  }
+}
+
 let currentSort = { columnIndex: null, isDescending: false };
 
-function sortTable(columnIndex) {
+function sortTable(column) {
   const table = document.getElementById("studentTable");
-  const rows = Array.from(table.rows).slice(1); // Get rows excluding header
-  const isNumeric = columnIndex === 6 || columnIndex === 2; // Numerical columns
-  const isDateColumn = columnIndex === 0;
+  let rows = Array.from(table.getElementsByTagName("tr")).slice(1);
+  const isNumeric = column === 6 || column === 2;
 
-  // Determine the sort order
   const reverse =
-    currentSort.columnIndex === columnIndex ? !currentSort.isDescending : false;
+    currentSort.columnIndex === column ? !currentSort.isDescending : false;
+  rows.sort((rowA, rowB) => {
+    let cellA = rowA.getElementsByTagName("td")[column].textContent.trim();
+    let cellB = rowB.getElementsByTagName("td")[column].textContent.trim();
 
-  // Sort the rows based on the column clicked
-  rows.sort((a, b) => {
-    let cellA = a.cells[columnIndex].innerText;
-    let cellB = b.cells[columnIndex].innerText;
-
-    if (isDateColumn) {
-      // Date column sorting
-      const dateA = new Date(cellA);
-      const dateB = new Date(cellB);
-      return reverse ? dateB - dateA : dateA - dateB;
-    } else if (isNumeric) {
-      // Numeric column sorting
+    if (isNumeric) {
       return reverse ? cellB - cellA : cellA - cellB;
     } else {
       return reverse ? cellB.localeCompare(cellA) : cellA.localeCompare(cellB);
     }
   });
 
-  // Append sorted rows back to the table
   rows.forEach((row) => table.appendChild(row));
 
-  // Update sorting state
-  currentSort = { columnIndex, isDescending: reverse };
-  updateSortIcons(columnIndex, reverse);
+  currentSort = { columnIndex: column, isDescending: reverse };
+  updateSortIcons(column, reverse);
 }
 
-function updateSortIcons(columnIndex, isDescending) {
-  // Reset all sort icons
-  const headers = document.querySelectorAll("th");
-  headers.forEach((header) => {
-    header.querySelector(".sort-icon").textContent = "↑↓";
+function updateSortIcons(column, isDescending) {
+  document.querySelectorAll(".sort-icon").forEach((icon) => {
+    icon.textContent = "↑↓";
   });
 
-  // Update the clicked column's icon
-  const icon = headers[columnIndex].querySelector(".sort-icon");
+  const icon = document.getElementById(`sortIcon${column}`);
   icon.textContent = isDescending ? "↓" : "↑";
 }

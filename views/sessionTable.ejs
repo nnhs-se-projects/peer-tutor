@@ -7,54 +7,43 @@
     <table id="studentTable" class="bordered-table">
       <thead>
         <tr>
-          <th onclick="sortTable(0)">
-            <div class="header-text">Date</div>
-            <div class="sort-icon-container">
-              <span class="sort-icon">↑↓</span>
+          <% const headers = ['Date', 'Tutee Name', 'Tutee ID', 'Tutor Name',
+          'Subject', 'Class', 'Assignment', 'Completed Task?']; %> <%
+          headers.forEach((header, index) => { %>
+          <th>
+            <div
+              class="header-container"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <span class="header-text" id="headerText<%= index %>"
+                ><%= header %></span
+              >
+              <div class="icons" style="display: flex; gap: 5px">
+                <span
+                  class="sort-icon"
+                  id="sortIcon<%= index %>"
+                  onclick="sortTable(<%= index %>)"
+                  >↑↓</span
+                >
+                <span class="search-icon" onclick="toggleSearch(<%= index %>)"
+                  >🔍</span
+                >
+              </div>
             </div>
+            <input
+              type="text"
+              class="search-input"
+              id="searchInput<%= index %>"
+              placeholder="Search <%= header %>"
+              oninput="filterTable(<%= index %>)"
+              style="display: none; width: 100%"
+            />
           </th>
-          <th onclick="sortTable(1)">
-            <div class="header-text">Tutee Name</div>
-            <div class="sort-icon-container">
-              <span class="sort-icon">↑↓</span>
-            </div>
-          </th>
-          <th onclick="sortTable(2)">
-            <div class="header-text">Tutee ID</div>
-            <div class="sort-icon-container">
-              <span class="sort-icon">↑↓</span>
-            </div>
-          </th>
-          <th onclick="sortTable(3)">
-            <div class="header-text">Tutor Name</div>
-            <div class="sort-icon-container">
-              <span class="sort-icon">↑↓</span>
-            </div>
-          </th>
-          <th onclick="sortTable(4)">
-            <div class="header-text">Subject</div>
-            <div class="sort-icon-container">
-              <span class="sort-icon">↑↓</span>
-            </div>
-          </th>
-          <th onclick="sortTable(5)">
-            <div class="header-text">Class</div>
-            <div class="sort-icon-container">
-              <span class="sort-icon">↑↓</span>
-            </div>
-          </th>
-          <th onclick="sortTable(6)">
-            <div class="header-text">Assignment</div>
-            <div class="sort-icon-container">
-              <span class="sort-icon">↑↓</span>
-            </div>
-          </th>
-          <th onclick="sortTable(7)">
-            <div class="header-text">Completed Task?</div>
-            <div class="sort-icon-container">
-              <span class="sort-icon">↑↓</span>
-            </div>
-          </th>
+          <% }) %>
         </tr>
       </thead>
       <tbody>
