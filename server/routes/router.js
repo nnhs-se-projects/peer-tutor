@@ -89,6 +89,19 @@ route.get("/expertiseForm", async (req, res) => {
   });
 });
 
+// route to render the tutor table
+route.get("/tutorTable", async (req, res) => {
+  const entries = await Entry.find();
+  const grades = require("../model/grades.json");
+  res.render("tutorTable", { entries, grades });
+});
+
+// route to render the session table
+route.get("/sessionTable", async (req, res) => {
+  const entries = await Entry.find();
+  res.render("sessionTable", { entries });
+});
+
 // delegate all authentication to the auth.js router
 route.use("/auth", require("./auth"));
 
