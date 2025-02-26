@@ -27,6 +27,56 @@ function toggleSearch(column) {
   }
 }
 
+// search function for date
+function toggleSearchDropdown(column) {
+  const headerText = document.getElementById(`headerText${column}`);
+  const dropdownMenu = document.getElementById(`dropdownMenu${column}`);
+  const searchInput = dropdownMenu.querySelector("input");
+  const icons = headerText.nextElementSibling;
+
+  if (
+    dropdownMenu.style.display === "none" ||
+    dropdownMenu.style.display === ""
+  ) {
+    // Show dropdown
+    dropdownMenu.style.display = "block";
+    icons.style.display = "none";
+    searchInput.focus();
+  } else {
+    // Hide dropdown if already open
+    dropdownMenu.style.display = "none";
+    icons.style.display = "flex";
+  }
+}
+
+// Function to filter dropdown options
+function filterDropdownOptions(column) {
+  const searchInput = document.getElementById(`searchInput${column}`);
+  const filter = searchInput.value.toLowerCase();
+  const options = document.querySelectorAll(
+    `#dropdownMenu${column} .dropdown-item`
+  );
+
+  options.forEach((option) => {
+    if (option.textContent.toLowerCase().includes(filter)) {
+      option.style.display = "block";
+    } else {
+      option.style.display = "none";
+    }
+  });
+}
+
+// Function to select an option and close dropdown
+function selectDropdownOption(column, value) {
+  const headerText = document.getElementById(`headerText${column}`);
+  const dropdownMenu = document.getElementById(`dropdownMenu${column}`);
+  const icons = headerText.nextElementSibling;
+
+  headerText.textContent = value;
+  dropdownMenu.style.display = "none";
+  icons.style.display = "flex";
+}
+
 document.addEventListener("click", function (event) {
   document.querySelectorAll(".search-input").forEach((input, index) => {
     if (
