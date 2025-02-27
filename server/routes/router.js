@@ -172,4 +172,25 @@ route.post("/submitExpertiseForm", async (req, res) => {
   }
 });
 
+route.get("/tutorTable", async (req, res) => {
+  const tutors = await Tutor.find().sort({ date: -1 });
+
+  console.log("path: " + req.path);
+  // convert MongoDB objects to objects formatted for the ejs template
+  const tutorsFormatted = tutors.map((tutor) => {
+    return {
+      tutorName: `${tutor.tutorFirstName} ${tutor.tutorLastName}`,
+      date: tutor.date.toLocaleDateString(),
+      grade: tutor.grade,
+      tutorID: tutor.tutorID,
+      classes: tutor.classes,
+      daysAvailable: tutor.daysAvailable,
+      lunchPeriod: tutor.lunchPeriod,
+      totalSessions: tutor.sessionHistory.length,
+    };
+  });
+
+  res.render("tutorTable", { tutors: tutorsFormatted });
+});
+
 module.exports = route;
