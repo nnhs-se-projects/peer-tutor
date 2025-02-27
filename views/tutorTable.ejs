@@ -49,14 +49,12 @@
       <tbody>
         <% entries.forEach(entry => { %>
         <tr>
-          <td><%= entry.tutorName %></td>
+          <td><%= entry.tutorFirstName %></td>
           <td><%= entry.tutorGrade %></td>
           <td><%= entry.tutorID %></td>
+          <td><%= entry.classes ? entry.classes.join(', ') : '' %></td>
           <td>
-            <%= entry.classesCanTeach ? entry.classesCanTeach.join(', ') : '' %>
-          </td>
-          <td>
-            <%= entry.daysCanTeach ? entry.daysCanTeach.join(', ') : '' %>
+            <%= entry.daysAvailable ? entry.daysAvailable.join(', ') : '' %>
           </td>
           <td><%= entry.lunchPeriod %></td>
           <td><%= entry.totalSessions %></td>
