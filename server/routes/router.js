@@ -89,13 +89,6 @@ route.get("/expertiseForm", async (req, res) => {
   });
 });
 
-// route to render the tutor table
-route.get("/tutorTable", async (req, res) => {
-  const entries = await Entry.find();
-  const grades = require("../model/grades.json");
-  res.render("tutorTable", { entries, grades });
-});
-
 // route to render the session table
 route.get("/sessionTable", async (req, res) => {
   const entries = await Entry.find();
@@ -173,24 +166,28 @@ route.post("/submitExpertiseForm", async (req, res) => {
 });
 
 route.get("/tutorTable", async (req, res) => {
-  const tutors = await Tutor.find().sort({ date: -1 });
+  try {
+    const tutors = await Tutor.find().sort({ date: -1 });
 
-  console.log("path: " + req.path);
-  // convert MongoDB objects to objects formatted for the ejs template
-  const tutorsFormatted = tutors.map((tutor) => {
-    return {
-      tutorName: `${tutor.tutorFirstName} ${tutor.tutorLastName}`,
-      date: tutor.date.toLocaleDateString(),
-      grade: tutor.grade,
-      tutorID: tutor.tutorID,
-      classes: tutor.classes,
-      daysAvailable: tutor.daysAvailable,
-      lunchPeriod: tutor.lunchPeriod,
-      totalSessions: tutor.sessionHistory.length,
-    };
-  });
+    // Convert MongoDB objects to objects formatted for the EJS template
+    const tutorsFormatted = tutors.map((tutor) => {
+      return {
+        tutorName: `${tutor.tutorFirstName} ${tutor.tutorLastName}`,
+        date: tutor.date,
+        grade: tutor.grade,
+        tutorID: tutor.tutorID,
+        classes: tutor.classes.join(", "),
+        daysAvailable: tutor.daysAvailable.join(", "),
+        lunchPeriod: tutor.lunchPeriod,
+        totalSessions: tutor.sessionHistory.length,
+      };
+    });
 
-  res.render("tutorTable", { tutors: tutorsFormatted });
+    res.render("tutorTable", { tutors: tutorsFormatted });
+  } catch (error) {
+    console.error("Error fetching tutors:", error);
+    res.status(500).send("Error fetching tutors");
+  }
 });
 
 module.exports = route;

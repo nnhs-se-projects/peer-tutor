@@ -47,17 +47,17 @@
         </tr>
       </thead>
       <tbody>
-        <% entries.forEach(entry => { %>
+        <% tutors.forEach(tutor => { %>
         <tr>
-          <td><%= entry.tutorFirstName %></td>
-          <td><%= entry.grade %></td>
-          <td><%= entry.tutorID %></td>
-          <td><%= entry.classes ? entry.classes.join(', ') : '' %></td>
+          <td><%= tutor.tutorName %></td>
+          <td><%= tutor.grade %></td>
+          <td><%= tutor.tutorID %></td>
+          <td><%= tutor.classes ? tutor.classes.join(', ') : '' %></td>
           <td>
-            <%= entry.daysAvailable ? entry.daysAvailable.join(', ') : '' %>
+            <%= tutor.daysAvailable ? tutor.daysAvailable.join(', ') : '' %>
           </td>
-          <td><%= entry.lunchPeriod %></td>
-          <td><%= entry.totalSessions %></td>
+          <td><%= tutor.lunchPeriod %></td>
+          <td><%= tutor.totalSessions %></td>
         </tr>
         <% }) %>
       </tbody>
