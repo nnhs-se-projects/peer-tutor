@@ -411,6 +411,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-family: Arial, sans-serif;
+  border-color: #948b8b;
 }
 
 th,
@@ -418,6 +419,7 @@ td {
   padding: 12px;
   text-align: left;
   cursor: pointer;
+  border: 1px solid #948b8b; /* Add border with specified color */
 }
 
 th {

@@ -176,8 +176,10 @@ route.get("/tutorTable", async (req, res) => {
         date: tutor.date,
         grade: tutor.grade,
         tutorID: tutor.tutorID,
-        classes: tutor.classes.join(", "),
-        daysAvailable: tutor.daysAvailable.join(", "),
+        classes: Array.isArray(tutor.classes) ? tutor.classes : [],
+        daysAvailable: Array.isArray(tutor.daysAvailable)
+          ? tutor.daysAvailable
+          : [],
         lunchPeriod: tutor.lunchPeriod,
         totalSessions: tutor.sessionHistory.length,
       };
@@ -186,6 +188,29 @@ route.get("/tutorTable", async (req, res) => {
     res.render("tutorTable", { tutors: tutorsFormatted });
   } catch (error) {
     console.error("Error fetching tutors:", error);
+    res.status(500).send("Error fetching tutors");
+  }
+});
+
+route.get("/sessionTable", async (req, res) => {
+  try {
+    const sessions = await Session.find().sort({ date: -1 });
+
+    // Convert MongoDB objects to objects formatted for the EJS template
+    const sessionsFormatted = tutors.map((tutor) => {
+      return {
+        tuteeName: `${session.tuteeFirstName} ${session.tuteeLastName}`,
+        tuteeID: session.tuteeID,
+        tutorName: session.tutorName,
+        subject: session.subject,
+        class: session.class,
+        assignment: session.workAccomplished,
+      };
+    });
+
+    res.render("sessionTable", { sessions: sessionsFormatted });
+  } catch (error) {
+    console.error("Error fetching sessions:", error);
     res.status(500).send("Error fetching tutors");
   }
 });
