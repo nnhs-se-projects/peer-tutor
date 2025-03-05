@@ -89,12 +89,6 @@ route.get("/expertiseForm", async (req, res) => {
   });
 });
 
-// route to render the session table
-route.get("/sessionTable", async (req, res) => {
-  const entries = await Entry.find();
-  res.render("sessionTable", { entries });
-});
-
 // delegate all authentication to the auth.js router
 route.use("/auth", require("./auth"));
 
@@ -132,12 +126,12 @@ route.post("/submitTutorForm", async (req, res) => {
   }
 });
 
-// Route to render the tutor form
+// Route to render the expertise form
 route.get("/expertiseForm", async (req, res) => {
   res.render("expertiseForm");
 });
 
-// Route to handle tutor form submission
+// Route to handle expertise form submission
 route.post("/submitExpertiseForm", async (req, res) => {
   try {
     console.log(req.body);
@@ -197,11 +191,12 @@ route.get("/sessionTable", async (req, res) => {
     const sessions = await Session.find().sort({ date: -1 });
 
     // Convert MongoDB objects to objects formatted for the EJS template
-    const sessionsFormatted = tutors.map((tutor) => {
+    const sessionsFormatted = sessions.map((session) => {
       return {
+        date: session.date,
         tuteeName: `${session.tuteeFirstName} ${session.tuteeLastName}`,
         tuteeID: session.tuteeID,
-        tutorName: session.tutorName,
+        tutorName: `${session.tutorFirstName} ${session.tutorLastName}`,
         subject: session.subject,
         class: session.class,
         assignment: session.workAccomplished,

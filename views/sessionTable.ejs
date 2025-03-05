@@ -8,8 +8,8 @@
       <thead>
         <tr>
           <% const headers = ['Date', 'Tutee Name', 'Tutee ID', 'Tutor Name',
-          'Subject', 'Class', 'Assignment', 'Completed Task?']; %> <%
-          headers.forEach((header, index) => { %>
+          'Subject', 'Class', 'Assignment']; %> <% headers.forEach((header,
+          index) => { %>
           <th>
             <div
               class="header-container"
@@ -47,16 +47,16 @@
         </tr>
       </thead>
       <tbody>
-        <% entries.forEach(entry => { %>
+        <p><%= sessions %></p>
+        <% sessions.forEach(session => { %>
         <tr>
-          <td><%= new Date(entry.date).toLocaleDateString() %></td>
-          <td><%= entry.tuteeName %></td>
-          <td><%= entry.tuteeID %></td>
-          <td><%= entry.tutorName %></td>
-          <td><%= entry.subject %></td>
-          <td><%= entry.class %></td>
-          <td><%= entry.assignment %></td>
-          <td><%= entry.completedTask ? "Yes" : "No" %></td>
+          <td><%= new Date(session.date).toLocaleDateString() %></td>
+          <td><%= session.tuteeName %></td>
+          <td><%= session.tuteeID %></td>
+          <td><%= session.tutorName %></td>
+          <td><%= session.subject %></td>
+          <td><%= session.class %></td>
+          <td><%= session.assignment %></td>
         </tr>
         <% }) %>
       </tbody>
