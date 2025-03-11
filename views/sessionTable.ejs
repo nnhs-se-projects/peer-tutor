@@ -47,10 +47,9 @@
         </tr>
       </thead>
       <tbody>
-        <p><%= sessions %></p>
         <% sessions.forEach(session => { %>
         <tr>
-          <td><%= new Date(session.date).toLocaleDateString() %></td>
+          <td><%= session.date %></td>
           <td><%= session.tuteeName %></td>
           <td><%= session.tuteeID %></td>
           <td><%= session.tutorName %></td>
