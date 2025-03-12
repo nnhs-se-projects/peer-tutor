@@ -89,19 +89,6 @@ route.get("/expertiseForm", async (req, res) => {
   });
 });
 
-// route to render the tutor table
-route.get("/tutorTable", async (req, res) => {
-  const entries = await Entry.find();
-  const grades = require("../model/grades.json");
-  res.render("tutorTable", { entries, grades });
-});
-
-// route to render the session table
-route.get("/sessionTable", async (req, res) => {
-  const entries = await Entry.find();
-  res.render("sessionTable", { entries });
-});
-
 // delegate all authentication to the auth.js router
 route.use("/auth", require("./auth"));
 
@@ -139,12 +126,12 @@ route.post("/submitTutorForm", async (req, res) => {
   }
 });
 
-// Route to render the tutor form
+// Route to render the expertise form
 route.get("/expertiseForm", async (req, res) => {
   res.render("expertiseForm");
 });
 
-// Route to handle tutor form submission
+// Route to handle expertise form submission
 route.post("/submitExpertiseForm", async (req, res) => {
   try {
     console.log(req.body);
@@ -169,6 +156,61 @@ route.post("/submitExpertiseForm", async (req, res) => {
     res
       .status(500)
       .json({ success: false, error: "Failed to save expertise sheet" });
+  }
+});
+
+route.get("/tutorTable", async (req, res) => {
+  try {
+    const tutors = await Tutor.find().sort({ date: -1 });
+
+    // Convert MongoDB objects to objects formatted for the EJS template
+    const tutorsFormatted = tutors.map((tutor) => {
+      return {
+        tutorName: `${tutor.tutorFirstName} ${tutor.tutorLastName}`,
+        date: tutor.date,
+        grade: tutor.grade,
+        tutorID: tutor.tutorID,
+        classes: Array.isArray(tutor.classes) ? tutor.classes : [],
+        daysAvailable: Array.isArray(tutor.daysAvailable)
+          ? tutor.daysAvailable
+          : [],
+        lunchPeriod: tutor.lunchPeriod,
+        totalSessions: tutor.sessionHistory.length,
+      };
+    });
+
+    res.render("tutorTable", { tutors: tutorsFormatted });
+  } catch (error) {
+    console.error("Error fetching tutors:", error);
+    res.status(500).send("Error fetching tutors");
+  }
+});
+
+route.get("/sessionTable", async (req, res) => {
+  try {
+    const sessions = await Session.find().sort({ date: -1 });
+
+    // Convert MongoDB objects to objects formatted for the EJS template
+    const sessionsFormatted = sessions.map((session) => {
+      return {
+        date: session.sessionDate
+          ? new Date(session.sessionDate).toLocaleDateString("en-US", {
+              timeZone: "UTC",
+            })
+          : null,
+        tuteeName: `${session.tuteeFirstName} ${session.tuteeLastName}`,
+        tuteeID: session.tuteeID,
+        tutorName: `${session.tutorFirstName} ${session.tutorLastName}`,
+        subject: session.subject,
+        class: session.class,
+        assignment: session.workAccomplished,
+      };
+    });
+
+    res.render("sessionTable", { sessions: sessionsFormatted });
+  } catch (error) {
+    console.error("Error fetching sessions:", error);
+    res.status(500).send("Error fetching tutors");
   }
 });
 

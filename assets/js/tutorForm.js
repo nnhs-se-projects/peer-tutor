@@ -494,6 +494,18 @@ submitButton.addEventListener("click", async (event) => {
     tuteeGrade,
   };
 
+  const sessionData = {
+    tuteeFirstName,
+    tuteeLastName,
+    tuteeID,
+    sessionDate,
+    tutorFirstName,
+    tutorLastName,
+    subject,
+    class: classValue,
+    workAccomplished,
+  };
+
   try {
     const response = await fetch("/submitTutorForm", {
       method: "POST",
@@ -515,5 +527,27 @@ submitButton.addEventListener("click", async (event) => {
   } catch (error) {
     console.error("Network error:", error);
     alert("There was a network error submitting the form.");
+  }
+
+  // session table try
+
+  try {
+    const response = await fetch("/sessionTable", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(sessionData),
+    });
+
+    // Show an alert based on the response and redirect to the homepage
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Error placing into session table:", errorData);
+      alert("There was an error placing into session table.");
+    }
+  } catch (error) {
+    console.error("Network error:", error);
+    alert("There was a network error placing into session table.");
   }
 });
