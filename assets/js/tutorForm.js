@@ -498,6 +498,7 @@ submitButton.addEventListener("click", async (event) => {
     tuteeFirstName,
     tuteeLastName,
     tuteeID,
+    sessionDate,
     tutorFirstName,
     tutorLastName,
     subject,

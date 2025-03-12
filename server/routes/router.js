@@ -193,7 +193,11 @@ route.get("/sessionTable", async (req, res) => {
     // Convert MongoDB objects to objects formatted for the EJS template
     const sessionsFormatted = sessions.map((session) => {
       return {
-        date: session.date ? new Date(session.date) : null,
+        date: session.sessionDate
+          ? new Date(session.sessionDate).toLocaleDateString("en-US", {
+              timeZone: "UTC",
+            })
+          : null,
         tuteeName: `${session.tuteeFirstName} ${session.tuteeLastName}`,
         tuteeID: session.tuteeID,
         tutorName: `${session.tutorFirstName} ${session.tutorLastName}`,
