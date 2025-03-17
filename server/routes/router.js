@@ -215,3 +215,8 @@ route.get("/sessionTable", async (req, res) => {
 });
 
 module.exports = route;
+
+// Route to render the attendance
+route.get("/attendance", async (req, res) => {
+  res.render("attendance");
+});
