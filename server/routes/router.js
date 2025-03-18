@@ -217,6 +217,17 @@ route.get("/sessionTable", async (req, res) => {
 module.exports = route;
 
 // Route to render the attendance
-route.get("/attendance", async (req, res) => {
-  res.render("attendance");
+const router = express.Router();
+
+// Route to render the attendance
+router.get("/attendance", async (req, res) => {
+  try {
+    const tutors = await Tutor.find(); // Fetch the tutors data from the database
+    res.render("attendance", { tutors }); // Pass the tutors data to the template
+  } catch (error) {
+    console.error("Error fetching tutors:", error);
+    res.status(500).send("Error fetching tutors");
+  }
 });
+
+module.exports = router;
