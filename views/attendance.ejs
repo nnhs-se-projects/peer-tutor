@@ -7,8 +7,8 @@
     <table id="studentTable" class="bordered-table">
       <thead>
         <tr>
-          <% const headers = ['First Name', 'Last Name', 'Attendance']; %> <%
-          headers.forEach((header, index) => { %>
+          <% const headers = ['First Name', 'Last Name','Days Missed'
+          ,'Attendance']; %> <% headers.forEach((header, index) => { %>
           <th>
             <div
               class="header-container"
@@ -21,7 +21,7 @@
               <span class="header-text" id="headerText<%= index %>"
                 ><%= header %></span
               >
-              <% if (index < 2) { %>
+              <% if (index < 3) { %>
               <div class="icons" style="display: flex; gap: 5px">
                 <span
                   class="sort-icon"
@@ -35,7 +35,7 @@
               </div>
               <% } %>
             </div>
-            <% if (index < 2) { %>
+            <% if (index < 3) { %>
             <input
               type="text"
               class="search-input"
@@ -54,10 +54,11 @@
         <tr>
           <td><%= tutor.firstName %></td>
           <td><%= tutor.lastName %></td>
+          <td><%= tutor.attendance %></td>
           <td>
-            <button class="attendance-button">A</button>
-            <button class="attendance-button">P</button>
-            <button class="attendance-button">M</button>
+            <button class="absent-button">A</button>
+            <button class="present-button">P</button>
+            <button class="makeup-button">M</button>
           </td>
         </tr>
         <% }) %>

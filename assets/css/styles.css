@@ -549,3 +549,63 @@ tr:hover {
   text-decoration: none;
   cursor: pointer;
 }
+
+.absent-button {
+  background-color: #e96a51;
+  width: 60px;
+  height: 60px;
+  border: none; /* Remove borders */
+  color: white; /* White text */
+  padding: 2px 5px; /* Some padding */
+  text-align: center; /* Centered text */
+  text-decoration: none; /* Remove underline */
+  display: inline-block; /* Make the buttons appear side by side */
+  font-size: 16px; /* Increase font size */
+  margin: 4px 2px; /* Some margin */
+  cursor: pointer; /* Pointer/hand icon */
+  border-radius: 12px; /* Rounded corners */
+}
+
+.absent-button:hover {
+  background-color: #d8614a; /* Darker green on hover */
+}
+
+.present-button {
+  background-color: #4caf50; /* Green background */
+  width: 60px;
+  height: 60px;
+  border: none; /* Remove borders */
+  color: white; /* White text */
+  padding: 2px 5px; /* Some padding */
+  text-align: center; /* Centered text */
+  text-decoration: none; /* Remove underline */
+  display: inline-block; /* Make the buttons appear side by side */
+  font-size: 16px; /* Increase font size */
+  margin: 4px 2px; /* Some margin */
+  cursor: pointer; /* Pointer/hand icon */
+  border-radius: 12px; /* Rounded corners */
+}
+
+.present-button:hover {
+  background-color: #45a049; /* Darker green on hover */
+}
+
+.makeup-button {
+  background-color: #ffd549; /* Green background */
+  width: 60px;
+  height: 60px;
+  border: none; /* Remove borders */
+  color: white; /* White text */
+  padding: 2px 5px; /* Some padding */
+  text-align: center; /* Centered text */
+  text-decoration: none; /* Remove underline */
+  display: inline-block; /* Make the buttons appear side by side */
+  font-size: 16px; /* Increase font size */
+  margin: 4px 2px; /* Some margin */
+  cursor: pointer; /* Pointer/hand icon */
+  border-radius: 12px; /* Rounded corners */
+}
+
+.makeup-button:hover {
+  background-color: #f0c947; /* Darker green on hover */
+}
