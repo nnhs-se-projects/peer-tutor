@@ -1,3 +1,19 @@
+/* Ensure the body and html take up the full height */
+html,
+body {
+  background-color: #c0ddff;
+
+  height: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main content should take up all available space */
+main {
+  flex: 1;
+}
+
 form {
   display: flex;
   flex-direction: column;
@@ -35,7 +51,7 @@ input[type="checkbox"] {
   margin-bottom: 20px;
 }
 
-.createEntry-form-box {
+.blue-box {
   padding: 25px;
   margin: 75px;
   background-color: #9bc6ff;
@@ -180,22 +196,6 @@ ul li {
   flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
-}
-
-/* Ensure the body and html take up the full height */
-html,
-body {
-  background-color: #c0ddff; /* Replace with your desired background color */
-
-  height: 100%;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Main content should take up all available space */
-main {
-  flex: 1;
 }
 
 /* Footer should stick to the bottom */
@@ -386,8 +386,26 @@ a.submit:hover {
   background-color: #ff6600;
 }
 
+/* Full-width orange button */
+.full-width-orange-button {
+  width: 100%;
+  background-color: #ff8800; /* orange color */
+  color: white;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none; /* Remove underline from links */
+  display: inline-block; /* Ensure proper padding for links */
+}
+
+.full-width-orange-button:hover {
+  background-color: #ff6600; /* Darker orange on hover */
+}
+
 /* Full-width blue button */
-.full-width-button {
+.full-width-blue-button {
   width: 100%;
   background-color: #0066ff; /* Blue color */
   color: white;
@@ -400,6 +418,48 @@ a.submit:hover {
   display: inline-block; /* Ensure proper padding for links */
 }
 
-.full-width-button:hover {
+.full-width-blue-button:hover {
   background-color: #0056d6; /* Darker blue on hover */
+}
+
+/* blue navbar buttons */
+.blue-button,
+input[type="submit"],
+a.submit {
+  background-color: #0066ff; /* Blue color */
+  color: white;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none; /* Remove underline from links */
+  display: inline-block; /* Ensure proper padding for links */
+}
+
+.blue-button:hover,
+input[type="submit"]:hover,
+a.submit:hover {
+  background-color: #0056d6; /* Darker blue on hover */
+}
+
+/* orange navbar buttons */
+.orange-button,
+input[type="submit"],
+a.submit {
+  background-color: #ff8800; /* Blue color */
+  color: white;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none; /* Remove underline from links */
+  display: inline-block; /* Ensure proper padding for links */
+}
+
+.orange-button:hover,
+input[type="submit"]:hover,
+a.submit:hover {
+  background-color: #ff6600; /* Darker blue on hover */
 }
