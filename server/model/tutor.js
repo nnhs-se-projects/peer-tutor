@@ -3,29 +3,30 @@
  */
 
 const mongoose = require("mongoose");
-const sesh = require("./session");
+const ses = require("./session");
 
 const schema = new mongoose.Schema({
-  // tutee last name
-  last: {
+  // tutor last name
+  tutorFirstName: {
     type: String,
     required: true,
   },
-  // tutee first name
-  first: {
+  // tutor first name
+  tutorLastName: {
     type: String,
     required: true,
-  }, // tutee email
+  },
+  // ID number of tutor
+  tutorID: {
+    type: Number,
+    required: true,
+  },
+  // tutor email
   email: {
     type: String,
     required: true,
   },
-  // ID number of  tutee
-  IDnumber: {
-    type: Number,
-    required: true,
-  },
-  // grade of tutee
+  // grade of tutor
   grade: {
     type: Number,
     required: true,
@@ -38,7 +39,7 @@ const schema = new mongoose.Schema({
   },
 
   // lunch period of tutor
-  period: {
+  lunchPeriod: {
     type: Number,
     required: true,
   },
@@ -59,16 +60,18 @@ const schema = new mongoose.Schema({
     type: Boolean,
     required: true,
   },
-  // attendance of tutee number of day missed
+  // attendance of tutor number of day missed
   attendance: {
     type: Number,
     required: true,
   },
-  // session history of tutee
-  sessionHistory: {
-    type: [sesh],
-    required: true,
-  },
+  // session history of tutor
+  sessionHistory: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ses",
+    },
+  ],
 });
 
 const Tutor = mongoose.model("Tutor", schema);

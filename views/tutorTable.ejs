@@ -1,0 +1,70 @@
+<%- include('include/_header') %> <%- include('include/_teachNavBar') %>
+
+<!-- Main Site -->
+<main>
+  <h1 class="heading">Tutor Database Table</h1>
+  <div class="createEntry-form-box">
+    <table id="studentTable" class="bordered-table">
+      <thead>
+        <tr>
+          <% const headers = ['Tutor Name', 'Tutor Grade', 'Tutor ID',
+          'Classes', 'Days', 'Lunch', 'Total Sessions']; %> <%
+          headers.forEach((header, index) => { %>
+          <th>
+            <div
+              class="header-container"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <span class="header-text" id="headerText<%= index %>"
+                ><%= header %></span
+              >
+              <div class="icons" style="display: flex; gap: 5px">
+                <span
+                  class="sort-icon"
+                  id="sortIcon<%= index %>"
+                  onclick="sortTable(<%= index %>)"
+                  >↑↓</span
+                >
+                <span class="search-icon" onclick="toggleSearch(<%= index %>)"
+                  >🔍</span
+                >
+              </div>
+            </div>
+            <input
+              type="text"
+              class="search-input"
+              id="searchInput<%= index %>"
+              placeholder="Search <%= header %>"
+              oninput="filterTable(<%= index %>)"
+              style="display: none; width: 100%"
+            />
+          </th>
+          <% }) %>
+        </tr>
+      </thead>
+      <tbody>
+        <% tutors.forEach(tutor => { %>
+        <tr>
+          <td><%= tutor.tutorName %></td>
+          <td><%= tutor.grade %></td>
+          <td><%= tutor.tutorID %></td>
+          <td><%= tutor.classes.join(', ') %></td>
+          <td>
+            <%= tutor.daysAvailable ? tutor.daysAvailable.join(', ') : '' %>
+          </td>
+          <td><%= tutor.lunchPeriod %></td>
+          <td><%= tutor.totalSessions %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<script src="js/tutorTable.js"></script>
+
+<%- include('include/_footer') %> views/tutorForm.ejs

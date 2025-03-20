@@ -1,0 +1,72 @@
+<%- include('include/_header') %> <%- include('include/_teachNavBar') %>
+
+<!-- Main Site -->
+<main>
+  <h1 class="heading">Session Database Table</h1>
+  <div class="createEntry-form-box">
+    <table id="studentTable" class="bordered-table">
+      <thead>
+        <tr>
+          <% const headers = ['Date', 'Tutee Name', 'Tutee ID', 'Tutor Name',
+          'Subject', 'Class', 'Assignment']; %> <% headers.forEach((header,
+          index) => { %>
+          <th>
+            <div
+              class="header-container"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <span class="header-text" id="headerText<%= index %>"
+                ><%= header %></span
+              >
+              <div class="icons" style="display: flex; gap: 5px">
+                <span
+                  class="sort-icon"
+                  id="sortIcon<%= index %>"
+                  onclick="sortTable(<%= index %>)"
+                  >↑↓</span
+                >
+                <span class="search-icon" onclick="toggleSearch(<%= index %>)"
+                  >🔍</span
+                >
+              </div>
+            </div>
+            <input
+              type="text"
+              class="search-input"
+              id="searchInput<%= index %>"
+              placeholder="Search <%= header %>"
+              oninput="filterTable(<%= index %>)"
+              style="display: none; width: 100%"
+            />
+          </th>
+          <% }) %>
+        </tr>
+      </thead>
+      <tbody>
+        <% function formatDate(dateString) { const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0'); const month =
+        String(date.getMonth() + 1).padStart(2, '0'); const year =
+        date.getFullYear(); return `${month}/${day}/${year}`; } %> <%
+        sessions.forEach(session => { %>
+        <tr>
+          <td><%= formatDate(session.date) %></td>
+          <td><%= session.tuteeName %></td>
+          <td><%= session.tuteeID %></td>
+          <td><%= session.tutorName %></td>
+          <td><%= session.subject %></td>
+          <td><%= session.class %></td>
+          <td><%= session.assignment %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<%- include('include/_footer') %>
+
+<script src="js/sessionTable.js"></script>

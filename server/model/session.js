@@ -5,34 +5,39 @@
 const mongoose = require("mongoose");
 
 const schema = new mongoose.Schema({
-  // tutee of the session linked through object ID
-  tutee: {
-    type: Object,
+  // tutor first name
+  tutorFirstName: {
+    type: String,
     required: true,
   },
-  // tutor of the session linked through object ID
-  tutor: {
-    type: Object,
+  // tutor last name
+  tutorLastName: {
+    type: String,
+    required: true,
+  },
+  // tutor ID
+  tutorID: {
+    type: String,
     required: true,
   },
   // date of the session
-  date: {
+  sessionDate: {
     type: Date,
     required: true,
   },
-  // lunch period of the session
-  period: {
-    type: Number,
+  // session period
+  sessionPeriod: {
+    type: String,
     required: true,
   },
   // location of the session
-  location: {
+  sessionPlace: {
     type: String,
     required: true,
   },
   // class subject of the session
   subject: {
-    type: Object,
+    type: String,
     required: true,
   },
   // class of the session
@@ -45,15 +50,34 @@ const schema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  // assignment worked on during the session
-  assignment: {
+  // focus of the session
+  focusOfSession: {
     type: String,
     required: true,
   },
-  // completion status of the session
-  // true if completed, false if not
-  completed: {
-    type: Boolean,
+  // assignment worked on during the session
+  workAccomplished: {
+    type: String,
+    required: true,
+  },
+  // tutee first name
+  tuteeFirstName: {
+    type: String,
+    required: true,
+  },
+  // tutee last name
+  tuteeLastName: {
+    type: String,
+    required: true,
+  },
+  // tutee ID
+  tuteeID: {
+    type: String,
+    required: true,
+  },
+  // tutee grade
+  tuteeGrade: {
+    type: String,
     required: true,
   },
 });
