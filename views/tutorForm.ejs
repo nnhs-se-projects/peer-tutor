@@ -7,145 +7,159 @@
       <div class="form-columns">
         <!-- Left Column (Tutor Information and Session Details) -->
         <div class="form-column">
-          <h1 class="heading">Tutor:</h1>
-          <label class="formQuestions" for="tutorFirstName"
-            >Tutor First Name</label
-          >
-          <input
-            type="text"
-            id="tutorFirstName"
-            name="tutorFirstName"
-            required
-          />
+          <h1 class="black-heading">Tutor:</h1>
+          <div class="orange-box">
+            <label class="formQuestions" for="tutorFirstName"
+              >Tutor First Name</label
+            >
+            <input
+              type="text"
+              id="tutorFirstName"
+              name="tutorFirstName"
+              required
+            />
 
-          <label class="formQuestions" for="tutorLastName"
-            >Tutor Last Name</label
-          >
-          <input type="text" id="tutorLastName" name="tutorLastName" required />
+            <label class="formQuestions" for="tutorLastName"
+              >Tutor Last Name</label
+            >
+            <input
+              type="text"
+              id="tutorLastName"
+              name="tutorLastName"
+              required
+            />
 
-          <label class="formQuestions" for="sessionDate">Date</label>
-          <input type="date" id="sessionDate" name="sessionDate" required />
+            <label class="formQuestions" for="sessionDate">Date</label>
+            <input type="date" id="sessionDate" name="sessionDate" required />
 
-          <label class="formQuestions" for="sessionPeriod"
-            >Session Period</label
-          >
-          <select id="sessionPeriod" name="sessionPeriod" required>
-            <option value="">Select a Period</option>
-            <option value="4th">4th</option>
-            <option value="5th">5th</option>
-            <option value="6th">6th</option>
-            <option value="WIN">WIN</option>
-            <option value="RAT">RAT</option>
-          </select>
+            <label class="formQuestions" for="sessionPeriod"
+              >Session Period</label
+            >
+            <select id="sessionPeriod" name="sessionPeriod" required>
+              <option value="">Select a Period</option>
+              <option value="4th">4th</option>
+              <option value="5th">5th</option>
+              <option value="6th">6th</option>
+              <option value="WIN">WIN</option>
+              <option value="RAT">RAT</option>
+            </select>
 
-          <label class="formQuestions" for="sessionPlace"
-            >Session Location</label
-          >
-          <select id="sessionPlace" name="sessionPlace" required>
-            <option value="">Select a Place</option>
-            <option value="Literacy Center">Literacy Center</option>
-            <option value="Community Center">Community Center</option>
-            <option value="Rent-A-Tutor">Rent-A-Tutor</option>
-            <option value="WIN">WIN</option>
-          </select>
+            <label class="formQuestions" for="sessionPlace"
+              >Session Location</label
+            >
+            <select id="sessionPlace" name="sessionPlace" required>
+              <option value="">Select a Place</option>
+              <option value="Literacy Center">Literacy Center</option>
+              <option value="Community Center">Community Center</option>
+              <option value="Rent-A-Tutor">Rent-A-Tutor</option>
+              <option value="WIN">WIN</option>
+            </select>
 
-          <label class="formQuestions" for="subject">Select a Subject</label>
-          <select
-            id="subject"
-            name="subject"
-            onchange="updateClasses()"
-            required
-          >
-            <option value="">Select a Subject</option>
-            <option value="Math">Math</option>
-            <option value="English">English</option>
-            <option value="CTE">CTE</option>
-            <option value="Fine Arts">Fine Arts</option>
-            <option value="Wellness">Wellness</option>
-            <option value="World & Classical Language">
-              World & Classical Language
-            </option>
-            <option value="Science">Science</option>
-            <option value="Social Studies">Social Studies</option>
-            <option value="EL classes">EL classes</option>
-            <option value="Academic Support">Academic Support</option>
-          </select>
+            <label class="formQuestions" for="subject">Select a Subject</label>
+            <select
+              id="subject"
+              name="subject"
+              onchange="updateClasses()"
+              required
+            >
+              <option value="">Select a Subject</option>
+              <option value="Math">Math</option>
+              <option value="English">English</option>
+              <option value="CTE">CTE</option>
+              <option value="Fine Arts">Fine Arts</option>
+              <option value="Wellness">Wellness</option>
+              <option value="World & Classical Language">
+                World & Classical Language
+              </option>
+              <option value="Science">Science</option>
+              <option value="Social Studies">Social Studies</option>
+              <option value="EL classes">EL classes</option>
+              <option value="Academic Support">Academic Support</option>
+            </select>
 
-          <label class="formQuestions" for="class">Select a Class</label>
-          <select id="class" name="class" required>
-            <option value="">Select a Class</option>
-          </select>
+            <label class="formQuestions" for="class">Select a Class</label>
+            <select id="class" name="class" required>
+              <option value="">Select a Class</option>
+            </select>
 
-          <label class="formQuestions" for="teacher">Select a Teacher</label>
-          <select id="teacher" name="teacher" required>
-            <option value="">Select a Teacher</option>
-          </select>
+            <label class="formQuestions" for="teacher">Select a Teacher</label>
+            <select id="teacher" name="teacher" required>
+              <option value="">Select a Teacher</option>
+            </select>
 
-          <label class="formQuestions" for="FocusOfSession"
-            >Focus of Session</label
-          >
-          <select id="FocusOfSession" name="FocusOfSession" required>
-            <option value="">Select a Focus</option>
-            <option value="Conversation">Conversation</option>
-            <option value="FERP">FERP(Final Review Packet)</option>
-            <option value="TestCorrections">
-              Test corrections or retake requirement
-            </option>
-            <option value="WritingEnhancements">
-              Writing enhancement or paper edit
-            </option>
-            <option value="Homework">Homework</option>
-            <option value="TestOrQuizReview">Test or quiz review</option>
-            <option value="ConceptReview">
-              Concept or concept review (no immediate test)
-            </option>
-            <option value="Presentation">Speaking / Presentation</option>
-            <option value="Organization">Organization</option>
-            <option value="StudySkills">
-              General study skills or test taking skills
-            </option>
-            <option value="Comprehension">Comprehension</option>
-          </select>
+            <label class="formQuestions" for="FocusOfSession"
+              >Focus of Session</label
+            >
+            <select id="FocusOfSession" name="FocusOfSession" required>
+              <option value="">Select a Focus</option>
+              <option value="Conversation">Conversation</option>
+              <option value="FERP">FERP(Final Review Packet)</option>
+              <option value="TestCorrections">
+                Test corrections or retake requirement
+              </option>
+              <option value="WritingEnhancements">
+                Writing enhancement or paper edit
+              </option>
+              <option value="Homework">Homework</option>
+              <option value="TestOrQuizReview">Test or quiz review</option>
+              <option value="ConceptReview">
+                Concept or concept review (no immediate test)
+              </option>
+              <option value="Presentation">Speaking / Presentation</option>
+              <option value="Organization">Organization</option>
+              <option value="StudySkills">
+                General study skills or test taking skills
+              </option>
+              <option value="Comprehension">Comprehension</option>
+            </select>
 
-          <label class="formQuestions" for="workaccomplished"
-            >Assignment and Work Accomplished</label
-          >
-          <input
-            type="text"
-            id="workaccomplished"
-            name="workaccomplished"
-            required
-          />
+            <label class="formQuestions" for="workaccomplished"
+              >Assignment and Work Accomplished</label
+            >
+            <input
+              type="text"
+              id="workaccomplished"
+              name="workaccomplished"
+              required
+            />
+          </div>
         </div>
 
         <!-- Right Column (Tutee Information) -->
         <div class="form-column">
-          <h1 class="heading">Tutee:</h1>
-          <label class="formQuestions" for="tuteeFirstName"
-            >Tutee First Name</label
-          >
-          <input
-            type="text"
-            id="tuteeFirstName"
-            name="tuteeFirstName"
-            required
-          />
+          <h1 class="black-heading">Tutee:</h1>
+          <div class="orange-box">
+            <label class="formQuestions" for="tuteeFirstName"
+              >Tutee First Name</label
+            >
+            <input
+              type="text"
+              id="tuteeFirstName"
+              name="tuteeFirstName"
+              required
+            />
 
-          <label class="formQuestions" for="tuteeLastName"
-            >Tutee Last Name</label
-          >
-          <input type="text" id="tuteeLastName" name="tuteeLastName" required />
+            <label class="formQuestions" for="tuteeLastName"
+              >Tutee Last Name</label
+            >
+            <input
+              type="text"
+              id="tuteeLastName"
+              name="tuteeLastName"
+              required
+            />
 
-          <label class="formQuestions" for="tuteeID">Tutee ID</label>
-          <input type="text" id="tuteeID" name="tuteeID" required />
+            <label class="formQuestions" for="tuteeID">Tutee ID</label>
+            <input type="text" id="tuteeID" name="tuteeID" required />
 
-          <label class="formQuestions">Tutee Grade</label>
-          <fieldset>
-            <label><input type="radio" name="grade" value="9" /> 9</label>
-            <label><input type="radio" name="grade" value="10" /> 10</label>
-            <label><input type="radio" name="grade" value="11" /> 11</label>
-            <label><input type="radio" name="grade" value="12" /> 12</label>
-          </fieldset>
+            <label class="formQuestions">Tutee Grade</label>
+            <fieldset>
+              <label><input type="radio" name="grade" value="9" /> 9</label>
+              <label><input type="radio" name="grade" value="10" /> 10</label>
+              <label><input type="radio" name="grade" value="11" /> 11</label>
+              <label><input type="radio" name="grade" value="12" /> 12</label>
+            </fieldset>
+          </div>
         </div>
       </div>
 

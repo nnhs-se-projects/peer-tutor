@@ -51,13 +51,6 @@ input[type="checkbox"] {
   margin-bottom: 20px;
 }
 
-.blue-box {
-  padding: 25px;
-  margin: 75px;
-  background-color: #9bc6ff;
-  margin-top: 0%;
-}
-
 .indexTopBar img {
   max-width: 100px;
   margin-bottom: 20px;
@@ -84,10 +77,25 @@ h1 {
   margin-bottom: 10px; /* Adjust this value as needed */
 }
 
-/* Styling for the .heading class */
 .heading {
   font-size: 2.5em; /* Medium-sized title */
   color: #ff8800; /* Black text color */
+  text-align: center; /* Center the text */
+  margin-top: 0%; /* Adjust this value as needed */
+  margin-bottom: 10px; /* Adjust this value as needed */
+}
+
+.black-heading {
+  font-size: 2.5em; /* Medium-sized title */
+  color: #000000; /* Black text color */
+  text-align: center; /* Center the text */
+  margin-top: 0%; /* Adjust this value as needed */
+  margin-bottom: 10px; /* Adjust this value as needed */
+}
+
+.black-subheading {
+  font-size: 2em; /* Medium-sized title */
+  color: #000000; /* Black text color */
   text-align: center; /* Center the text */
   margin-top: 0%; /* Adjust this value as needed */
   margin-bottom: 10px; /* Adjust this value as needed */
@@ -462,4 +470,31 @@ a.submit {
 input[type="submit"]:hover,
 a.submit:hover {
   background-color: #ff6600; /* Darker blue on hover */
+}
+
+.blue-box {
+  padding: 25px;
+  margin-top: 25px;
+  margin-bottom: 25px;
+  margin-left: 50px; /* Adds buffer space on the left */
+  margin-right: 50px; /* Adds buffer space on the right */
+  background-color: #9bc6ff;
+}
+
+.orange-box {
+  width: calc(100% - 50px); /* Full width minus 25px buffer on each side */
+  padding: 25px; /* Padding inside the box */
+  margin: 25px auto; /* 25px margin on top and bottom, auto centers it horizontally */
+  background-color: #ffd6a8; /* Orange background color */
+  border-radius: 5px; /* Optional: Rounded corners */
+  box-sizing: border-box; /* Ensures padding is included in the width */
+}
+
+.white-box {
+  padding: 25px;
+  margin-top: 25px;
+  margin-bottom: 25px;
+  margin-left: 50px; /* Adds buffer space on the left */
+  margin-right: 50px; /* Adds buffer space on the right */
+  background-color: #ffffff;
 }
