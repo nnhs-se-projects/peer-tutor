@@ -98,3 +98,21 @@ function updateSortIcons(column, isDescending) {
   const icon = document.getElementById(`sortIcon${column}`);
   icon.textContent = isDescending ? "↓" : "↑";
 }
+
+document.addEventListener("click", function (event) {
+  if (event.target.classList.contains("absent-button")) {
+    const row = event.target.closest("tr");
+    const attendanceCell = row.getElementsByTagName("td")[2];
+    let currentAttendance = parseInt(attendanceCell.textContent) || 0;
+    attendanceCell.textContent = currentAttendance + 1;
+  }
+});
+
+document.addEventListener("click", function (event) {
+  if (event.target.classList.contains("makeup-button")) {
+    const row = event.target.closest("tr");
+    const attendanceCell = row.getElementsByTagName("td")[2];
+    let currentAttendance = parseInt(attendanceCell.textContent) || 0;
+    attendanceCell.textContent = currentAttendance - 1;
+  }
+});
