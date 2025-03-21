@@ -527,11 +527,12 @@ submitButton.addEventListener("click", async (event) => {
 
     // Show an alert based on the response and redirect to the homepage
     if (response.ok) {
-      alert("Form successfully submitted!");
       window.location = "/"; // Redirect to the homepage
+      alert("Form successfully submitted!");
     } else {
       const errorData = await response.json();
       console.error("Error submitting form:", errorData);
+      window.location = "/"; // Redirect to the homepage
       alert("There was an error submitting the form.");
     }
   } catch (error) {
