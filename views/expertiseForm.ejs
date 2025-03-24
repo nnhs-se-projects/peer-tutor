@@ -1,86 +1,102 @@
-<%- include('include/_header') %> <%- include('include/_stuNavBar') %>
+<%- include('include/_header') %> <%- include('include/_tutNavBar') %>
 
 <!-- Main Site -->
 <main>
   <div class="createEntry-form">
-    <h1 class="heading">Tutor Expertise Form</h1>
+    <h1 class="black-heading">Tutor Expertise Form</h1>
 
     <form>
       <!-- Student Name -->
-      <label class="formQuestions">First Name</label>
-      <input type="text" id="firstName" name="firstName" required />
-      <label class="formQuestions">Last Name</label>
-      <input type="text" id="lastName" name="lastName" required />
-      <label class="formQuestions">ID</label>
-      <input type="text" id="tutorID" name="tutorID" required />
+      <div class="orange-box">
+        <label class="formQuestions">First Name</label>
+        <input type="text" id="firstName" name="firstName" required />
+        <label class="formQuestions">Last Name</label>
+        <input type="text" id="lastName" name="lastName" required />
+      </div>
+
+      <!-- Tutor ID -->
+      <div class="orange-box">
+        <label class="formQuestions">ID Number</label>
+        <input type="text" id="tutorID" name="tutorID" required />
+      </div>
 
       <!-- Student Email -->
-      <label class="formQuestions">Email</label>
-      <input type="email" id="tutEmail" name="tutEmail" required />
+      <div class="orange-box">
+        <label class="formQuestions">Email</label>
+        <input type="email" id="tutEmail" name="tutEmail" required />
+      </div>
 
       <!-- Student Grade -->
-      <label class="formQuestions">Grade</label>
-      <fieldset>
-        <% for(let grade of grades) { %>
-        <label>
-          <input
-            type="radio"
-            class="habits"
-            name="grade"
-            value="<%= grade %>"
-          /><%= grade %>
-        </label>
-        <% } %>
-      </fieldset>
+      <div class="orange-box">
+        <label class="formQuestions">Grade</label>
+        <fieldset>
+          <% for(let grade of grades) { %>
+          <label>
+            <input
+              type="radio"
+              class="habits"
+              name="grade"
+              value="<%= grade %>"
+            /><%= grade %>
+          </label>
+          <% } %>
+        </fieldset>
+      </div>
 
       <!-- Student New/Returning -->
-      <label class="formQuestions">New or Returning?</label>
-      <fieldset>
-        <% for(let option of options) { %>
-        <label>
-          <input
-            type="radio"
-            class="options"
-            name="newReturning"
-            value="<%= option %>"
-          /><%= option %>
-        </label>
-        <% } %>
-      </fieldset>
+      <div class="orange-box">
+        <label class="formQuestions">New or Returning?</label>
+        <fieldset>
+          <% for(let option of options) { %>
+          <label>
+            <input
+              type="radio"
+              class="options"
+              name="newReturning"
+              value="<%= option %>"
+            /><%= option %>
+          </label>
+          <% } %>
+        </fieldset>
+      </div>
 
       <!-- Student Lunch Period -->
-      <label class="formQuestions">Lunch Period</label>
-      <fieldset>
-        <% for(let lunchPeriod of lunchPeriods) { %>
-        <label>
-          <input
-            type="checkbox"
-            class="lunchPeriod"
-            name="lunchPeriod"
-            value="<%= lunchPeriod %>"
-          /><%= lunchPeriod %>
-        </label>
-        <% } %>
-      </fieldset>
+      <div class="orange-box">
+        <label class="formQuestions">Lunch Period</label>
+        <fieldset>
+          <% for(let lunchPeriod of lunchPeriods) { %>
+          <label>
+            <input
+              type="radio"
+              class="lunchPeriod"
+              name="lunchPeriod"
+              value="<%= lunchPeriod %>"
+            /><%= lunchPeriod %>
+          </label>
+          <% } %>
+        </fieldset>
+      </div>
 
       <!-- Student Tutoring Days -->
-      <label class="formQuestions">Tutoring Days (check 2-3)</label>
-      <fieldset>
-        <% for(let dayOfTheWeek of daysOfTheWeek) { %>
-        <label>
-          <input
-            type="checkbox"
-            class="dayOfTheWeek"
-            name="dayOfTheWeek"
-            value="<%= dayOfTheWeek %>"
-          /><%= dayOfTheWeek %>
-        </label>
-        <% } %>
-      </fieldset>
+      <div class="orange-box">
+        <label class="formQuestions">Tutoring Days (check 2-3)</label>
+        <fieldset>
+          <% for(let dayOfTheWeek of daysOfTheWeek) { %>
+          <label>
+            <input
+              type="checkbox"
+              class="dayOfTheWeek"
+              name="dayOfTheWeek"
+              value="<%= dayOfTheWeek %>"
+            /><%= dayOfTheWeek %>
+          </label>
+          <% } %>
+        </fieldset>
+      </div>
     </form>
   </div>
 
-  <div class="createEntry-form-box">
+  <div class="orange-box">
     <div class="form-columns">
       <!-- Left Column (Tutor Information and Session Details) -->
       <div class="form-column">
