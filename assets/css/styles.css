@@ -252,6 +252,11 @@ footer,
   height: auto; /* Maintain aspect ratio */
 }
 
+.NNHS-logo {
+  max-width: 40%; /* Ensure the image scales properly */
+  height: auto; /* Maintain aspect ratio */
+}
+
 .entries-display {
   display: flex;
   flex-direction: column;
