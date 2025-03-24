@@ -526,3 +526,103 @@ a.submit:hover {
   margin-right: 50px; /* Adds buffer space on the right */
   background-color: #ffffff;
 }
+
+/* General Table Styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+  border-color: #948b8b;
+}
+
+th,
+td {
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  border: 1px solid #948b8b; /* Add border with specified color */
+}
+
+th {
+  font-weight: bold;
+  background-color: #ff8800; /* Orange header */
+  color: white;
+  position: relative; /* For positioning the sort icon */
+}
+
+td {
+  background-color: #f4f4f9;
+  color: black; /* Ensure data text is black */
+}
+
+tr:nth-child(even) td {
+  background-color: #f9f9f9;
+}
+
+tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* Container for header text and sort icon */
+.header-text {
+  display: inline-block;
+}
+
+.sort-icon-container {
+  position: absolute;
+  right: 10px; /* Position the icon 10px from the right edge */
+  top: 50%;
+  transform: translateY(-50%); /* Vertically center the icon */
+  font-size: 14px;
+  color: #ffffff; /* White color for sort icons */
+  padding: 10px; /* Increase click area */
+  border-radius: 50%; /* Make it circular */
+}
+
+/* Sort Icon Styles */
+.sort-icon {
+  font-size: 20px;
+  transition: color 0.2s ease-in-out;
+}
+
+/* Hover Circle Effect */
+.sort-icon-container::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 35px; /* Circle size */
+  height: 35px;
+  background: rgba(255, 255, 255, 0.2); /* Light white overlay */
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.sort-icon-container:hover::before {
+  opacity: 1;
+}
+
+.search-input {
+  background-color: transparent;
+  border: 1px solid white;
+  color: white;
+  padding: 5px;
+  outline: none;
+  width: 100%;
+}
+
+.search-input::placeholder {
+  color: rgba(
+    255,
+    255,
+    255,
+    0.7
+  ); /* Slightly transparent white for the placeholder */
+}
+
+.search-input:focus {
+  border-color: white;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+}
