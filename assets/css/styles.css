@@ -1,3 +1,19 @@
+/* Ensure the body and html take up the full height */
+html,
+body {
+  background-color: #c0ddff;
+
+  height: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main content should take up all available space */
+main {
+  flex: 1;
+}
+
 form {
   display: flex;
   flex-direction: column;
@@ -35,13 +51,6 @@ input[type="checkbox"] {
   margin-bottom: 20px;
 }
 
-.createEntry-form-box {
-  padding: 25px;
-  margin: 75px;
-  background-color: #9bc6ff;
-  margin-top: 0%;
-}
-
 .indexTopBar img {
   max-width: 100px;
   margin-bottom: 20px;
@@ -68,9 +77,24 @@ h1 {
   margin-bottom: 10px; /* Adjust this value as needed */
 }
 
-/* Styling for the .heading class */
 .heading {
   font-size: 2.5em; /* Medium-sized title */
+  color: #000000; /* Black text color */
+  text-align: center; /* Center the text */
+  margin-top: 0%; /* Adjust this value as needed */
+  margin-bottom: 10px; /* Adjust this value as needed */
+}
+
+.black-heading {
+  font-size: 2.5em; /* Medium-sized title */
+  color: #000000; /* Black text color */
+  text-align: center; /* Center the text */
+  margin-top: 0%; /* Adjust this value as needed */
+  margin-bottom: 10px; /* Adjust this value as needed */
+}
+
+.black-subheading {
+  font-size: 2em; /* Medium-sized title */
   color: #000000; /* Black text color */
   text-align: center; /* Center the text */
   margin-top: 0%; /* Adjust this value as needed */
@@ -182,22 +206,6 @@ ul li {
   align-items: center;
 }
 
-/* Ensure the body and html take up the full height */
-html,
-body {
-  background-color: #c0ddff; /* Replace with your desired background color */
-
-  height: 100%;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Main content should take up all available space */
-main {
-  flex: 1;
-}
-
 /* Footer should stick to the bottom */
 footer,
 .footer {
@@ -241,6 +249,11 @@ footer,
 /* Style the image if necessary */
 .peer-tutor-logo {
   max-width: 100%; /* Ensure the image scales properly */
+  height: auto; /* Maintain aspect ratio */
+}
+
+.NNHS-logo {
+  max-width: 40%; /* Ensure the image scales properly */
   height: auto; /* Maintain aspect ratio */
 }
 
@@ -386,8 +399,54 @@ a.submit:hover {
   background-color: #ff6600;
 }
 
+.popup {
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+}
+
+.popup-content {
+  background-color: #fff;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 50%;
+  text-align: center;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Full-width orange button */
+.full-width-orange-button {
+  width: 100%;
+  background-color: #ff8800; /* orange color */
+  color: white;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none; /* Remove underline from links */
+  display: inline-block; /* Ensure proper padding for links */
+}
+
+.full-width-orange-button:hover {
+  background-color: #ff6600; /* Darker orange on hover */
+}
+
 /* Full-width blue button */
-.full-width-button {
+.full-width-blue-button {
   width: 100%;
   background-color: #0066ff; /* Blue color */
   color: white;
@@ -400,11 +459,78 @@ a.submit:hover {
   display: inline-block; /* Ensure proper padding for links */
 }
 
-.full-width-button:hover {
+.full-width-blue-button:hover {
   background-color: #0056d6; /* Darker blue on hover */
 }
 
-/* NEWWWWWWWWWWWWWWWWWWWWWWW */
+/* blue navbar buttons */
+.blue-button,
+input[type="submit"],
+a.submit {
+  background-color: #0066ff; /* Blue color */
+  color: white;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none; /* Remove underline from links */
+  display: inline-block; /* Ensure proper padding for links */
+}
+
+.blue-button:hover,
+input[type="submit"]:hover,
+a.submit:hover {
+  background-color: #0056d6; /* Darker blue on hover */
+}
+
+/* orange navbar buttons */
+.orange-button,
+input[type="submit"],
+a.submit {
+  background-color: #ff8800; /* Blue color */
+  color: white;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none; /* Remove underline from links */
+  display: inline-block; /* Ensure proper padding for links */
+}
+
+.orange-button:hover,
+input[type="submit"]:hover,
+a.submit:hover {
+  background-color: #ff6600; /* Darker blue on hover */
+}
+
+.blue-box {
+  padding: 25px;
+  margin-top: 25px;
+  margin-bottom: 25px;
+  margin-left: 50px; /* Adds buffer space on the left */
+  margin-right: 50px; /* Adds buffer space on the right */
+  background-color: #9bc6ff;
+}
+
+.orange-box {
+  width: calc(100% - 50px); /* Full width minus 25px buffer on each side */
+  padding: 25px; /* Padding inside the box */
+  margin: 25px auto; /* 25px margin on top and bottom, auto centers it horizontally */
+  background-color: #ffd6a8; /* Orange background color */
+  border-radius: 5px; /* Optional: Rounded corners */
+  box-sizing: border-box; /* Ensures padding is included in the width */
+}
+
+.white-box {
+  padding: 25px;
+  margin-top: 25px;
+  margin-bottom: 25px;
+  margin-left: 50px; /* Adds buffer space on the left */
+  margin-right: 50px; /* Adds buffer space on the right */
+  background-color: #ffffff;
+}
 
 /* General Table Styles */
 table {
