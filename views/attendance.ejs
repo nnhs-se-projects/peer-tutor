@@ -1,0 +1,72 @@
+<%- include('include/_header') %> <%- include('include/_teachNavBar') %>
+
+<!-- Main Site -->
+<main>
+  <h1 class="heading">Tutor Attendance Table</h1>
+  <div class="createEntry-form-box">
+    <table id="studentTable" class="bordered-table">
+      <thead>
+        <tr>
+          <% const headers = ['First Name', 'Last Name','Days Missed'
+          ,'Attendance']; %> <% headers.forEach((header, index) => { %>
+          <th>
+            <div
+              class="header-container"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <span class="header-text" id="headerText<%= index %>"
+                ><%= header %></span
+              >
+              <% if (index < 3) { %>
+              <div class="icons" style="display: flex; gap: 5px">
+                <span
+                  class="sort-icon"
+                  id="sortIcon<%= index %>"
+                  onclick="sortTable(<%= index %>)"
+                  >↑↓</span
+                >
+                <span class="search-icon" onclick="toggleSearch(<%= index %>)"
+                  >🔍</span
+                >
+              </div>
+              <% } %>
+            </div>
+            <% if (index < 3) { %>
+            <input
+              type="text"
+              class="search-input"
+              id="searchInput<%= index %>"
+              placeholder="Search <%= header %>"
+              oninput="filterTable(<%= index %>)"
+              style="display: none; width: 100%"
+            />
+            <% } %>
+          </th>
+          <% }) %>
+        </tr>
+      </thead>
+      <tbody>
+        <% tutors.forEach(tutor => { %>
+        <tr>
+          <td><%= tutor.firstName %></td>
+          <td><%= tutor.lastName %></td>
+          <td><%= tutor.attendance %></td>
+          <td>
+            <button class="absent-button">A</button>
+            <button class="present-button">P</button>
+            <button class="makeup-button">M</button>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<script src="js/attendance.js"></script>
+
+<%- include('include/_footer') %>

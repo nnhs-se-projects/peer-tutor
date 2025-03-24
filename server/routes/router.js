@@ -214,4 +214,35 @@ route.get("/sessionTable", async (req, res) => {
   }
 });
 
+// Route to render the attendance
+route.get("/attendance", async (req, res) => {
+  try {
+    const tutors = await Tutor.find().sort({ date: -1 });
+
+    // Convert MongoDB objects to objects formatted for the EJS template
+    const tutorsFormatted = tutors.map((tutor) => {
+      return {
+        firstName: tutor.tutorFirstName,
+        lastName: tutor.tutorLastName,
+        date: tutor.date,
+        attendance: tutor.attendance,
+        daysAvailable: Array.isArray(tutor.daysAvailable)
+          ? tutor.daysAvailable
+          : [],
+        lunchPeriod: tutor.lunchPeriod,
+      };
+    });
+
+    res.render("attendance", { tutors: tutorsFormatted });
+  } catch (error) {
+    console.error("Error fetching tutors:", error);
+    res.status(500).send("Error fetching tutors");
+  }
+});
+
+// Route to render the authentication page
+route.get("/auth", (req, res) => {
+  res.render("auth"); // Render the 'auth' EJS template
+});
+
 module.exports = route;
