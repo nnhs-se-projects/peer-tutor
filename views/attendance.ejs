@@ -56,9 +56,9 @@
           <td><%= tutor.lastName %></td>
           <td><%= tutor.attendance %></td>
           <td>
-            <button class="absent-button">A</button>
-            <button class="present-button">P</button>
-            <button class="makeup-button">M</button>
+            <button class="absent-button">+1</button>
+            <button class="present-button">-1</button>
+            <button class="makeup-button">Reset</button>
           </td>
         </tr>
         <% }) %>
@@ -67,6 +67,5 @@
   </div>
 </main>
 
-<script src="js/attendance.js"></script>
-
+<script src="/js/attendance.js"></script>
 <%- include('include/_footer') %>
