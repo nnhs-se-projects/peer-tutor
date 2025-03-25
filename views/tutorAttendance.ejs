@@ -1,17 +1,11 @@
+<%- include('include/_header') %> <%- include('include/_tutNavBar') %>
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tutor Attendance</title>
-    <style>
-      .hidden {
-        display: none;
-      }
-    </style>
+    <h1 class="black-heading">Tutor Attendance</h1>
   </head>
   <body>
-    <h1>Tutor Attendance</h1>
     <form id="idForm">
       <label for="tutorID">Enter your ID number:</label>
       <input type="text" id="tutorID" name="tutorID" required />
@@ -24,3 +18,5 @@
     <script src="/js/tutorAttendance.js"></script>
   </body>
 </html>
+
+<%- include('include/_footer') %>
