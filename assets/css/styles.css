@@ -515,12 +515,12 @@ a.submit:hover {
 }
 
 .orange-box {
-  width: calc(100% - 50px); /* Full width minus 25px buffer on each side */
   padding: 25px; /* Padding inside the box */
-  margin: 25px auto; /* 25px margin on top and bottom, auto centers it horizontally */
+  margin-top: 25px;
+  margin-bottom: 25px;
+  margin-left: 50px; /* Adds buffer space on the left */
+  margin-right: 50px; /* Adds buffer space on the right */
   background-color: #ffd6a8; /* Orange background color */
-  border-radius: 5px; /* Optional: Rounded corners */
-  box-sizing: border-box; /* Ensures padding is included in the width */
 }
 
 .white-box {

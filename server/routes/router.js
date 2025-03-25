@@ -14,9 +14,11 @@ const daysOfTheWeek = require("../model/daysOfTheWeek.json");
 // assigning variables to the JSON files
 const courseList = require("../model/courseList.json");
 
-// pass a path (e.g., "/") and a callback function to the get method
-//  when the client makes an HTTP GET request to the specified path,
-//  the callback function is executed
+// Route to render the authentication page
+route.get("/auth", (req, res) => {
+  res.render("auth"); // Render the 'auth' EJS template
+});
+
 route.get("/", async (req, res) => {
   // the req parameter references the HTTP request object, which has
   //  a number of properties
@@ -124,11 +126,6 @@ route.post("/submitTutorForm", async (req, res) => {
     console.error("Error saving session:", error);
     res.status(500).json({ success: false, error: "Failed to save session" });
   }
-});
-
-// Route to render the expertise form
-route.get("/expertiseForm", async (req, res) => {
-  res.render("expertiseForm");
 });
 
 // Route to handle expertise form submission
@@ -240,9 +237,34 @@ route.get("/attendance", async (req, res) => {
   }
 });
 
-// Route to render the authentication page
-route.get("/auth", (req, res) => {
-  res.render("auth"); // Render the 'auth' EJS template
-});
+route.post("/updateAttendance/:id", async (req, res) => {
+  try {
+    const tutorId = req.params.id;
+    const { change, columnToUpdate } = req.body;
 
+    // Find the tutor by ID
+    const tutor = await Tutor.findById(tutorId);
+    if (!tutor) {
+      return res.status(404).json({ error: "Tutor not found" });
+    }
+
+    // Update attendance
+    tutor.attendance += change;
+
+    // Update "Days Missed" if the columnToUpdate is "daysMissed"
+    if (columnToUpdate === "daysMissed") {
+      tutor.daysMissed = (tutor.daysMissed || 0) + 1;
+    }
+
+    await tutor.save(); // Save the updated tutor
+
+    res.json({
+      attendance: tutor.attendance,
+      daysMissed: tutor.daysMissed || 0,
+    }); // Send the updated data back to the client
+  } catch (error) {
+    console.error("Error updating attendance:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 module.exports = route;
