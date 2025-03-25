@@ -92,6 +92,11 @@ route.get("/expertiseForm", async (req, res) => {
 // delegate all authentication to the auth.js router
 route.use("/auth", require("./auth"));
 
+// Route to render the tutor attendance
+route.get("/tutorAttendance", async (req, res) => {
+  res.render("tutorAttendance");
+});
+
 // Route to render the tutor form
 route.get("/tutorForm", async (req, res) => {
   res.render("tutorForm");
@@ -243,6 +248,23 @@ route.get("/attendance", async (req, res) => {
 // Route to render the authentication page
 route.get("/auth", (req, res) => {
   res.render("auth"); // Render the 'auth' EJS template
+});
+
+// Route to fetch attendance data based on tutor ID
+route.get("/attendance/:tutorID", async (req, res) => {
+  try {
+    const tutorID = req.params.tutorID;
+    const tutor = await Tutor.findOne({ tutorID: tutorID });
+
+    if (tutor) {
+      res.json({ attendance: tutor.attendance });
+    } else {
+      res.status(404).json({ error: "Tutor not found" });
+    }
+  } catch (error) {
+    console.error("Error fetching attendance data:", error);
+    res.status(500).json({ error: "Error fetching attendance data" });
+  }
 });
 
 module.exports = route;
