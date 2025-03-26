@@ -1,9 +1,9 @@
-<%- include('include/_header') %> <%- include('include/_teachNavBar') %>
+<%- include('include/_header') %> <%- include('include/_leadNavBar') %>
 
 <!-- Main Site -->
 <main>
   <h1 class="heading">Tutor Attendance Table</h1>
-  <div class="createEntry-form-box">
+  <div class="blue-box">
     <table id="studentTable" class="bordered-table">
       <thead>
         <tr>
@@ -54,11 +54,11 @@
         <tr>
           <td><%= tutor.firstName %></td>
           <td><%= tutor.lastName %></td>
-          <td><%= tutor.attendance %></td>
+          <td id="daysMissed-<%= tutor._id %>"><%= tutor.daysMissed || 0 %></td>
           <td>
-            <button class="absent-button">A</button>
-            <button class="present-button">P</button>
-            <button class="makeup-button">M</button>
+            <button class="absent-button" data-id="<%= tutor._id %>">A</button>
+            <button class="present-button" data-id="<%= tutor._id %>">P</button>
+            <button class="makeup-button" data-id="<%= tutor._id %>">M</button>
           </td>
         </tr>
         <% }) %>
@@ -67,6 +67,5 @@
   </div>
 </main>
 
-<script src="js/attendance.js"></script>
-
+<script src="/js/attendance.js"></script>
 <%- include('include/_footer') %>

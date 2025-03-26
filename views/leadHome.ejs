@@ -1,28 +1,32 @@
-<%- include('include/_header') %>
+<%- include('include/_header') %><%- include('include/_leadNavBar') %>
 
 <!-- Main Site -->
 <main>
-  <div class="indexTopBar">
-    <h2>Tutor Leader Home Page</h2>
-
-    <h1 class="heading">Tutor Leader Resources</h1>
-    <!-- <div class="createEntry-form-box"> -->
-    <h3 class="h3">Attendance</h3>
+  <h1 class="black-heading">Tutor Leader Resources</h1>
+  <div class="blue-box">
+    <h3 class="black-subheading">Tutor Forms</h3>
     <div class="form-columns">
       <div class="column">
-        <a href="/attendance" class="full-width-button" role="button"
-          >Attendance Sheet</a
+        <a href="/attendance" class="full-width-blue-button" role="button"
+          >Attendance Tracker</a
         >
-        <!-- </div> -->
       </div>
     </div>
   </div>
 </main>
 
-<!-- /Main Site -->
+<!-- Main Site -->
+
+<%- include('include/_footer') %>
+
+<style>
+  .row {
+    display: flex;
+  }
+  .column {
+    flex: 50%;
+    padding: 10px;
+  }
+</style>
 
 <script src="/js/leadHome.js"></script>
-
-<!-- include footer -->
-<%- include('include/_footer') %>
-<!-- /include footer -->
