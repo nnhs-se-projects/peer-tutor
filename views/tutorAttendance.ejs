@@ -8,12 +8,28 @@
   <body>
     <form id="idForm">
       <label for="tutorID">Enter your ID number:</label>
-      <input type="text" id="tutorID" name="tutorID" required />
+      <input type="search-input" id="tutorID" name="tutorID" required />
       <button type="submit">Submit</button>
     </form>
-    <div id="attendance" class="hidden">
-      <p id="attendanceValue">Attendance</p>
-    </div>
+
+    <table border="1">
+      <tr>
+        <th></th>
+        <th>Value</th>
+      </tr>
+      <tr>
+        <td>Days Missed</td>
+        <td>...</td>
+      </tr>
+      <tr>
+        <td>Number of Sessions</td>
+        <td>...</td>
+      </tr>
+      <tr>
+        <td>Session History</td>
+        <td>...</td>
+      </tr>
+    </table>
 
     <script src="/js/tutorAttendance.js"></script>
   </body>

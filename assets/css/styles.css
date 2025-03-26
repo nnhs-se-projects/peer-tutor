@@ -20,6 +20,7 @@ form {
   gap: 15px;
   margin: 0 auto;
   width: 75%;
+  color: #fff;
 }
 
 label {
@@ -28,6 +29,13 @@ label {
 }
 
 input[type="text"],
+input {
+  background-color: white;
+  color: black; /* Ensure text is visible */
+  border: 1px solid #ccc; /* Optional: adds a subtle border */
+  padding: 5px; /* Optional: adds some spacing inside the textbox */
+}
+
 input[type="date"],
 select {
   width: 100%;
