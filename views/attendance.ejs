@@ -55,7 +55,7 @@
           <td><%= tutor.firstName %></td>
           <td><%= tutor.lastName %></td>
           <td id="attendance-<%= tutor._id %>"><%= tutor.attendance %></td>
-          <td><%= tutor.attendance %></td>
+          <td id="daysMissed-<%= tutor._id %>"><%= tutor.daysMissed || 0 %></td>
           <td>
             <button class="absent-button" data-id="<%= tutor._id %>">A</button>
             <button class="present-button" data-id="<%= tutor._id %>">P</button>
