@@ -237,6 +237,7 @@ route.get("/attendance", async (req, res) => {
   }
 });
 
+// Route to update attendance
 route.post("/updateAttendance/:id", async (req, res) => {
   try {
     const tutorId = req.params.id;
