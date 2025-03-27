@@ -100,14 +100,40 @@ function updateSortIcons(column, isDescending) {
 }
 
 // NEWWWWWWWWWWWWWWW
-document.addEventListener("click", function (event) {
-  if (event.target.classList.contains("absent-button")) {
-    const row = event.target.closest("tr");
-    const attendanceCell = row.querySelector(".attendance");
 
-    if (attendanceCell) {
-      let currentAttendance = parseInt(attendanceCell.textContent.trim()) || 0;
-      attendanceCell.textContent = currentAttendance + 1;
-    }
-  }
+document.addEventListener("DOMContentLoaded", () => {
+  // Add event listeners to all buttons
+  document.querySelectorAll(".absent-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      const tutorId = button.dataset.id; // Get the tutor's ID
+      console.log(`Absent button clicked for tutor ID: ${tutorId}`); // Debug log
+      updateAttendance(tutorId, 1); // Increase attendance by 1
+    });
+  });
 });
+
+// Function to update attendance
+async function updateAttendance(tutorId, change) {
+  try {
+    const response = await fetch(`/updateAttendance/${tutorId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ change }),
+    });
+
+    if (response.ok) {
+      const updatedData = await response.json();
+      // Update the attendance value in the table dynamically
+      const attendanceCell = document.getElementById(`attendance-${tutorId}`);
+      if (attendanceCell) {
+        attendanceCell.textContent = updatedData.attendance; // Update the displayed value
+      }
+    } else {
+      console.error("Failed to update attendance");
+    }
+  } catch (error) {
+    console.error("Error updating attendance:", error);
+  }
+}

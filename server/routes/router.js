@@ -241,7 +241,7 @@ route.get("/attendance", async (req, res) => {
 route.post("/updateAttendance/:id", async (req, res) => {
   try {
     const tutorId = req.params.id;
-    const { change, columnToUpdate } = req.body;
+    const { change } = req.body;
 
     // Find the tutor by ID
     const tutor = await Tutor.findById(tutorId);
@@ -252,20 +252,15 @@ route.post("/updateAttendance/:id", async (req, res) => {
     // Update attendance
     tutor.attendance += change;
 
-    // Update "Days Missed" if the columnToUpdate is "daysMissed"
-    if (columnToUpdate === "daysMissed") {
-      tutor.daysMissed = (tutor.daysMissed || 0) + 1;
-    }
-
     await tutor.save(); // Save the updated tutor
 
     res.json({
       attendance: tutor.attendance,
-      daysMissed: tutor.daysMissed || 0,
-    }); // Send the updated data back to the client
+    }); // Send the updated attendance back to the client
   } catch (error) {
     console.error("Error updating attendance:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 module.exports = route;
