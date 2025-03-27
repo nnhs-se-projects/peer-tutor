@@ -459,7 +459,7 @@ function updateTeachers(subject) {
   }
 }
 
-const submitButton = document.querySelector("input.submit");
+const submitButton = document.querySelector("input.Submit");
 
 submitButton.addEventListener("click", async (event) => {
   event.preventDefault(); // Prevent the default form submission
@@ -527,12 +527,11 @@ submitButton.addEventListener("click", async (event) => {
 
     // Show an alert based on the response and redirect to the homepage
     if (response.ok) {
-      window.location = "/"; // Redirect to the homepage
       alert("Form successfully submitted!");
+      window.location = "/"; // Redirect to the homepage
     } else {
       const errorData = await response.json();
       console.error("Error submitting form:", errorData);
-      window.location = "/"; // Redirect to the homepage
       alert("There was an error submitting the form.");
     }
   } catch (error) {
