@@ -101,7 +101,53 @@ function updateSortIcons(column, isDescending) {
 
 // NEWWWWWWWWWWWWWWW
 
-document.addEventListener("click", function (event) {
-if(event.target.classList.contains("absent-button"))
+document.addEventListener("DOMContentLoaded", () => {
+  // Add event listeners to all buttons
+  document.querySelectorAll(".absent-button").forEach((button) => {
+    button.addEventListener("click", () =>
+      updateAttendance(button.dataset.id, -1, "daysMissed")
+    );
+  });
 
+  document.querySelectorAll(".present-button").forEach((button) => {
+    button.addEventListener("click", () =>
+      updateAttendance(button.dataset.id, 0, null)
+    );
+  });
+
+  document.querySelectorAll(".makeup-button").forEach((button) => {
+    button.addEventListener("click", () =>
+      updateAttendance(button.dataset.id, 1, null)
+    );
+  });
+});
+
+// Function to update attendance
+async function updateAttendance(tutorId, change, columnToUpdate) {
+  try {
+    const response = await fetch(`/updateAttendance/${tutorId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ change, columnToUpdate }),
+    });
+
+    if (response.ok) {
+      const updatedData = await response.json();
+      // Update the attendance value in the table
+      document.getElementById(`attendance-${tutorId}`).textContent =
+        updatedData.attendance;
+
+      // Update the "Days Missed" column if applicable
+      if (columnToUpdate === "daysMissed") {
+        document.getElementById(`daysMissed-${tutorId}`).textContent =
+          updatedData.daysMissed;
+      }
+    } else {
+      console.error("Failed to update attendance");
+    }
+  } catch (error) {
+    console.error("Error updating attendance:", error);
+  }
 }
