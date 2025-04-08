@@ -25,6 +25,7 @@ route.get("/", async (req, res) => {
   console.log("path: ", req.path);
 
   const entries = await Entry.find();
+  const tutors = await Tutor.find(); // Fetch tutors from the database
 
   // convert MongoDB objects to objects formatted for the EJS template
   const formattedEntries = entries.map((entry) => {
@@ -36,8 +37,17 @@ route.get("/", async (req, res) => {
     };
   });
 
+  const formattedTutors = tutors.map((tutor) => ({
+    firstName: tutor.tutorFirstName,
+    lastName: tutor.tutorLastName,
+    totalSessions: tutor.sessionHistory.length,
+  }));
+
   // the res parameter references the HTTP response object
-  res.render("index", { entries: formattedEntries });
+  res.render("homepage", {
+    entries: formattedEntries,
+    tutors: formattedTutors,
+  });
 });
 
 route.post("/createEntry", async (req, res) => {
@@ -267,4 +277,24 @@ route.post("/updateAttendance/:id", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+route.get("/homepage", async (req, res) => {
+  try {
+    const tutors = await Tutor.find().sort({ date: -1 });
+
+    // Convert MongoDB objects to objects formatted for the EJS template
+    const tutorsFormatted = tutors.map((tutor) => {
+      return {
+        tutorName: `${tutor.tutorFirstName} ${tutor.tutorLastName}`,
+        totalSessions: tutor.sessionHistory.length,
+      };
+    });
+
+    res.render("homepage", { tutors: tutorsFormatted });
+  } catch (error) {
+    console.error("Error fetching tutors:", error);
+    res.status(500).send("Error fetching tutors");
+  }
+});
+
 module.exports = route;

@@ -1,14 +1,3 @@
-<%- include('include/_header') %>
-
-<!-- Main Site -->
-<div class="navbar">
-  <a href="/stuHome" class="blue-button" role="button">Student</a>
-  <a href="/tutHome" class="blue-button" role="button">Tutor</a>
-  <a href="/leadHome" class="blue-button" role="button">Tutor Leader</a>
-  <a href="/teachHome" class="blue-button" role="button">Teacher</a>
-  <a href="/adminHome" class="blue-button" role="button">Admin</a>
-</div>
-
 <!-- Description -->
 <div class="orange-box">
   <h2 style="text-align: center">Welcome to Huskie Peer Tutoring!</h2>
@@ -42,24 +31,3 @@
   </ul>
 </div>
 <!-- /Description -->
-
-<!-- Pop-up Message
-<div id="welcomePopup" class="popup">
-  <div class="popup-content">
-    <span class="close">&times;</span>
-    <p>Welcome to Huskie Peer Tutoring! Click on the buttons for resources.</p>
-    <p>We hope you find what you need!</p>
-    <img src="/img/NNHS-logo.png" alt="NNHS Logo" class="NNHS-logo" />
-    <p>Woof!</p>
-  </div>
-</div>
- /Pop-up Message -->
-
-<!-- /Main Site -->
-
-<script src="/js/index.js"></script>
-<link rel="stylesheet" href="/css/styles.css" />
-
-<!-- include footer -->
-<%- include('include/_footer') %>
-<!-- /include footer -->
