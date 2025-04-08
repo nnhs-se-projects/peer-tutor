@@ -148,5 +148,3 @@ function updateSortIcons(column, isDescending) {
   const icon = document.getElementById(`sortIcon${column}`);
   icon.textContent = isDescending ? "↓" : "↑";
 }
-
-absen;

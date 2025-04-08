@@ -106,7 +106,6 @@ route.post("/submitTutorForm", async (req, res) => {
     const newSession = new Session({
       tutorFirstName: req.body.tutorFirstName,
       tutorLastName: req.body.tutorLastName,
-      tutorID: req.body.tutorID,
       sessionDate: req.body.sessionDate,
       sessionPeriod: req.body.sessionPeriod,
       sessionPlace: req.body.sessionPlace,

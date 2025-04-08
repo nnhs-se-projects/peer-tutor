@@ -15,11 +15,6 @@ const schema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  // tutor ID
-  tutorID: {
-    type: String,
-    required: true,
-  },
   // date of the session
   sessionDate: {
     type: Date,

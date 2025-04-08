@@ -90,7 +90,7 @@
             <label class="formQuestions" for="FocusOfSession"
               >Focus of Session</label
             >
-            <select id="FocusOfSession" name="FocusOfSession" required>
+            <select id="focusOfSession" name="focusOfSession" required>
               <option value="">Select a Focus</option>
               <option value="Conversation">Conversation</option>
               <option value="FERP">FERP(Final Review Packet)</option>
@@ -118,12 +118,11 @@
             >
             <input
               type="text"
-              id="workaccomplished"
-              name="workaccomplished"
+              id="workAccomplished"
+              name="workAccomplished"
               required
             />
           </div>
-
         </div>
 
         <!-- Right Column (Tutee Information) -->
@@ -153,12 +152,20 @@
             <label class="formQuestions" for="tuteeID">Tutee ID</label>
             <input type="text" id="tuteeID" name="tuteeID" required />
 
-            <label class="formQuestions">Tutee Grade</label>
+            <label class="formQuestions" for="tuteeGrade">Tutee Grade</label>
             <fieldset>
-              <label><input type="radio" name="grade" value="9" /> 9</label>
-              <label><input type="radio" name="grade" value="10" /> 10</label>
-              <label><input type="radio" name="grade" value="11" /> 11</label>
-              <label><input type="radio" name="grade" value="12" /> 12</label>
+              <label
+                ><input type="radio" name="tuteeGrade" value="9" /> 9</label
+              >
+              <label
+                ><input type="radio" name="tuteeGrade" value="10" /> 10</label
+              >
+              <label
+                ><input type="radio" name="tuteeGrade" value="11" /> 11</label
+              >
+              <label
+                ><input type="radio" name="tuteeGrade" value="12" /> 12</label
+              >
             </fieldset>
           </div>
         </div>
