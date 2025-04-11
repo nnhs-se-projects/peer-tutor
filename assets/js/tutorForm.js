@@ -467,6 +467,7 @@ submitButton.addEventListener("click", async (event) => {
   // Get the values entered by the user
   const tutorFirstName = document.querySelector("input#tutorFirstName").value;
   const tutorLastName = document.querySelector("input#tutorLastName").value;
+  const tutorID = document.querySelector("input#tutorID").value;
   const sessionDate = document.querySelector("input#sessionDate").value;
   const sessionPeriod = document.querySelector("select#sessionPeriod").value;
   const sessionPlace = document.querySelector("select#sessionPlace").value;
@@ -488,6 +489,7 @@ submitButton.addEventListener("click", async (event) => {
   const formData = {
     tutorFirstName,
     tutorLastName,
+    tutorID,
     sessionDate,
     sessionPeriod,
     sessionPlace,
@@ -509,6 +511,7 @@ submitButton.addEventListener("click", async (event) => {
     sessionDate,
     tutorFirstName,
     tutorLastName,
+    tutorID,
     subject,
     class: classValue,
     workAccomplished,
