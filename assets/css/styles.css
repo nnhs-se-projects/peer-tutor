@@ -171,10 +171,20 @@ ul li {
   margin: 0 auto; /* Center horizontally */
 }
 
-.g_id_signin {
-  width: 100%; /* Full width */
-  display: flex;
-  justify-content: center;
+.google-signin-button {
+  font-size: 1.5rem; /* Increase font size */
+  padding: 10px 20px; /* Add padding for a larger button */
+  background-color: #4285f4; /* Google blue */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.google-signin-button:hover {
+  background-color: #357ae8; /* Darker blue on hover */
 }
 
 .authForm img {
@@ -185,15 +195,6 @@ ul li {
   flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
-}
-
-.g_id_signin {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
 }
 
 .authTitle {
