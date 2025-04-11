@@ -156,6 +156,26 @@ route.post("/submitExpertiseForm", async (req, res) => {
   }
 });
 
+// Route to post to receive tutor id values to edit session history
+route.post("/getTutorSessionHistory", async (req, res) => {
+  try {
+    const tutor = await Tutor.findOne({ tutorID: req.body.tutorIDS });
+    if (!tutor) {
+      return res.status(404).json({ error: "Tutor not found" });
+    }
+    tutor.sessionHistory.push({ _id });
+    await tutor.save();
+
+    res.status(201).json({ success: true, sessionId: _id });
+  } catch (error) {
+    console.error("Error saving session or updating tutor:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to save session or update tutor",
+    });
+  }
+});
+
 route.get("/tutorTable", async (req, res) => {
   try {
     const tutors = await Tutor.find().sort({ date: -1 });

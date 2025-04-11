@@ -516,6 +516,8 @@ submitButton.addEventListener("click", async (event) => {
     workAccomplished,
   };
 
+  const tutorIDS = tutorID;
+
   try {
     const response = await fetch("/submitTutorForm", {
       method: "POST",
@@ -537,6 +539,27 @@ submitButton.addEventListener("click", async (event) => {
   } catch (error) {
     console.error("Network error:", error);
     alert("There was a network error submitting the form.");
+  }
+
+  // session history try
+  try {
+    const response = await fetch("/getTutorSessionHistory", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ tutorIDS }),
+    });
+
+    // Show an alert based on the response and redirect to the homepage
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Error getting tutor ID:", errorData);
+      alert("There was an error getting tutor ID.");
+    }
+  } catch (error) {
+    console.error("Network error:", error);
+    alert("There was a network error placing into session table.");
   }
 
   // session table try
