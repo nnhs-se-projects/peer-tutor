@@ -7,8 +7,8 @@
     <table id="studentTable" class="bordered-table">
       <thead>
         <tr>
-          <% const headers = ['First Name', 'Last Name','Days Missed'
-          ,'Attendance']; %> <% headers.forEach((header, index) => { %>
+          <% const headers = ['First Name', 'Last Name', 'Days Missed',
+          'Attendance']; %> <% headers.forEach((header, index) => { %>
           <th>
             <div
               class="header-container"
@@ -56,9 +56,9 @@
           <td><%= tutor.lastName %></td>
           <td id="attendance-<%= tutor._id %>"><%= tutor.attendance %></td>
           <td>
-            <button class="absent-button" data-id="<%= tutor._id %>">A</button>
-            <button class="present-button" data-id="<%= tutor._id %>">P</button>
-            <button class="makeup-button" data-id="<%= tutor._id %>">M</button>
+            <button class="button" data-id="<%= tutor._id %>">Absent</button>
+            <button class="button" data-id="<%= tutor._id %>">Present</button>
+            <button class="button" data-id="<%= tutor._id %>">Missing</button>
           </td>
         </tr>
         <% }) %>

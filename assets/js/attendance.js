@@ -99,15 +99,14 @@ function updateSortIcons(column, isDescending) {
   icon.textContent = isDescending ? "↓" : "↑";
 }
 
-// NEWWWWWWWWWWWWWWW
+// function keeps button clicked for corresponding tutor
 
 document.addEventListener("DOMContentLoaded", () => {
   // Add event listeners to all buttons
-  document.querySelectorAll(".absent-button").forEach((button) => {
+  document.querySelectorAll("button").forEach((button) => {
     button.addEventListener("click", () => {
       const tutorId = button.dataset.id; // Get the tutor's ID
-      console.log(`Absent button clicked for tutor ID: ${tutorId}`); // Debug log
-      updateAttendance(tutorId, 1); // Increase attendance by 1
+      console.log(`Absent button clicked for tutor ID:`); // Debug log
     });
   });
 });
