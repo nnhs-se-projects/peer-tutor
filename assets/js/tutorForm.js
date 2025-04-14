@@ -511,6 +511,7 @@ submitButton.addEventListener("click", async (event) => {
     sessionDate,
     tutorFirstName,
     tutorLastName,
+    tutorID,
     subject,
     class: classValue,
     workAccomplished,
