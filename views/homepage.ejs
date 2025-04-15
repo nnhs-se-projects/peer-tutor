@@ -10,14 +10,16 @@
           <tr>
             <th>Rank</th>
             <th>Name</th>
-            <th>Progress</th>
+            <th style="width: 60%">Progress</th>
+            <!-- Adjusted width -->
             <th>Total Sessions</th>
           </tr>
         </thead>
         <tbody>
-          <% tutors.forEach((tutor, index) => { const maxSessions =
-          Math.max(...tutors.map(t => t.totalSessions)); const progressPercent =
-          Math.round((tutor.totalSessions / maxSessions) * 100); %>
+          <% tutors.sort((a, b) => b.totalSessions - a.totalSessions); // Sort
+          by totalSessions descending %> <% tutors.forEach((tutor, index) => {
+          const progressPercent = Math.min(Math.round((tutor.totalSessions /
+          100) * 100), 100); %>
           <tr>
             <td><%= index + 1 %></td>
             <td><%= tutor.firstName %> <%= tutor.lastName %></td>
