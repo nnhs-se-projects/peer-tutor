@@ -459,7 +459,7 @@ function updateTeachers(subject) {
   }
 }
 
-const submitButton = document.querySelector("input.Submit");
+const submitButton = document.querySelector("input.submit");
 
 submitButton.addEventListener("click", async (event) => {
   event.preventDefault(); // Prevent the default form submission
@@ -552,10 +552,8 @@ submitButton.addEventListener("click", async (event) => {
     });
 
     // Show an alert based on the response and redirect to the homepage
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Error placing into session table:", errorData);
-      alert("There was an error placing into session table.");
+    if (response.ok) {
+      alert("Success putting into session table");
     }
   } catch (error) {
     console.error("Network error:", error);
