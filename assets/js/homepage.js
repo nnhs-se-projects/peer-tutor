@@ -15,11 +15,33 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
+function toggleSearch(column) {
+  const headerText = document.getElementById(`headerText${column}`);
+  const searchInput = document.getElementById(`searchInput${column}`);
+  const icons = headerText.nextElementSibling;
+
+  if (
+    searchInput.style.display === "none" ||
+    searchInput.style.display === ""
+  ) {
+    headerText.style.display = "none";
+    searchInput.style.display = "inline-block";
+    icons.style.display = "none";
+    searchInput.focus();
+  } else {
+    if (searchInput.value === "") {
+      headerText.style.display = "block";
+      searchInput.style.display = "none";
+      icons.style.display = "flex";
+    }
+  }
+}
+
 function filterTable(column) {
   const input = document
     .getElementById(`searchInput${column}`)
     .value.toLowerCase();
-  const table = document.getElementById("studentTable");
+  const table = document.getElementById("leaderboardTable");
   const rows = table.getElementsByTagName("tr");
 
   for (let i = 1; i < rows.length; i++) {
@@ -36,9 +58,9 @@ function filterTable(column) {
 let currentSort = { columnIndex: null, isDescending: false };
 
 function sortTable(column) {
-  const table = document.getElementById("studentTable");
+  const table = document.getElementById("leaderboardTable");
   let rows = Array.from(table.getElementsByTagName("tr")).slice(1);
-  const isNumeric = column === 6 || column === 2;
+  const isNumeric = column === 0 || column === 3;
 
   const reverse =
     currentSort.columnIndex === column ? !currentSort.isDescending : false;
@@ -68,19 +90,16 @@ function updateSortIcons(column, isDescending) {
   icon.textContent = isDescending ? "↓" : "↑";
 }
 
-// Ensure the DOM is fully loaded before attaching event listeners
+// Attach event listeners for sorting and searching
 document.addEventListener("DOMContentLoaded", () => {
-  // Attach event listeners for search functionality
   document.querySelectorAll(".search-icon").forEach((icon, index) => {
     icon.addEventListener("click", () => toggleSearch(index));
   });
 
-  // Attach event listeners for sorting functionality
   document.querySelectorAll(".sort-icon").forEach((icon, index) => {
     icon.addEventListener("click", () => sortTable(index));
   });
 
-  // Attach event listeners for filtering functionality
   document.querySelectorAll(".search-input").forEach((input, index) => {
     input.addEventListener("input", () => filterTable(index));
   });
