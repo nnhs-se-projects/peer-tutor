@@ -4,6 +4,42 @@
 <main>
   <h1 class="black-heading">Huskie Peer Tutoring Leaderboard</h1>
   <div class="blue-box">
+    <!-- Podium for Top 3 Users -->
+    <div class="podium">
+      <% const top3 = tutors .sort((a, b) => b.totalSessions - a.totalSessions)
+      .slice(0, 3); %>
+      <div class="podium-container">
+        <% top3.forEach((tutor, index) => { const initials =
+        `${tutor.firstName[0]}${tutor.lastName[0]}`.toUpperCase(); const
+        progressPercent = Math.min(Math.round((tutor.totalSessions / 100) *
+        100), 100); %>
+        <div class="podium-place podium-<%= index + 1 %>">
+          <div class="avatar">
+            <div
+              class="progress-ring"
+              style="--progress: <%= progressPercent %>"
+            >
+              <% if (tutor.avatar) { %>
+              <img
+                src="<%= tutor.avatar %>"
+                alt="<%= tutor.firstName %> <%= tutor.lastName %>"
+              />
+              <% } else { %>
+              <div class="placeholder-avatar"><%= initials %></div>
+              <% } %>
+            </div>
+          </div>
+          <div class="name"><%= tutor.firstName %> <%= tutor.lastName %></div>
+          <div class="score"><%= tutor.totalSessions %> Sessions</div>
+          <% if (index === 0) { %>
+          <div class="crown">👑</div>
+          <% } %>
+        </div>
+        <% }); %>
+      </div>
+    </div>
+
+    <!-- Leaderboard Table -->
     <div class="leaderboard">
       <table id="leaderboardTable" class="leaderboard-table">
         <thead>
@@ -47,11 +83,11 @@
           </tr>
         </thead>
         <tbody>
-          <% tutors .sort((a, b) => b.totalSessions - a.totalSessions)
+          <% tutors .sort((a, b) => b.totalSessions - a.totalSessions) .slice(3)
           .forEach((tutor, index) => { const progressPercent = Math.min(
           Math.round((tutor.totalSessions / 100) * 100), 100 ); %>
           <tr>
-            <td><%= index + 1 %></td>
+            <td><%= index + 4 %></td>
             <td><%= tutor.firstName %> <%= tutor.lastName %></td>
             <td>
               <div class="progress-bar">

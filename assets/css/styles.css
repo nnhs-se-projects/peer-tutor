@@ -771,3 +771,131 @@ tr:hover {
   background-color: #ff4c4c;
   height: 100%;
 }
+
+.podium {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.podium-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 20px;
+  position: relative;
+}
+
+.podium-place {
+  text-align: center;
+  position: relative;
+}
+
+.podium-1 {
+  order: 1;
+  transform: translateY(0px); /* Raise 1st place higher */
+}
+
+.podium-2 {
+  order: 0;
+  transform: translateY(30px); /* Slightly lower than 1st */
+}
+
+.podium-3 {
+  order: 2;
+  transform: translateY(60px); /* Slightly lower than 2nd */
+}
+
+.podium-place .avatar {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #ccc;
+  border: 5px solid #ccc;
+}
+
+.podium-1 .avatar {
+  border-color: gold;
+}
+
+.podium-place .avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholder-avatar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  font-size: 2em;
+  font-weight: bold;
+  color: white;
+  background-color: #888;
+  text-transform: uppercase;
+}
+
+.podium-place .name {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.podium-place .score {
+  font-size: 1em;
+  color: #888;
+}
+
+.podium-1 .crown {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5em;
+}
+
+.leaderboard {
+  margin-top: 75px; /* Add space below the podium to prevent overlap */
+}
+
+.progress-ring {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: conic-gradient(
+    gold calc(var(--progress) * 1%),
+    #ccc calc(var(--progress) * 1%)
+  );
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.podium-2 .progress-ring {
+  background: conic-gradient(
+    silver calc(var(--progress) * 1%),
+    #ccc calc(var(--progress) * 1%)
+  );
+}
+
+.podium-3 .progress-ring {
+  background: conic-gradient(
+    #cd7f32 calc(var(--progress) * 1%),
+    #ccc calc(var(--progress) * 1%)
+  );
+}
+
+.progress-ring img,
+.progress-ring .placeholder-avatar {
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: #fff;
+}
