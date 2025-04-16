@@ -284,16 +284,15 @@ route.get("/homepage", async (req, res) => {
 
     // Convert MongoDB objects to objects formatted for the EJS template
     const tutorsFormatted = tutors.map((tutor) => ({
-      return {
-        tutorName: `${tutor.tutorFirstName} ${tutor.tutorLastName}`,
-        totalSessions: tutor.sessionHistory.length,
-      };
+      firstName: tutor.tutorFirstName,
+      lastName: tutor.tutorLastName,
+      totalSessions: tutor.sessionHistory.length,
     }));
 
     // Sort tutors by totalSessions in descending order
     tutorsFormatted.sort((a, b) => b.totalSessions - a.totalSessions);
 
-    res.render("homepage", { tutors: tutorsFormatted, totalSessions });
+    res.render("homepage", { tutors: tutorsFormatted });
   } catch (error) {
     console.error("Error fetching tutors:", error);
     res.status(500).send("Error fetching tutors");
