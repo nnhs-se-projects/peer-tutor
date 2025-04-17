@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles */
+.progress-ring {
+  @apply relative w-24 h-24 rounded-full overflow-hidden;
+}
+
+.progress-ring img {
+  @apply w-full h-full object-cover;
+}
+
+.placeholder-avatar {
+  @apply w-full h-full flex items-center justify-center bg-primary-blue text-white text-2xl font-bold;
+}
+
+.podium-place {
+  @apply flex flex-col items-center;
+}
+
+.podium-1 {
+  @apply order-2;
+}
+
+.podium-2 {
+  @apply order-1;
+}
+
+.podium-3 {
+  @apply order-3;
+}
+
+.leaderboard-table {
+  @apply w-full border-collapse;
+}
+
+.leaderboard-table th {
+  @apply bg-primary-blue text-white p-4 text-left;
+}
+
+.leaderboard-table td {
+  @apply p-4 border-b border-gray-200;
+}
+
+.progress-bar {
+  @apply w-full h-4 bg-gray-200 rounded-full overflow-hidden;
+}
+
+.bar-green {
+  @apply h-full bg-primary-orange;
+}
+
+.bar-red {
+  @apply h-full bg-gray-300;
+}

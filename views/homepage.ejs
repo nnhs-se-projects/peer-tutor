@@ -1,82 +1,107 @@
 <%- include('include/_header') %> <%- include('include/_homepageNavBar') %>
 
-<!-- Leaderboard -->
-<main>
-  <h1 class="black-heading">Huskie Peer Tutoring Leaderboard</h1>
-  <div class="blue-box">
+<main class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-primary-dark mb-8 text-center">
+    Huskie Peer Tutoring Leaderboard
+  </h1>
+  <div class="bg-white rounded-lg shadow-lg p-6">
     <!-- Podium for Top 3 Users -->
-    <div class="podium">
+    <div class="mb-12">
       <% const top3 = tutors .sort((a, b) => b.totalSessions - a.totalSessions)
       .slice(0, 3); %>
-      <div class="podium-container">
+      <div class="flex justify-center items-end gap-8 py-8">
         <% top3.forEach((tutor, index) => { const initials =
         `${tutor.firstName[0]}${tutor.lastName[0]}`.toUpperCase(); const
         progressPercent = Math.min(Math.round((tutor.totalSessions / 100) *
-        100), 100); %>
-        <div class="podium-place podium-<%= index + 1 %>">
-          <div class="avatar">
+        100), 100); const size = index === 0 ? 'h-32 w-32' : 'h-28 w-28'; const
+        crownColors = ['text-yellow-400', 'text-gray-400', 'text-amber-700'];
+        const crownEmojis = ['👑', '👑', '👑']; const podiumHeight = index === 0
+        ? 'h-24' : index === 1 ? 'h-16' : 'h-12'; %>
+        <div
+          class="flex flex-col items-center <%= index === 0 ? 'order-2' : index === 1 ? 'order-1' : 'order-3' %>"
+        >
+          <% if (index === 0) { %>
+          <div class="<%= crownColors[index] %> text-3xl mb-2 animate-bounce">
+            <%= crownEmojis[index] %>
+          </div>
+          <% } %>
+          <div class="relative <%= size %> mb-4">
             <div
-              class="progress-ring"
-              style="--progress: <%= progressPercent %>"
-            >
-              <% if (tutor.avatar) { %>
-              <img
-                src="<%= tutor.avatar %>"
-                alt="<%= tutor.firstName %> <%= tutor.lastName %>"
+              class="absolute inset-0 rounded-full border-4 border-gray-200"
+            ></div>
+            <svg class="w-full h-full transform -rotate-90">
+              <circle
+                cx="50%"
+                cy="50%"
+                r="48%"
+                stroke="currentColor"
+                stroke-width="4"
+                fill="none"
+                class="text-primary-orange"
+                style="
+                  stroke-dasharray: 300;
+                  stroke-dashoffset: <%= 300 - (progressPercent * 3) %>;
+                "
+                pathLength="100"
               />
-              <% } else { %>
-              <div class="placeholder-avatar"><%= initials %></div>
-              <% } %>
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span class="text-2xl font-bold text-primary-dark"
+                ><%= initials %></span
+              >
             </div>
           </div>
-          <div class="name"><%= tutor.firstName %> <%= tutor.lastName %></div>
-          <div class="score"><%= tutor.totalSessions %> Sessions</div>
-          <% if (index === 0) { %>
-          <div class="crown">👑</div>
-          <% } %>
+          <div class="text-lg font-semibold text-primary-dark">
+            <%= tutor.firstName %> <%= tutor.lastName %>
+          </div>
+          <div class="text-primary-orange font-bold mb-2">
+            <%= tutor.totalSessions %> Sessions
+          </div>
+          <div
+            class="bg-primary-blue <%= podiumHeight %> w-24 rounded-t-lg"
+          ></div>
         </div>
         <% }); %>
       </div>
     </div>
 
     <!-- Leaderboard Table -->
-    <div class="leaderboard">
-      <table id="leaderboardTable" class="leaderboard-table">
+    <div class="overflow-x-auto">
+      <table id="leaderboardTable" class="w-full">
         <thead>
           <tr>
             <% const headers = ['Rank', 'Name', 'Progress', 'Total Sessions'];
             %> <% headers.forEach((header, index) => { %>
-            <th style="<%= header === 'Progress' ? 'width: 50%;' : '' %>">
-              <div
-                class="header-container"
-                style="
-                  display: flex;
-                  justify-content: space-between;
-                  align-items: center;
-                "
-              >
+            <th
+              class="bg-primary-blue text-white p-4 text-left <%= header === 'Progress' ? 'w-1/2' : '' %>"
+            >
+              <div class="flex justify-between items-center">
                 <span class="header-text" id="headerText<%= index %>"
                   ><%= header %></span
                 >
-                <div class="icons" style="display: flex; gap: 5px">
+                <div class="flex gap-2">
                   <span
-                    class="sort-icon"
+                    class="cursor-pointer"
                     id="sortIcon<%= index %>"
-                    onclick="sortTable(<%= index %>)"
+                    data-index="<%= index %>"
+                    onclick="sortTable(this.dataset.index)"
                     >↑↓</span
                   >
-                  <span class="search-icon" onclick="toggleSearch(<%= index %>)"
+                  <span
+                    class="cursor-pointer"
+                    data-index="<%= index %>"
+                    onclick="toggleSearch(this.dataset.index)"
                     >🔍</span
                   >
                 </div>
               </div>
               <input
                 type="text"
-                class="search-input"
+                class="search-input hidden w-full mt-2 p-2 border rounded"
                 id="searchInput<%= index %>"
                 placeholder="Search <%= header %>"
-                oninput="filterTable(<%= index %>)"
-                style="display: none; width: 100%"
+                data-index="<%= index %>"
+                oninput="filterTable(this.dataset.index)"
               />
             </th>
             <% }) %>
@@ -85,23 +110,26 @@
         <tbody>
           <% tutors .sort((a, b) => b.totalSessions - a.totalSessions) .slice(3)
           .forEach((tutor, index) => { const progressPercent = Math.min(
-          Math.round((tutor.totalSessions / 100) * 100), 100 ); %>
-          <tr>
-            <td><%= index + 4 %></td>
-            <td><%= tutor.firstName %> <%= tutor.lastName %></td>
-            <td>
-              <div class="progress-bar">
+          Math.round((tutor.totalSessions / 100) * 100), 100 ); const
+          isCurrentUser = tutor.email === user?.email; %>
+          <tr
+            class="hover:bg-gray-50 <%= isCurrentUser ? 'ring-2 ring-primary-orange ring-offset-2 bg-orange-50' : '' %>"
+          >
+            <td class="p-4 border-b border-gray-200"><%= index + 4 %></td>
+            <td class="p-4 border-b border-gray-200">
+              <%= tutor.firstName %> <%= tutor.lastName %>
+            </td>
+            <td class="p-4 border-b border-gray-200">
+              <div class="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
                 <div
-                  class="bar-green"
+                  class="h-full bg-primary-orange"
                   style="width: <%= progressPercent %>%"
-                ></div>
-                <div
-                  class="bar-red"
-                  style="width: <%= 100 - progressPercent %>%"
                 ></div>
               </div>
             </td>
-            <td><%= tutor.totalSessions %></td>
+            <td class="p-4 border-b border-gray-200">
+              <%= tutor.totalSessions %>
+            </td>
           </tr>
           <% }); %>
         </tbody>
@@ -110,7 +138,21 @@
   </div>
 </main>
 
-<!-- Footer and Scripts -->
+<style>
+  svg circle {
+    transition: stroke-dashoffset 0.5s ease-in-out;
+  }
+</style>
+
+<script>
+  // Set progress bar widths after page load
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("[data-width]").forEach((el) => {
+      el.style.width = `${el.dataset.width}%`;
+    });
+  });
+</script>
+
 <script src="/js/homepage.js"></script>
 <link rel="stylesheet" href="/css/styles.css" />
 <%- include('include/_footer') %>

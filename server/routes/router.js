@@ -40,13 +40,15 @@ route.get("/", async (req, res) => {
   const formattedTutors = tutors.map((tutor) => ({
     firstName: tutor.tutorFirstName,
     lastName: tutor.tutorLastName,
-    totalSessions: tutor.sessionHistory.length,
+    totalSessions: tutor.sessionHistory?.length || 0,
+    email: tutor.email,
   }));
 
   // the res parameter references the HTTP response object
   res.render("homepage", {
     entries: formattedEntries,
     tutors: formattedTutors,
+    user: req.session.user || null,
   });
 });
 
