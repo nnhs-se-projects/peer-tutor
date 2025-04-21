@@ -1,44 +1,142 @@
 <%- include('include/_header') %> <%- include('include/_tutNavBar') %>
 
+<style>
+  .form-columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    justify-content: center; /* center the columns */
+  }
+
+  .form-column {
+    flex: 1 1 45%; /* allow it to grow and shrink, with a base of 45% */
+    min-width: 350px;
+    max-width: 700px;
+  }
+
+  .orange-box {
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    width: 100%; /* make it fill the form-column */
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .formQuestions {
+    font-family: inherit;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #333;
+  }
+
+  input[type='text'],
+  input[type='email'],
+  input[type='date'],
+  select,
+  textarea {
+    border-radius: 8px;
+    padding: 10px 12px;
+    width: 100%;
+    border: 1px solid #ccc;
+    font-family: inherit;
+    margin-bottom: 16px;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+  }
+
+  input[type='text']:focus,
+  input[type='email']:focus,
+  input[type='date']:focus,
+  select:focus,
+  textarea:focus {
+    border-color: #ff8800;
+    box-shadow: 0 0 0 3px rgba(255, 136, 0, 0.2);
+    outline: none;
+  }
+
+  fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 16px 0;
+  }
+
+  fieldset label {
+    display: inline-block;
+    margin-right: 15px;
+    margin-bottom: 10px;
+  }
+
+  .submit {
+    background-color: #ff8800;
+    color: white;
+    font-weight: 500;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    margin: 30px 0 60px 0;
+    display: block;
+    width: 200px;
+  }
+
+  .submit:hover {
+    background-color: #e67a00;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
+  }
+
+  .submit:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  .black-heading {
+    margin-bottom: 24px;
+    font-weight: 600;
+    color: #ffffff;
+  }
+</style>
+
 <!-- Main Site -->
-<main>
-  <div class="createEntry-form">
+<main class="container mx-auto px-4 py-8 flex-grow">
+  <div class="container mx-auto px-4 max-w-12xl">
+    <h1 class="text-4xl font-bold mb-8 text-center text-white">Tutor Session Form</h1>
     <form>
       <div class="form-columns">
         <!-- Left Column (Tutor Information and Session Details) -->
         <div class="form-column">
-          <h1 class="black-heading">Tutor:</h1>
+          <h2 class="black-heading">Tutor:</h2>
           <div class="orange-box">
-            <label class="formQuestions" for="tutorFirstName"
-              >Tutor First Name</label
-            >
+            <label class="formQuestions font-medium" for="tutorFirstName">Tutor First Name</label>
             <input
               type="text"
+              class="font-medium"
               id="tutorFirstName"
               name="tutorFirstName"
               required
             />
 
-            <label class="formQuestions" for="tutorLastName"
-              >Tutor Last Name</label
-            >
+            <label class="formQuestions font-medium" for="tutorLastName">Tutor Last Name</label>
             <input
               type="text"
+              class="font-medium"
               id="tutorLastName"
               name="tutorLastName"
               required
             />
 
-            <label class="formQuestions" for="tutorLastName">Tutor ID</label>
-            <input type="text" id="tutorID" name="tutorID" required />
+            <label class="formQuestions font-medium" for="tutorID">Tutor ID</label>
+            <input type="text" class="font-medium" id="tutorID" name="tutorID" required />
 
-            <label class="formQuestions" for="sessionDate">Date</label>
-            <input type="date" id="sessionDate" name="sessionDate" required />
+            <label class="formQuestions font-medium" for="sessionDate">Date</label>
+            <input type="date" class="font-medium" id="sessionDate" name="sessionDate" required />
 
-            <label class="formQuestions" for="sessionPeriod"
-              >Session Period</label
-            >
-            <select id="sessionPeriod" name="sessionPeriod" required>
+            <label class="formQuestions font-medium" for="sessionPeriod">Session Period</label>
+            <select class="font-medium" id="sessionPeriod" name="sessionPeriod" required>
               <option value="">Select a Period</option>
               <option value="4th">4th</option>
               <option value="5th">5th</option>
@@ -47,10 +145,8 @@
               <option value="RAT">RAT</option>
             </select>
 
-            <label class="formQuestions" for="sessionPlace"
-              >Session Location</label
-            >
-            <select id="sessionPlace" name="sessionPlace" required>
+            <label class="formQuestions font-medium" for="sessionPlace">Session Location</label>
+            <select class="font-medium" id="sessionPlace" name="sessionPlace" required>
               <option value="">Select a Place</option>
               <option value="Literacy Center">Literacy Center</option>
               <option value="Community Center">Community Center</option>
@@ -58,8 +154,9 @@
               <option value="WIN">WIN</option>
             </select>
 
-            <label class="formQuestions" for="subject">Select a Subject</label>
+            <label class="formQuestions font-medium" for="subject">Select a Subject</label>
             <select
+              class="font-medium"
               id="subject"
               name="subject"
               onchange="updateClasses()"
@@ -71,56 +168,45 @@
               <option value="CTE">CTE</option>
               <option value="Fine Arts">Fine Arts</option>
               <option value="Wellness">Wellness</option>
-              <option value="World & Classical Language">
-                World & Classical Language
-              </option>
+              <option value="World & Classical Language">World & Classical Language</option>
               <option value="Science">Science</option>
               <option value="Social Studies">Social Studies</option>
               <option value="EL classes">EL classes</option>
               <option value="Academic Support">Academic Support</option>
             </select>
 
-            <label class="formQuestions" for="class">Select a Class</label>
-            <select id="class" name="class" required>
+            <label class="formQuestions font-medium" for="class">Select a Class</label>
+            <select class="font-medium" id="class" name="class" required>
               <option value="">Select a Class</option>
             </select>
 
-            <label class="formQuestions" for="teacher">Select a Teacher</label>
-            <select id="teacher" name="teacher" required>
+            <label class="formQuestions font-medium" for="teacher">Select a Teacher</label>
+            <select class="font-medium" id="teacher" name="teacher" required>
               <option value="">Select a Teacher</option>
             </select>
 
-            <label class="formQuestions" for="FocusOfSession"
-              >Focus of Session</label
-            >
-            <select id="FocusOfSession" name="FocusOfSession" required>
+            <label class="formQuestions font-medium" for="FocusOfSession">Focus of Session</label>
+            <select class="font-medium" id="FocusOfSession" name="FocusOfSession" required>
               <option value="">Select a Focus</option>
               <option value="Conversation">Conversation</option>
               <option value="FERP">FERP(Final Review Packet)</option>
-              <option value="TestCorrections">
-                Test corrections or retake requirement
-              </option>
-              <option value="WritingEnhancements">
-                Writing enhancement or paper edit
-              </option>
+              <option value="TestCorrections">Test corrections or retake requirement</option>
+              <option value="WritingEnhancements">Writing enhancement or paper edit</option>
               <option value="Homework">Homework</option>
               <option value="TestOrQuizReview">Test or quiz review</option>
-              <option value="ConceptReview">
-                Concept or concept review (no immediate test)
-              </option>
+              <option value="ConceptReview">Concept or concept review (no immediate test)</option>
               <option value="Presentation">Speaking / Presentation</option>
               <option value="Organization">Organization</option>
-              <option value="StudySkills">
-                General study skills or test taking skills
-              </option>
+              <option value="StudySkills">General study skills or test taking skills</option>
               <option value="Comprehension">Comprehension</option>
             </select>
 
-            <label class="formQuestions" for="workaccomplished"
+            <label class="formQuestions font-medium" for="workaccomplished"
               >Assignment and Work Accomplished</label
             >
             <input
               type="text"
+              class="font-medium"
               id="workaccomplished"
               name="workaccomplished"
               required
@@ -130,47 +216,55 @@
 
         <!-- Right Column (Tutee Information) -->
         <div class="form-column">
-          <h1 class="black-heading">Tutee:</h1>
+          <h2 class="black-heading">Tutee:</h2>
           <div class="orange-box">
-            <label class="formQuestions" for="tuteeFirstName"
-              >Tutee First Name</label
-            >
+            <label class="formQuestions font-medium" for="tuteeFirstName">Tutee First Name</label>
             <input
               type="text"
+              class="font-medium"
               id="tuteeFirstName"
               name="tuteeFirstName"
               required
             />
 
-            <label class="formQuestions" for="tuteeLastName"
-              >Tutee Last Name</label
-            >
+            <label class="formQuestions font-medium" for="tuteeLastName">Tutee Last Name</label>
             <input
               type="text"
+              class="font-medium"
               id="tuteeLastName"
               name="tuteeLastName"
               required
             />
 
-            <label class="formQuestions" for="tuteeID">Tutee ID</label>
-            <input type="text" id="tuteeID" name="tuteeID" required />
+            <label class="formQuestions font-medium" for="tuteeID">Tutee ID</label>
+            <input type="text" class="font-medium" id="tuteeID" name="tuteeID" required />
 
-            <label class="formQuestions">Tutee Grade</label>
+            <label class="formQuestions font-medium">Tutee Grade</label>
             <fieldset>
-              <label><input type="radio" name="grade" value="9" /> 9</label>
-              <label><input type="radio" name="grade" value="10" /> 10</label>
-              <label><input type="radio" name="grade" value="11" /> 11</label>
-              <label><input type="radio" name="grade" value="12" /> 12</label>
+              <label class="font-medium"
+                ><input type="radio" class="mr-2" name="grade" value="9" /> 9</label
+              >
+              <label class="font-medium"
+                ><input type="radio" class="mr-2" name="grade" value="10" /> 10</label
+              >
+              <label class="font-medium"
+                ><input type="radio" class="mr-2" name="grade" value="11" /> 11</label
+              >
+              <label class="font-medium"
+                ><input type="radio" class="mr-2" name="grade" value="12" /> 12</label
+              >
             </fieldset>
           </div>
         </div>
       </div>
 
-      <input type="submit" class="submit" value="Submit" />
+      <div class="flex justify-center">
+        <input type="submit" class="submit font-medium" value="Submit" />
+      </div>
     </form>
   </div>
 </main>
 
 <script src="js/tutorForm.js"></script>
 
-<%- include('include/_footer') %>
+<%- include('include/_footer') %> <%- include('include/_end') %>

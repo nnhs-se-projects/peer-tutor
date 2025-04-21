@@ -54,3 +54,131 @@
 .bar-red {
   @apply h-full bg-gray-300;
 }
+
+/* Progress bar huskie animation */
+.progress-container {
+  position: relative;
+  width: 100%;
+}
+
+.progress-huskie {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  top: -11px;
+  left: 0;
+  transform: translateX(-50%);
+  transition: left 1s ease-out;
+  opacity: 0;
+}
+
+.progress-huskie.animate {
+  animation: runHuskie 1s ease-out forwards;
+  opacity: 1;
+}
+
+@keyframes runHuskie {
+  from {
+    left: 0;
+  }
+  to {
+    left: var(--target-position);
+  }
+}
+
+/* Auth page styles */
+.auth-container {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+}
+
+.auth-box {
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  transform: translateY(20px);
+  opacity: 0;
+  animation: slideUp 0.5s ease forwards;
+}
+
+.auth-logo {
+  width: 120px;
+  height: auto;
+  margin: 0 auto 1.5rem;
+  transform: scale(0.8);
+  animation: popIn 0.5s ease forwards 0.3s;
+}
+
+@keyframes slideUp {
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes popIn {
+  to {
+    transform: scale(1);
+  }
+}
+
+/* Sticky footer */
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #ff8800;
+  color: black;
+  text-align: center;
+  padding: 1rem;
+  z-index: 10;
+}
+
+/* Animation for table rows */
+.animate-row {
+  animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Progress bar animations */
+.progress-container {
+  position: relative;
+}
+
+.progress-container img {
+  transition: left 0.3s ease-in-out;
+}
+
+/* Podium animations */
+.podium-item {
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Primary colors */
+:root {
+  --primary-light: #bbdefb;
+  --primary: #1976d2;
+  --primary-dark: #0d47a1;
+  --secondary-light: #ffcc80;
+  --secondary: #ff9800;
+  --secondary-dark: #e65100;
+}

@@ -27,8 +27,8 @@ label {
   margin-bottom: 5px;
 }
 
-input[type="text"],
-input[type="date"],
+input[type='text'],
+input[type='date'],
 select {
   width: 100%;
   padding: 10px;
@@ -37,8 +37,8 @@ select {
   border-radius: 5px;
 }
 
-input[type="radio"],
-input[type="checkbox"] {
+input[type='radio'],
+input[type='checkbox'] {
   margin-right: 10px;
   border: 1px solid #948b8b;
 }
@@ -362,14 +362,14 @@ form label {
   margin-bottom: 5px;
 }
 
-form input[type="date"],
+form input[type='date'],
 form textarea {
   width: 100%;
   padding: 8px;
   box-sizing: border-box;
 }
 
-form input[type="submit"] {
+form input[type='submit'] {
   padding: 10px 20px;
   background-color: #ff8800;
   color: white;
@@ -378,11 +378,11 @@ form input[type="submit"] {
   cursor: pointer;
 }
 
-form input[type="submit"]:hover {
+form input[type='submit']:hover {
   background-color: #ff6600;
 }
 
-input[type="submit"],
+input[type='submit'],
 a.submit {
   background-color: #ff8800;
   color: white;
@@ -395,7 +395,7 @@ a.submit {
   text-align: center; /* Center text for links */
 }
 
-input[type="submit"]:hover,
+input[type='submit']:hover,
 a.submit:hover {
   background-color: #ff6600;
 }
@@ -466,7 +466,7 @@ a.submit:hover {
 
 /* blue navbar buttons */
 .blue-button,
-input[type="submit"],
+input[type='submit'],
 a.submit {
   background-color: #0066ff; /* Blue color */
   color: white;
@@ -480,14 +480,14 @@ a.submit {
 }
 
 .blue-button:hover,
-input[type="submit"]:hover,
+input[type='submit']:hover,
 a.submit:hover {
   background-color: #0056d6; /* Darker blue on hover */
 }
 
 /* orange navbar buttons */
 .orange-button,
-input[type="submit"],
+input[type='submit'],
 a.submit {
   background-color: #ff8800; /* Blue color */
   color: white;
@@ -501,7 +501,7 @@ a.submit {
 }
 
 .orange-button:hover,
-input[type="submit"]:hover,
+input[type='submit']:hover,
 a.submit:hover {
   background-color: #ff6600; /* Darker blue on hover */
 }
@@ -593,7 +593,7 @@ tr:hover {
 
 /* Hover Circle Effect */
 .sort-icon-container::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 50%;
   left: 50%;
@@ -620,12 +620,7 @@ tr:hover {
 }
 
 .search-input::placeholder {
-  color: rgba(
-    255,
-    255,
-    255,
-    0.7
-  ); /* Slightly transparent white for the placeholder */
+  color: rgba(255, 255, 255, 0.7); /* Slightly transparent white for the placeholder */
 }
 
 .search-input:focus {
@@ -868,27 +863,18 @@ tr:hover {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: conic-gradient(
-    gold calc(var(--progress) * 1%),
-    #ccc calc(var(--progress) * 1%)
-  );
+  background: conic-gradient(gold calc(var(--progress) * 1%), #ccc calc(var(--progress) * 1%));
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .podium-2 .progress-ring {
-  background: conic-gradient(
-    silver calc(var(--progress) * 1%),
-    #ccc calc(var(--progress) * 1%)
-  );
+  background: conic-gradient(silver calc(var(--progress) * 1%), #ccc calc(var(--progress) * 1%));
 }
 
 .podium-3 .progress-ring {
-  background: conic-gradient(
-    #cd7f32 calc(var(--progress) * 1%),
-    #ccc calc(var(--progress) * 1%)
-  );
+  background: conic-gradient(#cd7f32 calc(var(--progress) * 1%), #ccc calc(var(--progress) * 1%));
 }
 
 .progress-ring img,

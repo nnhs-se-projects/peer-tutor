@@ -1,69 +1,107 @@
-<%- include('include/_header') %> <%- include('include/_leadNavBar') %>
+<%- include('include/_header') %> <%- include('include/_teachNavBar') %>
+
+<style>
+  .blue-box {
+    background-color: rgba(248, 250, 255, 0.95);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .absent-button, .present-button, .makeup-button {
+    padding: 8px 12px;
+    margin: 0 5px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+  }
+  
+  .absent-button {
+    background-color: #ff5252;
+    color: white;
+  }
+  
+  .present-button {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .makeup-button {
+    background-color: #2196f3;
+    color: white;
+  }
+  
+  .absent-button:hover, .present-button:hover, .makeup-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+</style>
 
 <!-- Main Site -->
-<main>
-  <h1 class="heading">Tutor Attendance Table</h1>
-  <div class="blue-box">
-    <table id="studentTable" class="bordered-table">
-      <thead>
-        <tr>
-          <% const headers = ['First Name', 'Last Name','Days Missed'
-          ,'Attendance']; %> <% headers.forEach((header, index) => { %>
-          <th>
-            <div
-              class="header-container"
-              style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-              "
-            >
-              <span class="header-text" id="headerText<%= index %>"
-                ><%= header %></span
-              >
-              <% if (index < 3) { %>
-              <div class="icons" style="display: flex; gap: 5px">
-                <span
-                  class="sort-icon"
-                  id="sortIcon<%= index %>"
-                  onclick="sortTable(<%= index %>)"
-                  >↑↓</span
-                >
-                <span class="search-icon" onclick="toggleSearch(<%= index %>)"
-                  >🔍</span
-                >
-              </div>
-              <% } %>
-            </div>
-            <% if (index < 3) { %>
-            <input
-              type="text"
-              class="search-input"
-              id="searchInput<%= index %>"
-              placeholder="Search <%= header %>"
-              oninput="filterTable(<%= index %>)"
-              style="display: none; width: 100%"
-            />
-            <% } %>
-          </th>
-          <% }) %>
-        </tr>
-      </thead>
-      <tbody>
-        <% tutors.forEach(tutor => { %>
-        <tr>
-          <td><%= tutor.firstName %></td>
-          <td><%= tutor.lastName %></td>
-          <td id="daysMissed-<%= tutor._id %>"><%= tutor.daysMissed || 0 %></td>
-          <td>
-            <button class="absent-button" data-id="<%= tutor._id %>">A</button>
-            <button class="present-button" data-id="<%= tutor._id %>">P</button>
-            <button class="makeup-button" data-id="<%= tutor._id %>">M</button>
-          </td>
-        </tr>
-        <% }) %>
-      </tbody>
-    </table>
+<main class="container mx-auto px-4 py-8 flex-grow">
+  <div class="container mx-auto px-4 max-w-5xl">
+    <h1 class="text-4xl font-bold mb-8 text-center text-white">
+      Attendance Sheet
+    </h1>
+
+    <div class="bg-white bg-opacity-95 shadow-lg rounded-lg p-6 mb-10">
+      <h2 class="text-3xl font-bold text-primary-dark mb-6 text-center">
+        Tutor Attendance Table
+      </h2>
+      <div class="blue-box">
+        <table id="studentTable" class="bordered-table">
+          <thead>
+            <tr>
+              <% const headers = ['First Name', 'Last Name','Days Missed' ,'Attendance']; %> 
+              <% headers.forEach((header, index) => { %>
+              <th>
+                <div class="header-container" style="display: flex; justify-content: space-between; align-items: center;">
+                  <span class="header-text" id="headerText<%= index %>"><%= header %></span>
+                  <% if (index < 3) { %>
+                  <div class="icons" style="display: flex; gap: 5px">
+                    <span class="sort-icon" id="sortIcon<%= index %>" data-index="<%= index %>">↑↓</span>
+                    <span class="search-icon" data-index="<%= index %>">🔍</span>
+                  </div>
+                  <% } %>
+                </div>
+                <% if (index < 3) { %>
+                <input
+                  type="text"
+                  class="search-input"
+                  id="searchInput<%= index %>"
+                  placeholder="Search <%= header %>"
+                  data-index="<%= index %>"
+                  style="display: none; width: 100%"
+                />
+                <% } %>
+              </th>
+              <% }) %>
+            </tr>
+          </thead>
+          <tbody>
+            <% tutors.forEach(tutor => { %>
+            <tr>
+              <td><%= tutor.firstName %></td>
+              <td><%= tutor.lastName %></td>
+              <td id="daysMissed-<%= tutor._id %>"><%= tutor.daysMissed || 0 %></td>
+              <td>
+                <button class="absent-button" data-id="<%= tutor._id %>">A</button>
+                <button class="present-button" data-id="<%= tutor._id %>">P</button>
+                <button class="makeup-button" data-id="<%= tutor._id %>">M</button>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </main>
 

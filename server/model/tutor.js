@@ -2,8 +2,8 @@
  * schema for a Tutoring Session
  */
 
-const mongoose = require("mongoose");
-const ses = require("./session");
+const mongoose = require('mongoose');
+const ses = require('./session');
 
 const schema = new mongoose.Schema({
   // tutor last name
@@ -69,11 +69,11 @@ const schema = new mongoose.Schema({
   sessionHistory: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "ses",
+      ref: 'ses',
     },
   ],
 });
 
-const Tutor = mongoose.model("Tutor", schema);
+const Tutor = mongoose.model('Tutor', schema);
 
 module.exports = Tutor;

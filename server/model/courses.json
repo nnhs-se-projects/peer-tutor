@@ -181,13 +181,7 @@
       "AP Studio Art 2D Design",
       "AP Studio Art 3D"
     ],
-    "teachers": [
-      "Rachel Hill",
-      "Megan Kelly",
-      "Janell Matas",
-      "Zach Mory",
-      "Shay Rehs"
-    ]
+    "teachers": ["Rachel Hill", "Megan Kelly", "Janell Matas", "Zach Mory", "Shay Rehs"]
   },
   "Wellness": {
     "classes": [
@@ -198,13 +192,7 @@
       "Sports Medicine 1",
       "Sports Medicine 2"
     ],
-    "teachers": [
-      "Kevin Benages",
-      "Renee Billish",
-      "Erin Cattell",
-      "Deanna Nesci",
-      "Meghan Donovan"
-    ]
+    "teachers": ["Kevin Benages", "Renee Billish", "Erin Cattell", "Deanna Nesci", "Meghan Donovan"]
   },
   "World & Classical Language": {
     "classes": [

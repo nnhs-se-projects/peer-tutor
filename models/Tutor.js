@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const tutorSchema = new mongoose.Schema({
   firstName: String,
@@ -6,4 +6,4 @@ const tutorSchema = new mongoose.Schema({
   attendance: { type: Number, default: 0 },
 });
 
-module.exports = mongoose.model("Tutor", tutorSchema);
+module.exports = mongoose.model('Tutor', tutorSchema);
