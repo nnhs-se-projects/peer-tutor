@@ -250,20 +250,41 @@ route.get("/auth", (req, res) => {
   res.render("auth"); // Render the 'auth' EJS template
 });
 
-// Route to fetch attendance data based on tutor ID
-route.get("/attendance/:tutorID", async (req, res) => {
+// API endpoint to get tutor attendance data
+route.get("/api/tutor-attendance/:id", async (req, res) => {
   try {
-    const tutorID = req.params.tutorID;
-    const tutor = await Tutor.findOne({ tutorID: tutorID });
+    const tutorID = req.params.id;
 
-    if (tutor) {
-      res.json({ attendance: tutor.attendance });
-    } else {
-      res.status(404).json({ error: "Tutor not found" });
+    // Find the tutor in the database
+    const tutorData = await Tutor.findOne({ tutorID: tutorID });
+
+    if (!tutorData) {
+      return res.status(404).json({ error: "Tutor not found" });
     }
+
+    // Get tutor's sessions
+    const sessions = await Session.find({ tutorID: tutorID }).sort({
+      sessionDate: -1,
+    });
+
+    const response = {
+      name: `${tutorData.tutorFirstName} ${tutorData.tutorLastName}`,
+      daysMissed: tutorData.attendance
+        ? tutorData.attendance.filter((day) => day === false).length
+        : 0,
+      sessionCount: sessions.length,
+      sessions: sessions.map((session) => ({
+        date: session.sessionDate,
+        subject: session.subject,
+        student: `${session.tuteeFirstName} ${session.tuteeLastName}`,
+        duration: session.sessionPeriod,
+      })),
+    };
+
+    res.json(response);
   } catch (error) {
-    console.error("Error fetching attendance data:", error);
-    res.status(500).json({ error: "Error fetching attendance data" });
+    console.error("Error fetching tutor data:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
