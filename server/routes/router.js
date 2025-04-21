@@ -120,8 +120,20 @@ route.post("/submitTutorForm", async (req, res) => {
       tuteeID: req.body.tuteeID,
       tuteeGrade: req.body.tuteeGrade,
     });
-    await newSession.save();
+    const savedSession = await newSession.save();
     res.json({ success: true });
+    console.log("saved object ID: ", savedSession._id.toString());
+    const tutor = await Tutor.findOne({ tutorID: req.body.tutorID });
+    if (!tutor) {
+      console.log("Tutor not found");
+    } else {
+      console.log("Tutor found:", tutor);
+    }
+
+    // add the session to the tutor's session history
+    tutor.sessionHistory.push(savedSession._id);
+    await tutor.save();
+    console.log("Session added to tutor's session history");
   } catch (error) {
     console.error("Error saving session:", error);
     res.status(500).json({ success: false, error: "Failed to save session" });
