@@ -27,8 +27,8 @@ label {
   margin-bottom: 5px;
 }
 
-input[type="text"],
-input[type="date"],
+input[type='text'],
+input[type='date'],
 select {
   width: 100%;
   padding: 10px;
@@ -37,8 +37,8 @@ select {
   border-radius: 5px;
 }
 
-input[type="radio"],
-input[type="checkbox"] {
+input[type='radio'],
+input[type='checkbox'] {
   margin-right: 10px;
   border: 1px solid #948b8b;
 }
@@ -171,10 +171,20 @@ ul li {
   margin: 0 auto; /* Center horizontally */
 }
 
-.g_id_signin {
-  width: 100%; /* Full width */
-  display: flex;
-  justify-content: center;
+.google-signin-button {
+  font-size: 1.5rem; /* Increase font size */
+  padding: 10px 20px; /* Add padding for a larger button */
+  background-color: #4285f4; /* Google blue */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.google-signin-button:hover {
+  background-color: #357ae8; /* Darker blue on hover */
 }
 
 .authForm img {
@@ -185,15 +195,6 @@ ul li {
   flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
-}
-
-.g_id_signin {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
 }
 
 .authTitle {
@@ -361,14 +362,14 @@ form label {
   margin-bottom: 5px;
 }
 
-form input[type="date"],
+form input[type='date'],
 form textarea {
   width: 100%;
   padding: 8px;
   box-sizing: border-box;
 }
 
-form input[type="submit"] {
+form input[type='submit'] {
   padding: 10px 20px;
   background-color: #ff8800;
   color: white;
@@ -377,11 +378,11 @@ form input[type="submit"] {
   cursor: pointer;
 }
 
-form input[type="submit"]:hover {
+form input[type='submit']:hover {
   background-color: #ff6600;
 }
 
-input[type="submit"],
+input[type='submit'],
 a.submit {
   background-color: #ff8800;
   color: white;
@@ -394,7 +395,7 @@ a.submit {
   text-align: center; /* Center text for links */
 }
 
-input[type="submit"]:hover,
+input[type='submit']:hover,
 a.submit:hover {
   background-color: #ff6600;
 }
@@ -465,7 +466,7 @@ a.submit:hover {
 
 /* blue navbar buttons */
 .blue-button,
-input[type="submit"],
+input[type='submit'],
 a.submit {
   background-color: #0066ff; /* Blue color */
   color: white;
@@ -479,14 +480,14 @@ a.submit {
 }
 
 .blue-button:hover,
-input[type="submit"]:hover,
+input[type='submit']:hover,
 a.submit:hover {
   background-color: #0056d6; /* Darker blue on hover */
 }
 
 /* orange navbar buttons */
 .orange-button,
-input[type="submit"],
+input[type='submit'],
 a.submit {
   background-color: #ff8800; /* Blue color */
   color: white;
@@ -500,7 +501,7 @@ a.submit {
 }
 
 .orange-button:hover,
-input[type="submit"]:hover,
+input[type='submit']:hover,
 a.submit:hover {
   background-color: #ff6600; /* Darker blue on hover */
 }
@@ -592,7 +593,7 @@ tr:hover {
 
 /* Hover Circle Effect */
 .sort-icon-container::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 50%;
   left: 50%;
@@ -619,12 +620,7 @@ tr:hover {
 }
 
 .search-input::placeholder {
-  color: rgba(
-    255,
-    255,
-    255,
-    0.7
-  ); /* Slightly transparent white for the placeholder */
+  color: rgba(255, 255, 255, 0.7); /* Slightly transparent white for the placeholder */
 }
 
 .search-input:focus {
@@ -734,4 +730,158 @@ tr:hover {
 
 .makeup-button:hover {
   background-color: #f0c947; /* Darker green on hover */
+}
+
+/* NEW LEADERBOARD */
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ccc;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background-color: #444;
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+}
+
+.bar-green {
+  background-color: #32cd32;
+  height: 100%;
+}
+
+.bar-red {
+  background-color: #ff4c4c;
+  height: 100%;
+}
+
+.podium {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.podium-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 20px;
+  position: relative;
+}
+
+.podium-place {
+  text-align: center;
+  position: relative;
+}
+
+.podium-1 {
+  order: 1;
+  transform: translateY(0px); /* Raise 1st place higher */
+}
+
+.podium-2 {
+  order: 0;
+  transform: translateY(30px); /* Slightly lower than 1st */
+}
+
+.podium-3 {
+  order: 2;
+  transform: translateY(60px); /* Slightly lower than 2nd */
+}
+
+.podium-place .avatar {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #ccc;
+  border: 5px solid #ccc;
+}
+
+.podium-1 .avatar {
+  border-color: gold;
+}
+
+.podium-place .avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholder-avatar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  font-size: 2em;
+  font-weight: bold;
+  color: white;
+  background-color: #888;
+  text-transform: uppercase;
+}
+
+.podium-place .name {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.podium-place .score {
+  font-size: 1em;
+  color: #888;
+}
+
+.podium-1 .crown {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5em;
+}
+
+.leaderboard {
+  margin-top: 75px; /* Add space below the podium to prevent overlap */
+}
+
+.progress-ring {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: conic-gradient(gold calc(var(--progress) * 1%), #ccc calc(var(--progress) * 1%));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.podium-2 .progress-ring {
+  background: conic-gradient(silver calc(var(--progress) * 1%), #ccc calc(var(--progress) * 1%));
+}
+
+.podium-3 .progress-ring {
+  background: conic-gradient(#cd7f32 calc(var(--progress) * 1%), #ccc calc(var(--progress) * 1%));
+}
+
+.progress-ring img,
+.progress-ring .placeholder-avatar {
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: #fff;
 }

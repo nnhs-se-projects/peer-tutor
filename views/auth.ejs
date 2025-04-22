@@ -1,19 +1,127 @@
-<script src="/js/auth.js"></script>
+<!-- cSpell:ignoreRegExp /[^\s]{40,}/ -->
 
-<!-- Main Site -->
-<main>
-  <div class="authForm">
-    <!-- from https://developers.google.com/identity/gsi/web/guides/migration#redirect-mode_1 -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <div
-      id="g_id_onload"
-      data-client_id="1022838194773-p8g5ac0qr11mfko61qurgnqdb9jitpjf.apps.googleusercontent.com"
-      data-context="signin"
-      data-callback="handleCredentialResponse"
-      data-auto_prompt="false"
-    ></div>
-    <div class="g_id_signin" data-type="standard"></div>
+<!-- include header -->
+<%- include('include/_header') %>
+<!-- No navigation bar for login page -->
+
+<main class="flex-grow">
+  <div class="geometric-background min-h-screen flex items-center justify-center p-4">
+    <div class="geometric-overlay"></div>
+
+    <div class="login-card max-w-md w-full rounded-lg p-8 relative z-10 shadow-2xl">
+      <div class="text-center mb-8">
+        <h2 class="text-2xl font-semibold text-white mb-2">Huskie Peer Tutoring</h2>
+        <h1 class="text-4xl font-bold text-white mb-8">NNHS LOGIN</h1>
+        <div class="h-1 w-24 bg-white mx-auto"></div>
+      </div>
+
+      <div class="flex flex-col items-center space-y-6">
+        <!-- Google Sign-In Implementation -->
+        <div class="authForm w-full">
+          <!-- from https://developers.google.com/identity/gsi/web/guides/migration#redirect-mode_1 -->
+          <script src="https://accounts.google.com/gsi/client" async defer></script>
+          <div
+            id="g_id_onload"
+            data-client_id="1022838194773-p8g5ac0qr11mfko61qurgnqdb9jitpjf.apps.googleusercontent.com"
+            data-context="signin"
+            data-callback="handleCredentialResponse"
+            data-auto_prompt="false"
+          ></div>
+          <div class="g_id_signin" data-type="standard"></div>
+        </div>
+
+        <!-- Error message (hidden by default) -->
+        <div
+          id="error-message"
+          class="hidden bg-red-600 text-white p-3 rounded-md mt-4 text-sm w-full text-center"
+        ></div>
+      </div>
+
+      <div class="mt-12 pt-6 border-t border-white/20 text-center">
+        <p class="text-white/70 text-sm">
+          Access always requires an authorized District 203 Google account
+        </p>
+      </div>
+    </div>
   </div>
 </main>
 
-<!-- /Main Site -->
+<style>
+  .geometric-background {
+    background-color: #0d47a1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0' x2='0' y1='0' y2='1'%3E%3Cstop offset='0' stop-color='%230D47A1'/%3E%3Cstop offset='1' stop-color='%23000B24'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpattern id='b' width='24' height='24' patternUnits='userSpaceOnUse'%3E%3Ccircle fill='%23FF9800' opacity='0.15' cx='12' cy='12' r='12'/%3E%3C/pattern%3E%3Crect width='100%25' height='100%25' fill='url(%23a)'/%3E%3Crect width='100%25' height='100%25' fill='url(%23b)'/%3E%3C/svg%3E");
+    background-size: cover;
+    position: relative;
+  }
+
+  .geometric-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Cdefs%3E%3Cpattern id='p' width='100' height='100' patternUnits='userSpaceOnUse'%3E%3Cpath fill='none' stroke='%23FF9800' stroke-width='1' opacity='0.3' d='M0 0L100 100M100 0L0 100'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23p)'/%3E%3C/svg%3E");
+  }
+
+  .login-card {
+    backdrop-filter: blur(5px);
+    background-color: #e65100; /* Darker orange background */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  /* Center the Google Sign In button */
+  .authForm {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* Make Google Sign In button wider */
+  .g_id_signin {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+</style>
+
+<script>
+  // Handle credential response from Google Sign-In
+  function handleCredentialResponse(response) {
+    // Hide any existing error
+    document.getElementById('error-message').classList.add('hidden');
+
+    // Send the credential to our backend
+    fetch('/auth', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        credential: response.credential,
+      }),
+    })
+      .then(response => {
+        if (response.status === 201) {
+          window.location.href = '/';
+        } else {
+          // Handle authentication error
+          return response.text().then(text => {
+            throw new Error(text || 'Authentication failed');
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        // Show error message
+        const errorDiv = document.getElementById('error-message');
+        errorDiv.textContent = error.message || 'Authentication failed. Please try again.';
+        errorDiv.classList.remove('hidden');
+      });
+  }
+</script>
+
+<%- include('include/_footer') %> <%- include('include/_end') %>

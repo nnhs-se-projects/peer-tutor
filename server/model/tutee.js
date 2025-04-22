@@ -2,8 +2,8 @@
  * schema for a Tutoring Session
  */
 
-const mongoose = require("mongoose");
-const sesh = require("./session");
+const mongoose = require('mongoose');
+const sesh = require('./session');
 
 const schema = new mongoose.Schema({
   // ID number of  tutee
@@ -38,6 +38,6 @@ const schema = new mongoose.Schema({
   },
 });
 
-const Tutee = mongoose.model("Tutee", schema);
+const Tutee = mongoose.model('Tutee', schema);
 
 module.exports = Tutee;

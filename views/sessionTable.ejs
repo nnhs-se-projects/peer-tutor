@@ -1,72 +1,219 @@
 <%- include('include/_header') %> <%- include('include/_teachNavBar') %>
 
+<style>
+  .blue-box {
+    background-color: rgba(248, 250, 255, 0.95);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .bordered-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #000;
+    background-color: white;
+  }
+  
+  .bordered-table thead th {
+    background-color: #1976d2;
+    color: white;
+    padding: 16px;
+    text-align: left;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    transition: background-color 0.2s;
+    border-right: 1px solid #000;
+    border-bottom: 2px solid #000;
+  }
+  
+  .bordered-table thead th:last-child {
+    border-right: none;
+  }
+  
+  .bordered-table tbody tr {
+    transition: all 0.2s;
+    background-color: white;
+  }
+  
+  .bordered-table tbody tr:nth-child(odd) {
+    background-color: #f0f4fa;
+  }
+  
+  .bordered-table tbody tr:hover {
+    background-color: #e0ecf9;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .bordered-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #000;
+    border-right: 1px solid #000;
+    color: #000;
+    background-color: inherit;
+    font-weight: 500;
+  }
+  
+  .bordered-table td:last-child {
+    border-right: none;
+  }
+  
+  .header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .sort-icon, .search-icon {
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 4px;
+    border-radius: 4px;
+  }
+  
+  .sort-icon:hover, .search-icon:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.2);
+  }
+  
+  .search-input {
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    transition: all 0.3s;
+  }
+  
+  .search-input:focus {
+    border-color: #ff8800;
+    box-shadow: 0 0 0 3px rgba(255, 136, 0, 0.2);
+    outline: none;
+  }
+  
+  .export-btn {
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-bottom: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+  
+  .export-btn:hover {
+    background-color: #0d47a1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .export-btn:active {
+    transform: translateY(0);
+  }
+  
+  .export-icon {
+    font-size: 18px;
+  }
+  
+  @media (max-width: 768px) {
+    .blue-box {
+      padding: 16px;
+      border-radius: 12px;
+    }
+    
+    .bordered-table td, .bordered-table th {
+      padding: 12px;
+    }
+  }
+  
+  /* Animation keyframes */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
 <!-- Main Site -->
-<main>
-  <h1 class="heading">Session Database Table</h1>
-  <div class="blue-box">
-    <table id="studentTable" class="bordered-table">
-      <thead>
-        <tr>
-          <% const headers = ['Date', 'Tutee Name', 'Tutee ID', 'Tutor Name',
-          'Subject', 'Class', 'Assignment']; %> <% headers.forEach((header,
-          index) => { %>
-          <th>
-            <div
-              class="header-container"
-              style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-              "
-            >
-              <span class="header-text" id="headerText<%= index %>"
-                ><%= header %></span
-              >
-              <div class="icons" style="display: flex; gap: 5px">
-                <span
-                  class="sort-icon"
-                  id="sortIcon<%= index %>"
-                  onclick="sortTable(<%= index %>)"
-                  >↑↓</span
-                >
-                <span class="search-icon" onclick="toggleSearch(<%= index %>)"
-                  >🔍</span
-                >
+<main class="container mx-auto px-4 py-8 flex-grow">  
+  <div class="container mx-auto px-4" style="max-width: 1400px;">
+    <h1 class="text-4xl font-bold mb-8 text-center text-white">
+      Session Database Table
+    </h1>
+    
+    <div class="flex justify-end mb-4">
+      <button id="exportBtn" class="export-btn">
+        <span class="export-icon">📥</span> Export to Text File
+      </button>
+    </div>
+    
+    <div class="blue-box">
+      <table id="sessionTable" class="bordered-table">
+        <thead>
+          <tr>
+            <% const headers = ['Date', 'Tutee Name', 'Tutee ID', 'Tutor Name', 'Subject', 'Class', 'Assignment']; %>
+            <% headers.forEach((header, index) => { %>
+            <th>
+              <div class="header-container">
+                <span class="header-text" id="headerText<%= index %>"><%= header %></span>
+                <div class="icons" style="display: flex; gap: 5px">
+                  <span class="sort-icon" id="sortIcon<%= index %>" data-index="<%= index %>">↑↓</span>
+                  <span class="search-icon" data-index="<%= index %>">🔍</span>
+                </div>
               </div>
-            </div>
-            <input
-              type="text"
-              class="search-input"
-              id="searchInput<%= index %>"
-              placeholder="Search <%= header %>"
-              oninput="filterTable(<%= index %>)"
-              style="display: none; width: 100%"
-            />
-          </th>
+              <input
+                type="text"
+                class="search-input"
+                id="searchInput<%= index %>"
+                placeholder="Search <%= header %>"
+                data-index="<%= index %>"
+                style="display: none; width: 100%"
+              />
+            </th>
+            <% }) %>
+          </tr>
+        </thead>
+        <tbody>
+          <% sessions.forEach(session => { %>
+          <tr>
+            <td><%= session.date %></td>
+            <td><%= session.tuteeName %></td>
+            <td><%= session.tuteeID %></td>
+            <td><%= session.tutorName %></td>
+            <td><%= session.subject %></td>
+            <td><%= session.class %></td>
+            <td><%= session.assignment %></td>
+          </tr>
           <% }) %>
-        </tr>
-      </thead>
-      <tbody>
-        <% function formatDate(dateString) { const date = new Date(dateString);
-        const day = String(date.getDate()).padStart(2, '0'); const month =
-        String(date.getMonth() + 1).padStart(2, '0'); const year =
-        date.getFullYear(); return `${month}/${day}/${year}`; } %> <%
-        sessions.forEach(session => { %>
-        <tr>
-          <td><%= formatDate(session.date) %></td>
-          <td><%= session.tuteeName %></td>
-          <td><%= session.tuteeID %></td>
-          <td><%= session.tutorName %></td>
-          <td><%= session.subject %></td>
-          <td><%= session.class %></td>
-          <td><%= session.assignment %></td>
-        </tr>
-        <% }) %>
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
   </div>
 </main>
 
-<%- include('include/_footer') %>
+<script src="/js/sessionTable.js"></script>
 
-<script src="js/sessionTable.js"></script>
+<%- include('include/_footer') %>
+<%- include('include/_end') %>

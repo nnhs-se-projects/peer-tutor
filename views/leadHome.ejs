@@ -1,23 +1,26 @@
-<%- include('include/_header') %><%- include('include/_leadNavBar') %>
+<%- include('include/_header') %> <%- include('include/_leadNavBar') %>
 
-<!-- Main Site -->
-<main>
-  <h1 class="black-heading">Tutor Leader Resources</h1>
-  <div class="blue-box">
-    <h3 class="black-subheading">Tutor Forms</h3>
-    <div class="form-columns">
-      <div class="column">
-        <a href="/attendance" class="full-width-blue-button" role="button"
-          >Attendance Tracker</a
+<main class="container mx-auto px-4 py-8 flex-grow">
+  <h1 class="text-4xl font-bold text-primary-dark mb-8 text-center">Tutor Leader Resources</h1>
+
+  <div class="bg-white rounded-lg shadow-lg p-6 w-full">
+    <h3 class="text-2xl font-semibold text-primary-dark mb-4">Tutor Forms</h3>
+    <div class="grid grid-cols-1 gap-6">
+      <div>
+        <a
+          href="/attendance"
+          class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center"
         >
+          Attendance Tracker
+        </a>
       </div>
     </div>
   </div>
 </main>
 
-<!-- Main Site -->
+<script src="/js/leadHome.js"></script>
 
-<%- include('include/_footer') %>
+<%- include('include/_footer') %> <%- include('include/_end') %>
 
 <style>
   .row {
@@ -28,5 +31,3 @@
     padding: 10px;
   }
 </style>
-
-<script src="/js/leadHome.js"></script>

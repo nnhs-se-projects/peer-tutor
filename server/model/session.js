@@ -2,7 +2,7 @@
  * schema for a Tutoring Session
  */
 
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const schema = new mongoose.Schema({
   // tutor first name
@@ -82,6 +82,6 @@ const schema = new mongoose.Schema({
   },
 });
 
-const Session = mongoose.model("Session", schema);
+const Session = mongoose.model('Session', schema);
 
 module.exports = Session;

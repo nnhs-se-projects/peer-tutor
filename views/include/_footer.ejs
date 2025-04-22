@@ -1,11 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-  <footer>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/css/pico.min.css" />
-    <link rel="stylesheet" href="/css/styles.css" />
-    <p class="footer">Last updated May 2025</p>
-  </footer>
-  <body></body>
-</html>
+<style>
+  .footer-content {
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 10;
+  }
+
+  footer:hover .footer-content {
+    background-color: rgba(10, 59, 140, 0.8);
+    border-radius: 8px;
+    padding: 10px;
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  footer {
+    position: relative;
+    z-index: 10;
+    background-color: transparent;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+</style>
+
+<footer class="text-white w-full py-6 mt-auto">
+  <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="footer-content text-center transition-all duration-300">
+      <p>&copy; <%= new Date().getFullYear() %> NNHS Peer Tutoring. All rights reserved.</p>
+      <p class="mt-2 text-sm opacity-70">Last updated May 2025</p>
+    </div>
+  </div>
+</footer>

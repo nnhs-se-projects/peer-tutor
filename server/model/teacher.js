@@ -2,7 +2,7 @@
  * schema for a Tutoring Session
  */
 
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const schema = new mongoose.Schema({
   // teacher email
@@ -27,6 +27,6 @@ const schema = new mongoose.Schema({
   },
 });
 
-const Teacher = mongoose.model("Teacher", schema);
+const Teacher = mongoose.model('Teacher', schema);
 
 module.exports = Teacher;
