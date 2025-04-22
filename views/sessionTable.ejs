@@ -173,7 +173,7 @@
       <table id="sessionTable" class="bordered-table">
         <thead>
           <tr>
-            <% const headers = ['Date', 'Tutee Name', 'Tutee ID', 'Tutor Name', 'Subject', 'Class', 'Assignment']; %>
+            <% const headers = ['Date', 'Tutee Name', 'Tutee ID', 'Tutor Name', 'Subject', 'Class', 'Teacher', 'Assignment']; %>
             <% headers.forEach((header, index) => { %>
             <th>
               <div class="header-container">
@@ -204,6 +204,7 @@
             <td><%= session.tutorName %></td>
             <td><%= session.subject %></td>
             <td><%= session.class %></td>
+            <td><%= session.teacher %></td>
             <td><%= session.assignment %></td>
           </tr>
           <% }) %>

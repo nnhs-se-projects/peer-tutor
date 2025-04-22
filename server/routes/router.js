@@ -327,6 +327,7 @@ route.get('/sessionTable', async (req, res) => {
         tutorName: `${session.tutorFirstName} ${session.tutorLastName}`,
         subject: session.subject,
         class: session.class,
+        teacher: session.teacher || 'Not Specified',
         assignment: session.workAccomplished,
       };
     });
@@ -334,7 +335,7 @@ route.get('/sessionTable', async (req, res) => {
     res.render('sessionTable', { sessions: sessionsFormatted });
   } catch (error) {
     console.error('Error fetching sessions:', error);
-    res.status(500).send('Error fetching tutors');
+    res.status(500).send('Error fetching sessions');
   }
 });
 
