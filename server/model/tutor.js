@@ -3,7 +3,8 @@
  */
 
 const mongoose = require('mongoose');
-const ses = require('./session');
+// Remove incorrect import
+// const ses = require('./session');
 
 const schema = new mongoose.Schema({
   // tutor last name
@@ -69,7 +70,7 @@ const schema = new mongoose.Schema({
   sessionHistory: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'ses',
+      ref: 'Session', // Corrected reference to match the model name
     },
   ],
 });

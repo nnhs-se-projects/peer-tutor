@@ -241,12 +241,12 @@ route.post('/submitTutorForm', async (req, res) => {
     });
     const savedSession = await newSession.save();
     res.json({ success: true });
-    console.log("saved object ID: ", savedSession._id.toString());
+    console.log('saved object ID: ', savedSession._id.toString());
     const tutor = await Tutor.findOne({ tutorID: req.body.tutorID });
     if (!tutor) {
-      console.log("Tutor not found");
+      console.log('Tutor not found');
     } else {
-      console.log("Tutor found:", tutor);
+      console.log('Tutor found:', tutor);
     }
 
     // add the session to the tutor's session history
@@ -393,30 +393,10 @@ route.post('/updateAttendance/:id', async (req, res) => {
   }
 });
 
-route.get('/homepage', async (req, res) => {
-  try {
-    const tutors = await Tutor.find().sort({ date: -1 });
+// Import external route files
+route.use('/attendance', require('../../routes/attendance'));
 
-    const tutorsFormatted = tutors.map(tutor => ({
-      firstName: tutor.tutorFirstName,
-      lastName: tutor.tutorLastName,
-      totalSessions: tutor.sessionHistory.length,
-    }));
-
-    // Sort tutors by totalSessions in descending order
-    tutorsFormatted.sort((a, b) => b.totalSessions - a.totalSessions);
-
-    // Get top 3 tutors
-    const top3 = tutorsFormatted.slice(0, 3);
-
-    res.render('homepage', {
-      tutors: tutorsFormatted,
-      top3: top3,
-    });
-  } catch (error) {
-    console.error('Error fetching tutors:', error);
-    res.status(500).send('Error fetching tutors');
-  }
-});
+// The homepage route can be handled in the main router
+// Removing duplicate route for /homepage
 
 module.exports = route;

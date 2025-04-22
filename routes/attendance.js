@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Tutor = require('../models/Tutor'); // Adjust path as needed
+const Tutor = require('../server/model/tutor'); // Fixed path to match project structure
 
 router.post('/updateAttendance', async (req, res) => {
   const { tutorId, change } = req.body;
