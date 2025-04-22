@@ -1,35 +1,313 @@
-/* styling for the authentication page */
+/* Ensure the body and html take up the full height */
+html,
+body {
+  background-color: #c0ddff;
 
+  height: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main content should take up all available space */
+main {
+  flex: 1;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 0 auto;
+  width: 75%;
+}
+
+label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+input[type='text'],
+input[type='date'],
+select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #948b8b;
+  border-radius: 5px;
+}
+
+input[type='radio'],
+input[type='checkbox'] {
+  margin-right: 10px;
+  border: 1px solid #948b8b;
+}
+
+/* Specific styles for the form container */
+.createEntry-form {
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  margin-bottom: 20px;
+}
+
+.indexTopBar img {
+  max-width: 100px;
+  margin-bottom: 20px;
+}
+
+/* Reduce spacing for the navigation bar */
+.navbar {
+  margin-top: auto;
+  margin-bottom: auto; /* Adjust this value as needed */
+}
+
+/* Reduce spacing for the headings above the form */
+.create-edit-title {
+  margin-bottom: 10px; /* Adjust this value as needed */
+}
+
+h1 {
+  font-size: 0.75em;
+  margin-top: 10px; /* Adjust this value as needed */
+  margin-bottom: 100px; /* Adjust this value as needed to add more space */
+}
+
+.form-column h1 {
+  margin-bottom: 10px; /* Adjust this value as needed */
+}
+
+.heading {
+  font-size: 2.5em; /* Medium-sized title */
+  color: #000000; /* Black text color */
+  text-align: center; /* Center the text */
+  margin-top: 0%; /* Adjust this value as needed */
+  margin-bottom: 10px; /* Adjust this value as needed */
+}
+
+.black-heading {
+  font-size: 2.5em; /* Medium-sized title */
+  color: #000000; /* Black text color */
+  text-align: center; /* Center the text */
+  margin-top: 0%; /* Adjust this value as needed */
+  margin-bottom: 10px; /* Adjust this value as needed */
+}
+
+.black-subheading {
+  font-size: 2em; /* Medium-sized title */
+  color: #000000; /* Black text color */
+  text-align: center; /* Center the text */
+  margin-top: 0%; /* Adjust this value as needed */
+  margin-bottom: 10px; /* Adjust this value as needed */
+}
+
+.indexTopBar h1,
+.indexTopBar h2 {
+  margin: auto;
+  text-align: center;
+}
+
+fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+ul li {
+  margin: 5px 0;
+}
+
+/* Two-column layout for the form */
+.form-columns {
+  display: flex;
+  justify-content: space-between;
+}
+
+.form-column {
+  flex: 1;
+  margin-right: 20px;
+  margin-top: 0px;
+}
+
+.form-column:last-child {
+  margin-right: 0;
+}
+
+/* Style the multi-select dropdown */
+select[multiple] {
+  width: 100%;
+  height: 150px; /* Adjust height as needed */
+  overflow: auto;
+}
+
+/* Style the bullet points list */
+ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+ul li {
+  margin: 5px 0;
+}
+
+/* Styling for the authentication form */
 .authForm {
   display: flex;
   flex-direction: column;
-  flex-wrap: nowrap;
-  justify-content: center;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  background-color: #f9f9f9; /* Light background color */
+  border: 1px solid #ccc; /* Light border */
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  width: 300px; /* Fixed width */
+  margin: 0 auto; /* Center horizontally */
+}
+
+.google-signin-button {
+  font-size: 1.5rem; /* Increase font size */
+  padding: 10px 20px; /* Add padding for a larger button */
+  background-color: #4285f4; /* Google blue */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.google-signin-button:hover {
+  background-color: #357ae8; /* Darker blue on hover */
 }
 
 .authForm img {
   width: 100px;
   height: 100px;
-}
-
-.indexTopBar {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
 }
 
-.indexTopBar img {
-  flex-shrink: 0;
-  width: 100px;
-  height: 100px;
+.authTitle {
+  font-size: x-large;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
 }
 
-.indexTopBar h1 {
-  margin-right: auto;
+/* Footer should stick to the bottom */
+footer,
+.footer {
+  display: flex; /* Use flexbox */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  text-align: center; /* Center the text */
+  color: rgb(255, 255, 255); /* White text color */
+  font-size: large;
+  background-color: #ff8800; /* Background color */
+  width: 100%; /* Full width */
+  position: static; /* Fixed position */
+  bottom: 0; /* Stick to the bottom */
+}
+
+/* Center the text within the h2 element */
+.h2 {
+  font-size: 2em;
+  color: #000000;
+  text-align: center; /* Center the text */
+  justify-content: flex-start; /* Align items at the top */
+}
+
+/* Ensure the container uses flexbox */
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Align items at the top */
+  align-items: center; /* Center horizontally */
+  height: min-content; /* Adjust height as needed */
+}
+
+/* Ensure the container uses flexbox */
+.logo-container {
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: flex-start; /* Align items at the top */
+  height: 100%; /* Ensure the container takes up the full height if needed */
+}
+
+/* Style the image if necessary */
+.peer-tutor-logo {
+  max-width: 100%; /* Ensure the image scales properly */
+  height: auto; /* Maintain aspect ratio */
+}
+
+.NNHS-logo {
+  max-width: 40%; /* Ensure the image scales properly */
+  height: auto; /* Maintain aspect ratio */
+}
+
+.entries-display {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 auto;
+  width: 75%;
+}
+
+.entries-title {
+  font-size: 2em; /* Optional: Adjust font size */
+  color: #000000; /* Optional: Adjust text color */
+}
+
+.entries-text {
+  font-size: 1em; /* Optional: Adjust font size */
+  color: #000000; /* Optional: Adjust text color */
+}
+
+.createEntry-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 auto;
+  width: 75%;
+}
+
+.create-edit-title {
+  font-size: 2em; /* Optional: Adjust font size */
+  color: #ffffff; /* Optional: Adjust text color */
+}
+
+.title {
+  font-size: 4em;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  color: #000000;
+}
+
+.navbar {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  margin-top: -50px;
 }
 
 .entry {
@@ -48,4 +326,562 @@
 
 .entryContent {
   flex-grow: 1;
+}
+
+.entry-box {
+  border: 4px solid #000000;
+  padding: 25px;
+  margin: 20px 0;
+  border-radius: 10px;
+  background-color: #ffc17a;
+}
+
+.editFunctions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.formQuestions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: #000000;
+  font-size: 1.3em;
+}
+
+form div {
+  margin-bottom: 15px;
+}
+
+form label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+form input[type='date'],
+form textarea {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+form input[type='submit'] {
+  padding: 10px 20px;
+  background-color: #ff8800;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+form input[type='submit']:hover {
+  background-color: #ff6600;
+}
+
+input[type='submit'],
+a.submit {
+  background-color: #ff8800;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none; /* Remove underline from links */
+  display: inline-block; /* Ensure proper padding for links */
+  text-align: center; /* Center text for links */
+}
+
+input[type='submit']:hover,
+a.submit:hover {
+  background-color: #ff6600;
+}
+
+.popup {
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+}
+
+.popup-content {
+  background-color: #fff;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 50%;
+  text-align: center;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Full-width orange button */
+.full-width-orange-button {
+  width: 100%;
+  background-color: #ff8800; /* orange color */
+  color: white;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none; /* Remove underline from links */
+  display: inline-block; /* Ensure proper padding for links */
+}
+
+.full-width-orange-button:hover {
+  background-color: #ff6600; /* Darker orange on hover */
+}
+
+/* Full-width blue button */
+.full-width-blue-button {
+  width: 100%;
+  background-color: #0066ff; /* Blue color */
+  color: white;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none; /* Remove underline from links */
+  display: inline-block; /* Ensure proper padding for links */
+}
+
+.full-width-blue-button:hover {
+  background-color: #0056d6; /* Darker blue on hover */
+}
+
+/* blue navbar buttons */
+.blue-button,
+input[type='submit'],
+a.submit {
+  background-color: #0066ff; /* Blue color */
+  color: white;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none; /* Remove underline from links */
+  display: inline-block; /* Ensure proper padding for links */
+}
+
+.blue-button:hover,
+input[type='submit']:hover,
+a.submit:hover {
+  background-color: #0056d6; /* Darker blue on hover */
+}
+
+/* orange navbar buttons */
+.orange-button,
+input[type='submit'],
+a.submit {
+  background-color: #ff8800; /* Blue color */
+  color: white;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none; /* Remove underline from links */
+  display: inline-block; /* Ensure proper padding for links */
+}
+
+.orange-button:hover,
+input[type='submit']:hover,
+a.submit:hover {
+  background-color: #ff6600; /* Darker blue on hover */
+}
+
+.blue-box {
+  padding: 25px;
+  margin-top: 25px;
+  margin-bottom: 25px;
+  margin-left: 50px; /* Adds buffer space on the left */
+  margin-right: 50px; /* Adds buffer space on the right */
+  background-color: #9bc6ff;
+}
+
+.orange-box {
+  padding: 25px; /* Padding inside the box */
+  margin-top: 25px;
+  margin-bottom: 25px;
+  margin-left: 50px; /* Adds buffer space on the left */
+  margin-right: 50px; /* Adds buffer space on the right */
+  background-color: #ffd6a8; /* Orange background color */
+}
+
+.white-box {
+  padding: 25px;
+  margin-top: 25px;
+  margin-bottom: 25px;
+  margin-left: 50px; /* Adds buffer space on the left */
+  margin-right: 50px; /* Adds buffer space on the right */
+  background-color: #ffffff;
+}
+
+/* General Table Styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+  border-color: #948b8b;
+}
+
+th,
+td {
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  border: 1px solid #948b8b; /* Add border with specified color */
+}
+
+th {
+  font-weight: bold;
+  background-color: #ff8800; /* Orange header */
+  color: white;
+  position: relative; /* For positioning the sort icon */
+}
+
+td {
+  background-color: #f4f4f9;
+  color: black; /* Ensure data text is black */
+}
+
+tr:nth-child(even) td {
+  background-color: #f9f9f9;
+}
+
+tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* Container for header text and sort icon */
+.header-text {
+  display: inline-block;
+}
+
+.sort-icon-container {
+  position: absolute;
+  right: 10px; /* Position the icon 10px from the right edge */
+  top: 50%;
+  transform: translateY(-50%); /* Vertically center the icon */
+  font-size: 14px;
+  color: #ffffff; /* White color for sort icons */
+  padding: 10px; /* Increase click area */
+  border-radius: 50%; /* Make it circular */
+}
+
+/* Sort Icon Styles */
+.sort-icon {
+  font-size: 20px;
+  transition: color 0.2s ease-in-out;
+}
+
+/* Hover Circle Effect */
+.sort-icon-container::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 35px; /* Circle size */
+  height: 35px;
+  background: rgba(255, 255, 255, 0.2); /* Light white overlay */
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.sort-icon-container:hover::before {
+  opacity: 1;
+}
+
+.search-input {
+  background-color: transparent;
+  border: 1px solid white;
+  color: white;
+  padding: 5px;
+  outline: none;
+  width: 100%;
+}
+
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.7); /* Slightly transparent white for the placeholder */
+}
+
+.search-input:focus {
+  border-color: white;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+}
+
+.orange-box {
+  padding: 25px;
+  margin: 75px;
+  background-color: #ffd4a2;
+  margin-top: 5%;
+}
+
+/* NEW POP UP STUFF */
+
+.popup {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0, 0, 0); /* Fallback color */
+  background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+}
+
+.popup-content {
+  background-color: #fefefe;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Could be more or less, depending on screen size */
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.absent-button {
+  background-color: #e96a51;
+  width: 60px;
+  height: 60px;
+  border: none; /* Remove borders */
+  color: white; /* White text */
+  padding: 2px 5px; /* Some padding */
+  text-align: center; /* Centered text */
+  text-decoration: none; /* Remove underline */
+  display: inline-block; /* Make the buttons appear side by side */
+  font-size: 16px; /* Increase font size */
+  margin: 4px 2px; /* Some margin */
+  cursor: pointer; /* Pointer/hand icon */
+  border-radius: 12px; /* Rounded corners */
+}
+
+.absent-button:hover {
+  background-color: #d8614a; /* Darker green on hover */
+}
+
+.present-button {
+  background-color: #4caf50; /* Green background */
+  width: 60px;
+  height: 60px;
+  border: none; /* Remove borders */
+  color: white; /* White text */
+  padding: 2px 5px; /* Some padding */
+  text-align: center; /* Centered text */
+  text-decoration: none; /* Remove underline */
+  display: inline-block; /* Make the buttons appear side by side */
+  font-size: 16px; /* Increase font size */
+  margin: 4px 2px; /* Some margin */
+  cursor: pointer; /* Pointer/hand icon */
+  border-radius: 12px; /* Rounded corners */
+}
+
+.present-button:hover {
+  background-color: #45a049; /* Darker green on hover */
+}
+
+.makeup-button {
+  background-color: #ffd549; /* Green background */
+  width: 60px;
+  height: 60px;
+  border: none; /* Remove borders */
+  color: white; /* White text */
+  padding: 2px 5px; /* Some padding */
+  text-align: center; /* Centered text */
+  text-decoration: none; /* Remove underline */
+  display: inline-block; /* Make the buttons appear side by side */
+  font-size: 16px; /* Increase font size */
+  margin: 4px 2px; /* Some margin */
+  cursor: pointer; /* Pointer/hand icon */
+  border-radius: 12px; /* Rounded corners */
+}
+
+.makeup-button:hover {
+  background-color: #f0c947; /* Darker green on hover */
+}
+
+/* NEW LEADERBOARD */
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ccc;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background-color: #444;
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+}
+
+.bar-green {
+  background-color: #32cd32;
+  height: 100%;
+}
+
+.bar-red {
+  background-color: #ff4c4c;
+  height: 100%;
+}
+
+.podium {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.podium-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 20px;
+  position: relative;
+}
+
+.podium-place {
+  text-align: center;
+  position: relative;
+}
+
+.podium-1 {
+  order: 1;
+  transform: translateY(0px); /* Raise 1st place higher */
+}
+
+.podium-2 {
+  order: 0;
+  transform: translateY(30px); /* Slightly lower than 1st */
+}
+
+.podium-3 {
+  order: 2;
+  transform: translateY(60px); /* Slightly lower than 2nd */
+}
+
+.podium-place .avatar {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #ccc;
+  border: 5px solid #ccc;
+}
+
+.podium-1 .avatar {
+  border-color: gold;
+}
+
+.podium-place .avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholder-avatar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  font-size: 2em;
+  font-weight: bold;
+  color: white;
+  background-color: #888;
+  text-transform: uppercase;
+}
+
+.podium-place .name {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.podium-place .score {
+  font-size: 1em;
+  color: #888;
+}
+
+.podium-1 .crown {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5em;
+}
+
+.leaderboard {
+  margin-top: 75px; /* Add space below the podium to prevent overlap */
+}
+
+.progress-ring {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: conic-gradient(gold calc(var(--progress) * 1%), #ccc calc(var(--progress) * 1%));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.podium-2 .progress-ring {
+  background: conic-gradient(silver calc(var(--progress) * 1%), #ccc calc(var(--progress) * 1%));
+}
+
+.podium-3 .progress-ring {
+  background: conic-gradient(#cd7f32 calc(var(--progress) * 1%), #ccc calc(var(--progress) * 1%));
+}
+
+.progress-ring img,
+.progress-ring .placeholder-avatar {
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: #fff;
 }

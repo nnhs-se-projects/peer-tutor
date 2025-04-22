@@ -1,0 +1,166 @@
+<%- include('include/_header') %>
+<%- include('include/_homepageNavBar') %>
+
+<style>
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-10px) rotate(5deg);
+    }
+  }
+  
+  .crown-animation {
+    animation: bounce 1.5s ease-in-out infinite;
+    font-size: 2rem;
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+  
+  .leaderboard-container {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .text-name {
+    color: #0d47a1;
+  }
+  
+  .podium-text {
+    color: #333;
+  }
+</style>
+
+<main class="container mx-auto px-4 py-8 flex-grow">
+  <h1 class="text-4xl font-bold mb-8 text-center text-white">
+    Welcome to Huskie Peer Tutoring!
+  </h1>
+  <div class="leaderboard-container w-full">
+    <!-- Podium for Top 3 Users -->
+    <div class="mb-12">
+      <div class="flex justify-center items-end gap-8 py-8">
+        <% 
+        top3.forEach((tutor, index) => {
+          const initials = (tutor.firstName[0] + tutor.lastName[0]).toUpperCase();
+          const progressPercent = Math.min(Math.round((tutor.totalSessions / 100) * 100), 100) / 100;
+          const size = index === 0 ? 'h-40 w-40' : 'h-32 w-32';
+          const podiumColors = ['bg-yellow-400', 'bg-gray-400', 'bg-amber-700'];
+          const podiumHeight = index === 0 ? 'h-32' : index === 1 ? 'h-24' : 'h-16';
+        %>
+        <div class="flex flex-col items-center <%= index === 0 ? 'order-2' : index === 1 ? 'order-1' : 'order-3' %>">
+          <div class="relative <%= size %> mb-4">
+            <% if (index === 0) { %>
+              <span class="crown-animation">👑</span>
+            <% } %>
+            <div class="absolute inset-0 rounded-full border-4 border-red-500 overflow-hidden">
+              <div class="absolute inset-0 bg-red-500"></div>
+              <div class="absolute inset-0 bg-green-500 origin-left" style="transform: scaleX(<%= progressPercent %>)"></div>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <span class="text-3xl font-bold text-white z-10"><%= initials %></span>
+              </div>
+            </div>
+          </div>
+          <div class="text-lg font-semibold text-name">
+            <%= tutor.firstName %> <%= tutor.lastName %>
+          </div>
+          <div class="text-primary-orange font-bold mb-4">
+            <%= tutor.totalSessions %> Sessions
+          </div>
+          <div class="relative">
+            <div class="<%= podiumColors[index] %> <%= podiumHeight %> w-32 rounded-t-lg shadow-lg transform hover:scale-105 transition-all duration-200 podium-item"></div>
+            <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+              <%= index === 0 ? '' : index === 1 ? '🥈' : '🥉' %>
+            </div>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+    </div>
+
+    <!-- Table for All Users -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full">
+        <tbody class="divide-y divide-gray-100">
+          <% 
+          tutors.forEach((tutor, index) => {
+            const progressPercent = Math.min(Math.round((tutor.totalSessions / 100) * 100), 100) / 100;
+            const initials = (tutor.firstName[0] + tutor.lastName[0]).toUpperCase();
+          %>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap w-16">
+              <div class="text-sm font-medium text-gray-900">
+                <%= index + 1 %>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap w-1/4">
+              <div class="flex items-center">
+                <div class="h-10 w-10 flex-shrink-0">
+                  <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                    <span class="text-sm font-medium text-gray-600"><%= initials %></span>
+                  </div>
+                </div>
+                <div class="ml-4">
+                  <div class="text-sm font-medium text-gray-900">
+                    <%= tutor.firstName %> <%= tutor.lastName %>
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    <%= tutor.totalSessions %> sessions
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap w-1/2">
+              <div class="progress-container relative">
+                <div class="w-full bg-red-500 rounded-full h-2">
+                  <div class="bg-green-500 h-2 rounded-full" style="width: <%= Math.round(progressPercent * 100) %>%"></div>
+                  <img
+                    src="/img/huskieLeaderboardPic.png"
+                    alt="Running Huskie"
+                    class="absolute w-6 h-6 -top-2 transform -translate-x-1/2"
+                    style="left: <%= Math.round(progressPercent * 100) %>%"
+                  />
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right w-32">
+              <div class="text-sm text-gray-900">
+                <%= tutor.totalSessions %>/100
+              </div>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+  // Animation for table rows on scroll
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const row = entry.target;
+          row.classList.add("animate-row");
+        }
+      });
+    },
+    { threshold: 0.5 }
+  );
+
+  document.querySelectorAll("tr").forEach((row) => {
+    observer.observe(row);
+  });
+</script>
+
+<link rel="stylesheet" href="/css/styles.css" />
+<%- include('include/_footer') %>
+<%- include('include/_end') %>

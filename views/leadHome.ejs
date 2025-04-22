@@ -1,20 +1,33 @@
-<!-- include header -->
-<%- include('include/_header') %>
-<!-- /include header -->
+<%- include('include/_header') %> <%- include('include/_leadNavBar') %>
 
-<!-- Main Site -->
-<main>
-  <div class="indexTopBar">
-    <img src="img/SE-GitHub-image.png" alt="Huskie Code Logo" />
-    <h1>Peer Tutor Website</h1>
-    <h2>Tutor Leader Home Page</h2>
+<main class="container mx-auto px-4 py-8 flex-grow">
+  <h1 class="text-4xl font-bold text-primary-dark mb-8 text-center">Tutor Leader Resources</h1>
+
+  <div class="bg-white rounded-lg shadow-lg p-6 w-full">
+    <h3 class="text-2xl font-semibold text-primary-dark mb-4">Tutor Forms</h3>
+    <div class="grid grid-cols-1 gap-6">
+      <div>
+        <a
+          href="/attendance"
+          class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center"
+        >
+          Attendance Tracker
+        </a>
+      </div>
+    </div>
   </div>
 </main>
 
-<!-- /Main Site -->
-
 <script src="/js/leadHome.js"></script>
 
-<!-- include footer -->
-<%- include('include/_footer') %>
-<!-- /include footer -->
+<%- include('include/_footer') %> <%- include('include/_end') %>
+
+<style>
+  .row {
+    display: flex;
+  }
+  .column {
+    flex: 50%;
+    padding: 10px;
+  }
+</style>

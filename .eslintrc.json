@@ -1,13 +1,33 @@
 {
   "env": {
     "browser": true,
+    "commonjs": true,
     "es2021": true,
     "node": true
   },
-  "extends": ["standard", "prettier"],
+  "extends": ["eslint:recommended"],
   "parserOptions": {
-    "ecmaVersion": "latest",
-    "sourceType": "module"
+    "ecmaVersion": "latest"
   },
-  "rules": {}
+  "rules": {
+    "indent": ["error", 2],
+    "linebreak-style": ["error", "windows"],
+    "quotes": ["error", "single"],
+    "semi": ["error", "always"],
+    "no-unused-vars": ["warn"],
+    "no-console": ["warn"]
+  },
+  "globals": {
+    "$": true
+  },
+  "overrides": [
+    {
+      "files": ["*.ejs"],
+      "rules": {
+        "no-undef": "off",
+        "no-unused-vars": "off"
+      }
+    }
+  ],
+  "ignorePatterns": ["**/*.ejs"]
 }
