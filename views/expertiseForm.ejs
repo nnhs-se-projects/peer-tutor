@@ -1,0 +1,334 @@
+<%- include('include/_header') %> <%- include('include/_tutNavBar') %>
+
+<style>
+  .form-column {
+    width: 100%;
+    display: inline-block;
+    vertical-align: top;
+  }
+  
+  .orange-box {
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 0px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .formQuestions {
+    font-family: inherit;
+    font-weight: 500;
+    margin-bottom: 15px;
+    color: #333;
+    display: block;
+  }
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="date"],
+  select,
+  textarea {
+    border-radius: 8px;
+    padding: 10px 12px;
+    width: 100%;
+    border: 1px solid #ccc;
+    font-family: inherit;
+    margin-bottom: 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="date"]:focus,
+  select:focus,
+  textarea:focus {
+    border-color: #ff8800;
+    box-shadow: 0 0 0 3px rgba(255, 136, 0, 0.2);
+    outline: none;
+  }
+  
+  fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 16px 0;
+  }
+  
+  fieldset label {
+    display: block;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: background-color 0.2s, transform 0.2s;
+    cursor: pointer;
+  }
+  
+  fieldset label:hover {
+    background-color: rgba(255, 136, 0, 0.1);
+    transform: translateX(5px);
+  }
+  
+  input[type="radio"],
+  input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    vertical-align: middle;
+    accent-color: #ff8800;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  
+  input[type="radio"]:hover,
+  input[type="checkbox"]:hover {
+    transform: scale(1.2);
+  }
+  
+  input[type="radio"]:checked,
+  input[type="checkbox"]:checked {
+    box-shadow: 0 0 0 2px rgba(255, 136, 0, 0.5);
+  }
+  
+  .submit {
+    background-color: #ff8800;
+    color: white;
+    font-weight: 500;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    margin: 30px 0 60px 0;
+    display: block;
+    width: 200px;
+  }
+  
+  .submit:hover {
+    background-color: #e67a00;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
+  }
+  
+  .submit:active {
+    transform: translateY(0) scale(0.98);
+  }
+  
+  .black-heading {
+    margin-bottom: 24px;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  #selectedCourses {
+    padding-left: 20px;
+  }
+  
+  #selectedCourses li {
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    background-color: rgba(255, 136, 0, 0.1);
+    border-radius: 4px;
+    transition: background-color 0.2s;
+  }
+  
+  #selectedCourses li:hover {
+    background-color: rgba(255, 136, 0, 0.2);
+  }
+  
+  #courseSearch {
+    margin-bottom: 16px;
+  }
+</style>
+
+<!-- Main Site -->
+<main class="container mx-auto px-4 py-8 flex-grow">  <div class="container mx-auto px-4 max-w-5xl">
+  <h1 class="text-4xl font-bold mb-8 text-center text-white">
+    Tutor Expertise Form
+  </h1>
+
+    <form>
+      <!-- Student Name -->
+      <div class="orange-box">
+        <label class="formQuestions font-medium">First Name</label>
+        <input type="text" class="font-medium" id="firstName" name="firstName" required />
+        <label class="formQuestions font-medium">Last Name</label>
+        <input type="text" class="font-medium" id="lastName" name="lastName" required />
+      </div>
+
+      <!-- Tutor ID -->
+      <div class="orange-box">
+        <label class="formQuestions font-medium">ID Number</label>
+        <input type="text" class="font-medium" id="tutorID" name="tutorID" required />
+      </div>
+
+      <!-- Student Email -->
+      <div class="orange-box">
+        <label class="formQuestions font-medium">Email</label>
+        <input type="email" class="font-medium" id="tutEmail" name="tutEmail" required />
+      </div>
+
+      <!-- Student Grade -->
+      <div class="orange-box">
+        <label class="formQuestions font-medium">Grade</label>
+        <fieldset>
+          <% for(let grade of grades) { %>
+          <label class="font-medium">
+            <input
+              type="radio"
+              class="habits mr-2"
+              name="grade"
+              value="<%= grade %>"
+            /><%= grade %>
+          </label>
+          <% } %>
+        </fieldset>
+      </div>
+
+      <!-- Student New/Returning -->
+      <div class="orange-box">
+        <label class="formQuestions font-medium">New or Returning?</label>
+        <fieldset>
+          <% for(let option of options) { %>
+          <label class="font-medium">
+            <input
+              type="radio"
+              class="options mr-2"
+              name="newReturning"
+              value="<%= option %>"
+            /><%= option %>
+          </label>
+          <% } %>
+        </fieldset>
+      </div>
+
+      <!-- Student Lunch Period -->
+      <div class="orange-box">
+        <label class="formQuestions font-medium">Lunch Period</label>
+        <fieldset>
+          <% for(let lunchPeriod of lunchPeriods) { %>
+          <label class="font-medium">
+            <input
+              type="radio"
+              class="lunchPeriod mr-2"
+              name="lunchPeriod"
+              value="<%= lunchPeriod %>"
+            /><%= lunchPeriod %>
+          </label>
+          <% } %>
+        </fieldset>
+      </div>
+
+      <!-- Student Tutoring Days -->
+      <div class="orange-box">
+        <label class="formQuestions font-medium">Tutoring Days (check 2-3)</label>
+        <fieldset>
+          <% for(let dayOfTheWeek of daysOfTheWeek) { %>
+          <label class="font-medium">
+            <input
+              type="checkbox"
+              class="dayOfTheWeek mr-2"
+              name="dayOfTheWeek"
+              value="<%= dayOfTheWeek %>"
+            /><%= dayOfTheWeek %>
+          </label>
+          <% } %>
+        </fieldset>
+      </div>
+
+      <!-- Course Selection -->
+      <div class="orange-box">
+        <div class="form-columns">
+          <!-- Left Column (Tutor Information and Session Details) -->
+          <div class="form-column">
+            <!-- Student Classes -->
+            <label class="formQuestions font-medium">Courses I can tutor:</label>
+            <input
+              type="text"
+              class="font-medium"
+              id="courseSearch"
+              placeholder="Search for a class..."
+              oninput="filterCourseList()"
+            />
+            <fieldset id="courseList">
+              <% for(let course of courseList) { %>
+              <label style="display: none" class="font-medium">
+                <input
+                  type="checkbox"
+                  class="courseCheckbox mr-2"
+                  name="courseList"
+                  value="<%= course %>"
+                />
+                <%= course %>
+              </label>
+              <% } %>
+            </fieldset>
+          </div>
+          <!-- Right Column-->
+          <div class="form-column">
+            <label class="formQuestions font-medium">Selected Courses:</label>
+            <ul id="selectedCourses" class="font-medium"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-center">
+        <input type="submit" class="submit font-medium" value="Submit" />
+      </div>
+    </form>
+  </div>
+</main>
+
+<script src="js/expertiseForm.js"></script>
+
+<%- include('include/_footer') %>
+<%- include('include/_end') %>
+
+<script>
+  // Function to filter the course list based on search input
+  function filterCourseList() {
+    const searchInput = document
+      .getElementById("courseSearch")
+      .value.toLowerCase();
+    const checkboxes = document.querySelectorAll("#courseList .courseCheckbox");
+
+    checkboxes.forEach((checkbox) => {
+      const label = checkbox.parentElement;
+      const optionText = checkbox.value.toLowerCase();
+      if (searchInput === "") {
+        label.style.display = "none";
+      } else if (optionText.includes(searchInput)) {
+        label.style.display = "";
+      } else {
+        label.style.display = "none";
+      }
+    });
+  }
+
+  // Function to update the selected items list
+  function updateSelectedItems() {
+    const selectedCheckboxes = document.querySelectorAll(
+      "#courseList .courseCheckbox:checked"
+    );
+    const listElement = document.getElementById("selectedCourses");
+    listElement.innerHTML = ""; // Clear the list
+
+    selectedCheckboxes.forEach((checkbox) => {
+      const li = document.createElement("li");
+      li.textContent = checkbox.value;
+      listElement.appendChild(li);
+    });
+  }
+
+  // Add event listener to the checkboxes
+  document
+    .querySelectorAll("#courseList .courseCheckbox")
+    .forEach((checkbox) => {
+      checkbox.addEventListener("change", updateSelectedItems);
+    });
+
+  // Add event listener to the search input
+  document
+    .getElementById("courseSearch")
+    .addEventListener("input", filterCourseList);
+</script>
