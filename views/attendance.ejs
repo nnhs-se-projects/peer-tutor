@@ -13,6 +13,95 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
+  .bordered-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #000;
+    background-color: white;
+  }
+  
+  .bordered-table thead th {
+    background-color: #1976d2;
+    color: white;
+    padding: 16px;
+    text-align: left;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    transition: background-color 0.2s;
+    border-right: 1px solid #000;
+    border-bottom: 2px solid #000;
+  }
+  
+  .bordered-table thead th:last-child {
+    border-right: none;
+  }
+  
+  .bordered-table tbody tr {
+    transition: all 0.2s;
+    background-color: white;
+  }
+  
+  .bordered-table tbody tr:nth-child(odd) {
+    background-color: #f0f4fa;
+  }
+  
+  .bordered-table tbody tr:hover {
+    background-color: #e0ecf9;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .bordered-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #000;
+    border-right: 1px solid #000;
+    color: #000;
+    background-color: inherit;
+    font-weight: 500;
+  }
+  
+  .bordered-table td:last-child {
+    border-right: none;
+  }
+  
+  .header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .sort-icon, .search-icon {
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 4px;
+    border-radius: 4px;
+  }
+  
+  .sort-icon:hover, .search-icon:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.2);
+  }
+  
+  .search-input {
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    transition: all 0.3s;
+  }
+  
+  .search-input:focus {
+    border-color: #ff8800;
+    box-shadow: 0 0 0 3px rgba(255, 136, 0, 0.2);
+    outline: none;
+  }
+  
   .absent-button, .present-button, .makeup-button {
     padding: 8px 12px;
     margin: 0 5px;
@@ -42,68 +131,165 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
+  
+  .filter-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: #f0f8ff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  
+  .date-display {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #1976d2;
+  }
+  
+  .filter-dropdown {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background-color: white;
+    font-size: 1rem;
+    min-width: 150px;
+  }
+  
+  /* Animation keyframes */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 </style>
 
 <!-- Main Site -->
 <main class="container mx-auto px-4 py-8 flex-grow">
-  <div class="container mx-auto px-4 max-w-5xl">
+  <div class="container mx-auto px-4" style="max-width: 1400px;">
     <h1 class="text-4xl font-bold mb-8 text-center text-white">
-      Attendance Sheet
+      Tutor Attendance Table
     </h1>
-
-    <div class="bg-white bg-opacity-95 shadow-lg rounded-lg p-6 mb-10">
-      <h2 class="text-3xl font-bold text-primary-dark mb-6 text-center">
-        Tutor Attendance Table
-      </h2>
-      <div class="blue-box">
-        <table id="studentTable" class="bordered-table">
-          <thead>
-            <tr>
-              <% const headers = ['First Name', 'Last Name','Days Missed' ,'Attendance']; %> 
-              <% headers.forEach((header, index) => { %>
-              <th>
-                <div class="header-container" style="display: flex; justify-content: space-between; align-items: center;">
-                  <span class="header-text" id="headerText<%= index %>"><%= header %></span>
-                  <% if (index < 3) { %>
-                  <div class="icons" style="display: flex; gap: 5px">
-                    <span class="sort-icon" id="sortIcon<%= index %>" data-index="<%= index %>">↑↓</span>
-                    <span class="search-icon" data-index="<%= index %>">🔍</span>
-                  </div>
-                  <% } %>
+    
+    <div class="filter-controls">
+      <div class="date-display" id="currentDate"></div>
+      <div class="filter-section">
+        <label for="lunchFilter" class="mr-2">Lunch Period:</label>
+        <select id="lunchFilter" class="filter-dropdown">
+          <option value="all">All Periods</option>
+          <option value="4">Period 4</option>
+          <option value="5">Period 5</option>
+          <option value="6">Period 6</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="blue-box">
+      <table id="studentTable" class="bordered-table">
+        <thead>
+          <tr>
+            <% const headers = ['First Name', 'Last Name', 'Days Missed', 'Lunch Period', 'Days Available', 'Attendance']; %> 
+            <% headers.forEach((header, index) => { %>
+            <th>
+              <div class="header-container">
+                <span class="header-text" id="headerText<%= index %>"><%= header %></span>
+                <% if (index < 5) { %>
+                <div class="icons" style="display: flex; gap: 5px">
+                  <span class="sort-icon" id="sortIcon<%= index %>" data-index="<%= index %>">↑↓</span>
+                  <span class="search-icon" data-index="<%= index %>">🔍</span>
                 </div>
-                <% if (index < 3) { %>
-                <input
-                  type="text"
-                  class="search-input"
-                  id="searchInput<%= index %>"
-                  placeholder="Search <%= header %>"
-                  data-index="<%= index %>"
-                  style="display: none; width: 100%"
-                />
                 <% } %>
-              </th>
-              <% }) %>
-            </tr>
-          </thead>
-          <tbody>
+              </div>
+              <% if (index < 5) { %>
+              <input
+                type="text"
+                class="search-input"
+                id="searchInput<%= index %>"
+                placeholder="Search <%= header %>"
+                data-index="<%= index %>"
+                style="display: none; width: 100%"
+              />
+              <% } %>
+            </th>
+            <% }) %>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (tutors && tutors.length > 0) { %>
             <% tutors.forEach(tutor => { %>
-            <tr>
-              <td><%= tutor.firstName %></td>
-              <td><%= tutor.lastName %></td>
-              <td id="daysMissed-<%= tutor._id %>"><%= tutor.daysMissed || 0 %></td>
+            <tr data-lunch="<%= tutor.lunchPeriod %>" data-days="<%= tutor.daysAvailable ? tutor.daysAvailable.join(',') : '' %>" class="tutor-row">
+              <td><%= tutor.tutorFirstName || tutor.firstName || 'Unknown' %></td>
+              <td><%= tutor.tutorLastName || tutor.lastName || 'Unknown' %></td>
+              <td id="daysMissed-<%= tutor._id %>"><%= tutor.attendance || 0 %></td>
+              <td class="lunch-period-cell"><%= tutor.lunchPeriod %></td>
+              <td><%= tutor.daysAvailable ? tutor.daysAvailable.join(', ') : '' %></td>
               <td>
-                <button class="absent-button" data-id="<%= tutor._id %>">A</button>
-                <button class="present-button" data-id="<%= tutor._id %>">P</button>
-                <button class="makeup-button" data-id="<%= tutor._id %>">M</button>
+                <button class="absent-button" data-id="<%= tutor._id %>" data-action="absent">A</button>
+                <button class="present-button" data-id="<%= tutor._id %>" data-action="present">P</button>
+                <button class="makeup-button" data-id="<%= tutor._id %>" data-action="makeup">M</button>
               </td>
             </tr>
             <% }) %>
-          </tbody>
-        </table>
-      </div>
+          <% } else { %>
+            <tr>
+              <td colspan="6" class="text-center py-4">No tutors found</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
     </div>
   </div>
 </main>
 
 <script src="/js/attendance.js"></script>
+
+<script>
+  // Debug script to check why lunch filtering isn't working
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('Debug script loaded');
+    
+    // Check if lunch filter element exists
+    const lunchFilter = document.getElementById('lunchFilter');
+    console.log('Lunch filter element:', lunchFilter);
+    
+    if (lunchFilter) {
+      // Add a direct event listener here for debugging
+      lunchFilter.addEventListener('change', function() {
+        console.log('Lunch filter changed to:', this.value);
+        
+        // Log all tutor rows and their lunch periods
+        const rows = document.querySelectorAll('.tutor-row');
+        console.log('Found tutor rows:', rows.length);
+        
+        rows.forEach(row => {
+          const lunchPeriod = row.getAttribute('data-lunch');
+          console.log('Tutor row lunch period:', lunchPeriod);
+          
+          if (this.value === 'all' || lunchPeriod === this.value) {
+            row.style.display = '';
+            console.log('Showing row with lunch period:', lunchPeriod);
+          } else {
+            row.style.display = 'none';
+            console.log('Hiding row with lunch period:', lunchPeriod);
+          }
+        });
+      });
+      
+      // Log all initial lunch periods
+      const rows = document.querySelectorAll('.tutor-row');
+      rows.forEach(row => {
+        console.log('Initial lunch period:', row.getAttribute('data-lunch'));
+      });
+    }
+  });
+</script>
+
 <%- include('include/_footer') %>
+<%- include('include/_end') %>
