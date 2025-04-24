@@ -1,0 +1,99 @@
+<%- include('include/_header') %> <%- include('include/_tutNavBar') %>
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <h1 class="black-heading">Tutor Attendance</h1>
+  </head>
+  <body>
+    <form id="idForm">
+      <label for="tutorID">Enter your ID number:</label>
+      <input type="search-input" id="tutorID" name="tutorID" required />
+      <button type="submit">Submit</button>
+    </form>
+
+    <div id="tutorInfo" style="display: none">
+      <table border="1">
+        <tr>
+          <th>Field</th>
+          <th>Value</th>
+        </tr>
+        <tr>
+          <td>Tutor Name</td>
+          <td id="tutorName">-</td>
+        </tr>
+        <tr>
+          <td>Days Missed</td>
+          <td id="daysMissed">-</td>
+        </tr>
+        <tr>
+          <td>Number of Sessions</td>
+          <td id="sessionCount">-</td>
+        </tr>
+      </table>
+
+      <h2 class="black-heading">Session History</h2>
+      <table id="sessionHistory" border="1">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Subject</th>
+            <th>Student</th>
+            <th>Duration</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Session history will be populated here -->
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+      document
+        .getElementById("idForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const tutorID = document.getElementById("tutorID").value;
+
+          try {
+            const response = await fetch(`/api/tutor-attendance/${tutorID}`);
+            if (!response.ok) {
+              throw new Error("Tutor not found");
+            }
+
+            const data = await response.json();
+
+            // Show the table
+            document.getElementById("tutorInfo").style.display = "block";
+
+            // Populate basic info
+            document.getElementById("tutorName").textContent = data.name;
+            document.getElementById("daysMissed").textContent = data.daysMissed;
+            document.getElementById("sessionCount").textContent =
+              data.sessionCount;
+
+            // Populate session history
+            const sessionTableBody = document
+              .getElementById("sessionHistory")
+              .getElementsByTagName("tbody")[0];
+            sessionTableBody.innerHTML = ""; // Clear existing rows
+
+            data.sessions.forEach((session) => {
+              const row = sessionTableBody.insertRow();
+              row.insertCell(0).textContent = new Date(
+                session.date
+              ).toLocaleDateString();
+              row.insertCell(1).textContent = session.subject;
+              row.insertCell(2).textContent = session.student;
+              row.insertCell(3).textContent = session.duration;
+            });
+          } catch (error) {
+            alert("Error: " + error.message);
+          }
+        });
+    </script>
+  </body>
+</html>
+
+<%- include('include/_footer') %>
