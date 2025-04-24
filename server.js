@@ -65,7 +65,7 @@ const server = http.createServer(app);
 //  the exported router object is an example of middleware
 app.use('/', require('./server/routes/router'));
 
-// start the server on port 8080
-server.listen(8080, () => {
-  console.log('Server started on http://localhost:8080');
+// start the server on port 8082
+server.listen(8082, () => {
+  console.log('Server started on http://localhost:8082');
 });
