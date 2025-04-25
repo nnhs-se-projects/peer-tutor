@@ -214,8 +214,8 @@ route.get('/expertiseForm', async (req, res) => {
 route.use('/auth', require('./auth'));
 
 // Route to render the tutor attendance
-route.get("/tutorAttendance", async (req, res) => {
-  res.render("tutorAttendance");
+route.get('/tutorAttendance', async (req, res) => {
+  res.render('tutorAttendance');
 });
 
 // Route to render the tutor form
@@ -406,7 +406,7 @@ route.use('/attendance', require('../../routes/attendance'));
 // Removing duplicate route for /homepage
 
 // API endpoint to get tutor attendance data
-route.get("/api/tutor-attendance/:id", async (req, res) => {
+route.get('/api/tutor-attendance/:id', async (req, res) => {
   try {
     const tutorID = req.params.id;
 
@@ -414,7 +414,7 @@ route.get("/api/tutor-attendance/:id", async (req, res) => {
     const tutorData = await Tutor.findOne({ tutorID: tutorID });
 
     if (!tutorData) {
-      return res.status(404).json({ error: "Tutor not found" });
+      return res.status(404).json({ error: 'Tutor not found' });
     }
 
     // Get tutor's sessions
@@ -425,10 +425,10 @@ route.get("/api/tutor-attendance/:id", async (req, res) => {
     const response = {
       name: `${tutorData.tutorFirstName} ${tutorData.tutorLastName}`,
       daysMissed: tutorData.attendance
-        ? tutorData.attendance.filter((day) => day === false).length
+        ? tutorData.attendance.filter(day => day === false).length
         : 0,
       sessionCount: sessions.length,
-      sessions: sessions.map((session) => ({
+      sessions: sessions.map(session => ({
         date: session.sessionDate,
         subject: session.subject,
         student: `${session.tuteeFirstName} ${session.tuteeLastName}`,
@@ -438,8 +438,8 @@ route.get("/api/tutor-attendance/:id", async (req, res) => {
 
     res.json(response);
   } catch (error) {
-    console.error("Error fetching tutor data:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error('Error fetching tutor data:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
