@@ -1,0 +1,251 @@
+<%- include('include/_header') %> <%- include('include/_tutNavBar') %>
+
+<style>
+  .blue-box {
+    background-color: rgba(248, 250, 255, 0.95);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+  }
+
+  .bordered-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #000;
+    background-color: white;
+    margin: 0 auto;
+  }
+
+  .bordered-table thead th {
+    background-color: #1976d2;
+    color: white;
+    padding: 16px;
+    text-align: center;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    transition: background-color 0.2s;
+    border-right: 1px solid #000;
+    border-bottom: 2px solid #000;
+  }
+
+  .bordered-table thead th:last-child {
+    border-right: none;
+  }
+
+  .bordered-table tbody tr {
+    transition: all 0.2s;
+    background-color: white;
+  }
+
+  .bordered-table tbody tr:nth-child(odd) {
+    background-color: #f0f4fa;
+  }
+
+  .bordered-table tbody tr:hover {
+    background-color: #e0ecf9;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .bordered-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #000;
+    border-right: 1px solid #000;
+    color: #000;
+    background-color: inherit;
+    font-weight: 500;
+    text-align: center;
+  }
+
+  .bordered-table td:last-child {
+    border-right: none;
+  }
+
+  .search-input {
+    background-color: white;
+    color: #333;
+    border: 2px solid #1976d2;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    width: 100%;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: #ff9800;
+    box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.3);
+  }
+
+  .search-button {
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .search-button:hover {
+    background-color: #0d47a1;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  .info-card {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #000;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .info-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .info-card-header {
+    background-color: #1976d2;
+    color: white;
+    padding: 12px;
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 2px solid #000;
+  }
+
+  .info-card-body {
+    padding: 16px;
+    font-size: 1.5rem;
+    font-weight: 500;
+    text-align: center;
+  }
+</style>
+
+<!-- Main Site -->
+<main class="container mx-auto px-4 py-8 flex-grow">
+  <div class="container mx-auto px-4 max-w-5xl">
+    <h1 class="text-4xl font-bold mb-8 text-center text-white">Tutor Attendance</h1>
+
+    <div class="blue-box">
+      <h2 class="text-3xl font-bold text-gray-800 mb-10">Enter Your Information</h2>
+
+      <form id="idForm" class="mb-12 max-w-lg mx-auto">
+        <div class="flex flex-col md:flex-row gap-4 items-end">
+          <div class="flex-grow">
+            <label for="tutorID" class="block text-gray-700 font-medium mb-2 text-left"
+              >Enter your ID number:</label
+            >
+            <input
+              type="text"
+              id="tutorID"
+              name="tutorID"
+              required
+              class="search-input"
+              placeholder="Enter your tutor ID"
+            />
+          </div>
+          <button type="submit" class="search-button">Submit</button>
+        </div>
+      </form>
+
+      <div id="tutorInfo" style="display: none">
+        <h3 class="text-2xl font-bold text-gray-800 mb-8">Tutor Information</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div class="info-card">
+            <div class="info-card-header">Tutor Name</div>
+            <div class="info-card-body" id="tutorName">-</div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-card-header">Days Missed</div>
+            <div class="info-card-body" id="daysMissed">-</div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-card-header">Number of Sessions</div>
+            <div class="info-card-body" id="sessionCount">-</div>
+          </div>
+        </div>
+
+        <h3 class="text-2xl font-bold text-gray-800 mb-8">Session History</h3>
+        <div class="max-w-4xl mx-auto">
+          <table id="sessionHistory" class="bordered-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Subject</th>
+                <th>Student</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Session history will be populated here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  document.getElementById('idForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const tutorID = document.getElementById('tutorID').value;
+
+    try {
+      const response = await fetch(`/api/tutor-attendance/${tutorID}`);
+      if (!response.ok) {
+        throw new Error('Tutor not found');
+      }
+
+      const data = await response.json();
+
+      // Show the table
+      document.getElementById('tutorInfo').style.display = 'block';
+
+      // Populate basic info
+      document.getElementById('tutorName').textContent = data.name;
+      document.getElementById('daysMissed').textContent = data.daysMissed;
+      document.getElementById('sessionCount').textContent = data.sessionCount;
+
+      // Populate session history
+      const sessionTableBody = document
+        .getElementById('sessionHistory')
+        .getElementsByTagName('tbody')[0];
+      sessionTableBody.innerHTML = ''; // Clear existing rows
+
+      data.sessions.forEach(session => {
+        const row = sessionTableBody.insertRow();
+        row.insertCell(0).textContent = new Date(session.date).toLocaleDateString();
+        row.insertCell(1).textContent = session.subject;
+        row.insertCell(2).textContent = session.student;
+        row.insertCell(3).textContent = session.duration;
+      });
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  });
+</script>
+
+<%- include('include/_footer') %>

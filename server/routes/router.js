@@ -213,6 +213,11 @@ route.get('/expertiseForm', async (req, res) => {
 // delegate all authentication to the auth.js router
 route.use('/auth', require('./auth'));
 
+// Route to render the tutor attendance
+route.get('/tutorAttendance', async (req, res) => {
+  res.render('tutorAttendance');
+});
+
 // Route to render the tutor form
 route.get('/tutorForm', async (req, res) => {
   res.render('tutorForm');
@@ -399,5 +404,43 @@ route.use('/attendance', require('../../routes/attendance'));
 
 // The homepage route can be handled in the main router
 // Removing duplicate route for /homepage
+
+// API endpoint to get tutor attendance data
+route.get('/api/tutor-attendance/:id', async (req, res) => {
+  try {
+    const tutorID = req.params.id;
+
+    // Find the tutor in the database
+    const tutorData = await Tutor.findOne({ tutorID: tutorID });
+
+    if (!tutorData) {
+      return res.status(404).json({ error: 'Tutor not found' });
+    }
+
+    // Get tutor's sessions
+    const sessions = await Session.find({ tutorID: tutorID }).sort({
+      sessionDate: -1,
+    });
+
+    const response = {
+      name: `${tutorData.tutorFirstName} ${tutorData.tutorLastName}`,
+      daysMissed: tutorData.attendance
+        ? tutorData.attendance.filter(day => day === false).length
+        : 0,
+      sessionCount: sessions.length,
+      sessions: sessions.map(session => ({
+        date: session.sessionDate,
+        subject: session.subject,
+        student: `${session.tuteeFirstName} ${session.tuteeLastName}`,
+        duration: session.sessionPeriod,
+      })),
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error('Error fetching tutor data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 module.exports = route;

@@ -15,10 +15,15 @@
     animation: bounce 1.5s ease-in-out infinite;
     font-size: 2rem;
     position: absolute;
-    top: -30px;
+    top: -38px;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
     z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
   }
   
   .leaderboard-container {
@@ -57,7 +62,7 @@
         <div class="flex flex-col items-center <%= index === 0 ? 'order-2' : index === 1 ? 'order-1' : 'order-3' %>">
           <div class="relative <%= size %> mb-4">
             <% if (index === 0) { %>
-              <span class="crown-animation">👑</span>
+              <div class="crown-animation">👑</div>
             <% } %>
             <div class="absolute inset-0 rounded-full border-4 border-red-500 overflow-hidden">
               <div class="absolute inset-0 bg-red-500"></div>

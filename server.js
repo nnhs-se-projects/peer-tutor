@@ -43,6 +43,7 @@ app.use('/css', express.static('assets/css'));
 app.use('/css', express.static('public/css'));
 app.use('/img', express.static('assets/img'));
 app.use('/js', express.static('assets/js'));
+app.use('/js', express.static('public/js'));
 app.use('/public', express.static('public'));
 
 // app.use takes a function that is added to the chain of a request.
@@ -60,6 +61,9 @@ app.use((req, res, next) => {
 
 // create the HTTP server
 const server = http.createServer(app);
+
+// Register our custom attendance route
+app.use('/attendance', require('./routes/attendance'));
 
 // to keep this file manageable, we will move the routes to a separate file
 //  the exported router object is an example of middleware
