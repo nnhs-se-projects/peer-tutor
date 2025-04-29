@@ -71,5 +71,5 @@ app.use('/', require('./server/routes/router'));
 
 // start the server on port 8082
 server.listen(8080, () => {
-  console.log('Server started on http://localhost:8080');
+  console.log('Server started on http://localhost:8082');
 });
