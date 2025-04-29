@@ -1,9 +1,21 @@
 <!-- include header -->
-<%- include('include/_header') %>
+<%- include('include/_header') %> <%- include('include/_adminNavBar') %>
 <!-- /include header -->
 
 <main class="container mx-auto px-4 py-8 flex-grow">
-  <h1 class="text-4xl font-bold text-primary-dark mb-8 text-center">Admin Home Page</h1>
+  <h1 class="text-4xl font-bold text-primary-dark mb-8 text-center">Admin Resources</h1>
+
+  <!-- All Sessions Section (was My Sessions) -->
+  <div
+    class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-all mb-8 mx-auto"
+    style="width: 50%; min-width: 350px; max-width: 900px"
+  >
+    <h2 class="text-2xl font-bold text-orange-600 mb-4">All Sessions</h2>
+    <div id="sessionHistory" class="overflow-auto max-h-96">
+      <div class="text-center text-gray-500 italic">No recent sessions found.</div>
+      <!-- Session history will be populated here -->
+    </div>
+  </div>
 
   <!-- All Sessions Section (moved from stuHome.ejs) -->
   <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-all">

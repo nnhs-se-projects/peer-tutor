@@ -1,7 +1,7 @@
 <%- include('include/_header') %> <%- include('include/_stuNavBar') %>
 
 <main class="container mx-auto px-4 py-8 flex-grow">
-  <h1 class="text-4xl font-bold text-primary-dark mb-8 text-center">Student Home Page</h1>
+  <h1 class="text-4xl font-bold text-primary-dark mb-8 text-center">Student Resources</h1>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
     <!-- Find a Tutor Section -->
@@ -13,13 +13,7 @@
           id="subject"
           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
         >
-          <option value="">Select a subject</option>
-          <option value="Math">Math</option>
-          <option value="Science">Science</option>
-          <option value="English">English</option>
-          <option value="History">History</option>
-          <option value="Foreign Language">Foreign Language</option>
-          <option value="Other">Other</option>
+          <!-- Options will be populated by JS -->
         </select>
       </div>
       <div class="mb-4">
@@ -28,8 +22,7 @@
           id="class"
           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
         >
-          <option value="">Select a class</option>
-          <!-- This will be populated based on subject selection -->
+          <!-- Options will be populated by JS -->
         </select>
       </div>
       <button
@@ -56,13 +49,7 @@
               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
               required
             >
-              <option value="">Select a subject</option>
-              <option value="Math">Math</option>
-              <option value="Science">Science</option>
-              <option value="English">English</option>
-              <option value="History">History</option>
-              <option value="Foreign Language">Foreign Language</option>
-              <option value="Other">Other</option>
+              <!-- Options will be populated by JS -->
             </select>
           </div>
           <div>
@@ -73,8 +60,7 @@
               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
               required
             >
-              <option value="">Select a class</option>
-              <!-- This will be populated based on subject selection -->
+              <!-- Options will be populated by JS -->
             </select>
           </div>
           <div>
@@ -102,26 +88,19 @@
             />
           </div>
           <div>
-            <label for="preferredPeriod" class="block text-gray-700 font-medium mb-2"
-              >Preferred Period</label
+            <label for="lunchPeriod" class="block text-gray-700 font-medium mb-2"
+              >Lunch Period</label
             >
             <select
-              id="preferredPeriod"
-              name="preferredPeriod"
+              id="lunchPeriod"
+              name="lunchPeriod"
               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
               required
             >
-              <option value="">Select a period</option>
-              <option value="Before School">Before School</option>
-              <option value="1st Period">1st Period</option>
-              <option value="2nd Period">2nd Period</option>
-              <option value="3rd Period">3rd Period</option>
-              <option value="4th Period">4th Period</option>
-              <option value="5th Period">5th Period</option>
-              <option value="6th Period">6th Period</option>
-              <option value="7th Period">7th Period</option>
-              <option value="Lunch">Lunch</option>
-              <option value="After School">After School</option>
+              <option value="">Select a lunch period</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
             </select>
           </div>
           <div>
@@ -146,8 +125,6 @@
       </form>
     </div>
   </div>
-
-  <!-- My Sessions Section moved to adminHome.ejs -->
 </main>
 
 <script src="/js/stuHome.js"></script>
