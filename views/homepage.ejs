@@ -41,6 +41,31 @@
   .podium-text {
     color: #333;
   }
+  
+  /* Make huskie logo bigger on homepage */
+  .homepage-huskie-logo {
+    width: 220px;
+    height: auto;
+    margin: 0 auto 2rem auto;
+    display: block;
+    filter: drop-shadow(0 6px 18px rgba(0,0,0,0.25));
+  }
+  
+  /* Table row color and hover pop effect */
+  .homepage-table-row {
+    background: #b6dcf8;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  }
+  .homepage-table-row:nth-child(even) {
+    background: #8dccf8;
+  }
+  .homepage-table-row:hover {
+    background: #ff9800 !important;
+    box-shadow: 0 4px 16px rgba(255, 136, 0, 0.18), 0 1.5px 6px rgba(13, 71, 161, 0.10);
+    transform: scale(1.015);
+    z-index: 2;
+    position: relative;
+  }
 </style>
 
 <main class="container mx-auto px-4 py-8 flex-grow">
@@ -66,7 +91,7 @@
             <% } %>
             <div class="absolute inset-0 rounded-full border-4 border-red-500 overflow-hidden">
               <div class="absolute inset-0 bg-red-500"></div>
-              <div class="absolute inset-0 bg-green-500 origin-left" style="transform: scaleX(<%= progressPercent %>)"></div>
+              <div class="absolute inset-0 bg-green-500 origin-left" style="transform: scaleX(<%= progressPercent %>);"></div>
               <div class="absolute inset-0 flex items-center justify-center">
                 <span class="text-3xl font-bold text-white z-10"><%= initials %></span>
               </div>
@@ -98,7 +123,7 @@
             const progressPercent = Math.min(Math.round((tutor.totalSessions / 100) * 100), 100) / 100;
             const initials = (tutor.firstName[0] + tutor.lastName[0]).toUpperCase();
           %>
-          <tr class="hover:bg-gray-50">
+          <tr class="homepage-table-row">
             <td class="px-6 py-4 whitespace-nowrap w-16">
               <div class="text-sm font-medium text-gray-900">
                 <%= index + 1 %>
@@ -124,13 +149,13 @@
             <td class="px-6 py-4 whitespace-nowrap w-1/2">
               <div class="progress-container relative">
                 <div class="w-full bg-red-500 rounded-full h-2">
-                  <div class="bg-green-500 h-2 rounded-full" style="width: <%= Math.round(progressPercent * 100) %>%"></div>
+                  <div class="bg-green-500 h-2 rounded-full" style="width: <%= Math.round(progressPercent * 100) %>%;"></div>
                   <img
                     src="/img/huskieLeaderboardPic.png"
                     alt="Running Huskie"
                     class="absolute w-6 h-6 -top-2 transform -translate-x-1/2"
-                    style="left: <%= Math.round(progressPercent * 100) %>%"
-                  />
+                    style="left: <%= Math.round(progressPercent * 100) %>%" />
+                  </div>
                 </div>
               </div>
             </td>

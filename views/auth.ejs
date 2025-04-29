@@ -5,7 +5,10 @@
 <!-- No navigation bar for login page -->
 
 <main class="flex-grow">
-  <div class="geometric-background min-h-screen flex items-center justify-center p-4">
+  <div
+    class="geometric-background min-h-screen flex justify-center p-4"
+    style="align-items: flex-start; min-height: 80vh"
+  >
     <div class="geometric-overlay"></div>
 
     <div class="login-card max-w-md w-full rounded-lg p-8 relative z-10 shadow-2xl">
@@ -22,7 +25,7 @@
           <script src="https://accounts.google.com/gsi/client" async defer></script>
           <div
             id="g_id_onload"
-            data-client_id="363824065747-7in8uucatifole229v7oaa6ndjldlfq3.apps.googleusercontent.com"
+            data-client_id="1022838194773-p8g5ac0qr11mfko61qurgnqdb9jitpjf.apps.googleusercontent.com"
             data-context="signin"
             data-callback="handleCredentialResponse"
             data-auto_prompt="false"
@@ -38,11 +41,10 @@
       </div>
 
       <div class="mt-12 pt-6 border-t border-white/20 text-center">
-        <p class="text-white/70 text-sm">
-          District 203 account access required.
-        </p>
+        <p class="text-white/70 text-sm">District 203 account access required.</p>
       </div>
     </div>
+    <div style="margin-top: 60px"></div>
   </div>
 </main>
 

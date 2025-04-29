@@ -215,6 +215,37 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Load session history on page load
   loadSessionHistory();
+
+  // Add this at the top of the file or after DOMContentLoaded
+  fetch('/api/courses')
+    .then(response => response.json())
+    .then(courses => {
+      function populateSubjects(subjectSelectId, classSelectId) {
+        const subjectSelect = document.getElementById(subjectSelectId);
+        const classSelect = document.getElementById(classSelectId);
+        subjectSelect.innerHTML = '<option value="">Select a subject</option>';
+        Object.keys(courses).forEach(subject => {
+          const option = document.createElement('option');
+          option.value = subject;
+          option.textContent = subject;
+          subjectSelect.appendChild(option);
+        });
+        subjectSelect.addEventListener('change', function () {
+          const selectedSubject = this.value;
+          classSelect.innerHTML = '<option value="">Select a class</option>';
+          if (selectedSubject && courses[selectedSubject]) {
+            courses[selectedSubject].classes.forEach(className => {
+              const option = document.createElement('option');
+              option.value = className;
+              option.textContent = className;
+              classSelect.appendChild(option);
+            });
+          }
+        });
+      }
+      populateSubjects('subject', 'class');
+      populateSubjects('requestSubject', 'requestClass');
+    });
 });
 
 // Function to request a specific tutor

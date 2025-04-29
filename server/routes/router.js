@@ -13,6 +13,7 @@ const daysOfTheWeek = require('../model/daysOfTheWeek.json');
 
 // assigning variables to the JSON files
 const courseList = require('../model/courseList.json');
+const courses = require('../model/courses.json');
 
 // Route to render the authentication page
 route.get('/auth', (req, res) => {
@@ -441,6 +442,11 @@ route.get('/api/tutor-attendance/:id', async (req, res) => {
     console.error('Error fetching tutor data:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// API endpoint to get courses for subject/class dropdowns
+route.get('/api/courses', (req, res) => {
+  res.json(courses);
 });
 
 module.exports = route;
