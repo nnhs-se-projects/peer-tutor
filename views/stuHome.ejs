@@ -43,118 +43,111 @@
       </div>
     </div>
 
-    <!-- My Sessions Section -->
+    <!-- Request Tutoring Section -->
     <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-all">
-      <h2 class="text-2xl font-bold text-orange-600 mb-4">My Sessions</h2>
-      <div id="sessionHistory" class="overflow-auto max-h-96">
-        <div class="text-center text-gray-500 italic">No recent sessions found.</div>
-        <!-- Session history will be populated here -->
-      </div>
+      <h2 class="text-2xl font-bold text-orange-600 mb-4">Request Tutoring</h2>
+      <form id="tutoringRequestForm">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="requestSubject" class="block text-gray-700 font-medium mb-2">Subject</label>
+            <select
+              id="requestSubject"
+              name="subject"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              required
+            >
+              <option value="">Select a subject</option>
+              <option value="Math">Math</option>
+              <option value="Science">Science</option>
+              <option value="English">English</option>
+              <option value="History">History</option>
+              <option value="Foreign Language">Foreign Language</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="requestClass" class="block text-gray-700 font-medium mb-2">Class</label>
+            <select
+              id="requestClass"
+              name="class"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              required
+            >
+              <option value="">Select a class</option>
+              <!-- This will be populated based on subject selection -->
+            </select>
+          </div>
+          <div>
+            <label for="requestTopic" class="block text-gray-700 font-medium mb-2"
+              >Topic/Assignment</label
+            >
+            <input
+              type="text"
+              id="requestTopic"
+              name="topic"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              required
+            />
+          </div>
+          <div>
+            <label for="preferredDate" class="block text-gray-700 font-medium mb-2"
+              >Preferred Date</label
+            >
+            <input
+              type="date"
+              id="preferredDate"
+              name="preferredDate"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              required
+            />
+          </div>
+          <div>
+            <label for="preferredPeriod" class="block text-gray-700 font-medium mb-2"
+              >Preferred Period</label
+            >
+            <select
+              id="preferredPeriod"
+              name="preferredPeriod"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              required
+            >
+              <option value="">Select a period</option>
+              <option value="Before School">Before School</option>
+              <option value="1st Period">1st Period</option>
+              <option value="2nd Period">2nd Period</option>
+              <option value="3rd Period">3rd Period</option>
+              <option value="4th Period">4th Period</option>
+              <option value="5th Period">5th Period</option>
+              <option value="6th Period">6th Period</option>
+              <option value="7th Period">7th Period</option>
+              <option value="Lunch">Lunch</option>
+              <option value="After School">After School</option>
+            </select>
+          </div>
+          <div>
+            <label for="additionalNotes" class="block text-gray-700 font-medium mb-2"
+              >Additional Notes</label
+            >
+            <textarea
+              id="additionalNotes"
+              name="additionalNotes"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 min-h-[100px]"
+            ></textarea>
+          </div>
+        </div>
+        <div class="mt-6">
+          <button
+            type="submit"
+            class="w-full bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors font-medium"
+          >
+            Submit Request
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
-  <!-- Request Tutoring Section -->
-  <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-all">
-    <h2 class="text-2xl font-bold text-orange-600 mb-4">Request Tutoring</h2>
-    <form id="tutoringRequestForm">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label for="requestSubject" class="block text-gray-700 font-medium mb-2">Subject</label>
-          <select
-            id="requestSubject"
-            name="subject"
-            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-            required
-          >
-            <option value="">Select a subject</option>
-            <option value="Math">Math</option>
-            <option value="Science">Science</option>
-            <option value="English">English</option>
-            <option value="History">History</option>
-            <option value="Foreign Language">Foreign Language</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        <div>
-          <label for="requestClass" class="block text-gray-700 font-medium mb-2">Class</label>
-          <select
-            id="requestClass"
-            name="class"
-            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-            required
-          >
-            <option value="">Select a class</option>
-            <!-- This will be populated based on subject selection -->
-          </select>
-        </div>
-        <div>
-          <label for="requestTopic" class="block text-gray-700 font-medium mb-2"
-            >Topic/Assignment</label
-          >
-          <input
-            type="text"
-            id="requestTopic"
-            name="topic"
-            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-            required
-          />
-        </div>
-        <div>
-          <label for="preferredDate" class="block text-gray-700 font-medium mb-2"
-            >Preferred Date</label
-          >
-          <input
-            type="date"
-            id="preferredDate"
-            name="preferredDate"
-            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-            required
-          />
-        </div>
-        <div>
-          <label for="preferredPeriod" class="block text-gray-700 font-medium mb-2"
-            >Preferred Period</label
-          >
-          <select
-            id="preferredPeriod"
-            name="preferredPeriod"
-            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-            required
-          >
-            <option value="">Select a period</option>
-            <option value="Before School">Before School</option>
-            <option value="1st Period">1st Period</option>
-            <option value="2nd Period">2nd Period</option>
-            <option value="3rd Period">3rd Period</option>
-            <option value="4th Period">4th Period</option>
-            <option value="5th Period">5th Period</option>
-            <option value="6th Period">6th Period</option>
-            <option value="7th Period">7th Period</option>
-            <option value="Lunch">Lunch</option>
-            <option value="After School">After School</option>
-          </select>
-        </div>
-        <div>
-          <label for="additionalNotes" class="block text-gray-700 font-medium mb-2"
-            >Additional Notes</label
-          >
-          <textarea
-            id="additionalNotes"
-            name="additionalNotes"
-            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 min-h-[100px]"
-          ></textarea>
-        </div>
-      </div>
-      <div class="mt-6">
-        <button
-          type="submit"
-          class="w-full bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors font-medium"
-        >
-          Submit Request
-        </button>
-      </div>
-    </form>
-  </div>
+  <!-- My Sessions Section moved to adminHome.ejs -->
 </main>
 
 <script src="/js/stuHome.js"></script>
