@@ -67,77 +67,23 @@ function filterTutorsByDay(dayNum) {
 }
 
 // Function to set up attendance buttons
-function setupAttendanceButtons() {
-  // Get all buttons
-  const buttons = document.querySelectorAll('.absent-button, .present-button, .makeup-button');
-
-  buttons.forEach(button => {
-    button.addEventListener('click', function () {
-      const tutorId = this.getAttribute('data-id');
-      const action = this.getAttribute('data-action');
-
-      // Define change based on action
-      let change = 0;
-      if (action === 'absent') {
-        change = 1; // Increment days missed
-      } else if (action === 'makeup') {
-        change = -1; // Decrement days missed
-      } // 'present' doesn't change days missed (change = 0)
-
-      // Update UI first for immediate feedback
-      const daysMissedElement = document.getElementById(`daysMissed-${tutorId}`);
-      if (daysMissedElement) {
-        let currentValue = parseInt(daysMissedElement.textContent) || 0;
-        daysMissedElement.textContent = currentValue + change;
-      }
-
-      // Send the update to the server
-      updateAttendance(tutorId, change);
-    });
-  });
-}
-
-// Function to update attendance on the server
-function updateAttendance(tutorId, change) {
-  fetch('/attendance/updateAttendance', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      tutorId: tutorId,
-      change: change,
-    }),
-  })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Server response was not ok');
-      }
-      return response.json();
-    })
-    .then(data => {
-      if (data.success) {
-        console.log('Success: Attendance updated to', data.attendance);
-
-        // Update the UI with the actual value from the server if it differs
-        const daysMissedElement = document.getElementById(`daysMissed-${tutorId}`);
-        if (daysMissedElement) {
-          daysMissedElement.textContent = data.attendance;
-        }
-      } else {
-        throw new Error(data.error || 'Unknown error');
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      // Revert the UI update if server update failed
-      const daysMissedElement = document.getElementById(`daysMissed-${tutorId}`);
-      if (daysMissedElement) {
-        let currentValue = parseInt(daysMissedElement.textContent) || 0;
-        daysMissedElement.textContent = currentValue - change;
-      }
-    });
-}
+ document.addEventListener("click", function (event) {
+   if (event.target.classList.contains("absent-button")) {
+     const row = event.target.closest("tr");
+     const attendanceCell = row.getElementsByTagName("td")[2];
+     let currentAttendance = parseInt(attendanceCell.textContent) || 0;
+     attendanceCell.textContent = currentAttendance + 1;
+   }
+ });
+ 
+ document.addEventListener("click", function (event) {
+   if (event.target.classList.contains("makeup-button")) {
+     const row = event.target.closest("tr");
+     const attendanceCell = row.getElementsByTagName("td")[2];
+     let currentAttendance = parseInt(attendanceCell.textContent) || 0;
+     attendanceCell.textContent = currentAttendance - 1;
+   }
+ });
 
 // Function to apply the lunch period filter
 function applyLunchFilter(selectedLunch) {
