@@ -409,34 +409,31 @@ route.use('/attendance', require('../../routes/attendance'));
 // API endpoint to get tutor attendance data
 route.get('/api/tutor-attendance/:id', async (req, res) => {
   try {
-    const tutorID = req.params.id;
-
+    const tutorID = parseInt(req.params.id); // Convert string to number
+    
     // Find the tutor in the database
     const tutorData = await Tutor.findOne({ tutorID: tutorID });
-
+    
     if (!tutorData) {
       return res.status(404).json({ error: 'Tutor not found' });
     }
-
+    
     // Get tutor's sessions
-    const sessions = await Session.find({ tutorID: tutorID }).sort({
-      sessionDate: -1,
-    });
-
+    const sessions = await Session.find({ tutorID: tutorID.toString() })
+      .sort({ sessionDate: -1 });
+    
     const response = {
       name: `${tutorData.tutorFirstName} ${tutorData.tutorLastName}`,
-      daysMissed: tutorData.attendance
-        ? tutorData.attendance.filter(day => day === false).length
-        : 0,
+      daysMissed: tutorData.attendance || 0,
       sessionCount: sessions.length,
       sessions: sessions.map(session => ({
         date: session.sessionDate,
         subject: session.subject,
         student: `${session.tuteeFirstName} ${session.tuteeLastName}`,
-        duration: session.sessionPeriod,
-      })),
+        duration: session.sessionPeriod
+      }))
     };
-
+    
     res.json(response);
   } catch (error) {
     console.error('Error fetching tutor data:', error);
