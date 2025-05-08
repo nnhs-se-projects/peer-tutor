@@ -114,11 +114,11 @@ The code for the env file is in the Trello under database
 
 
 # Issues
-The attendance function does not work (no database structure and the buttons don’t update the values correctly)
-Request a tutor does not send a request (Students can fill out and submit the form but after it is submitted, the form doesn’t go anywhere)
-Authentication is not limited to district 203 members (people with non-school emails can log in and view the site)
-When submitting the session form an error message pops up saying the form didn’t submit correctly despite it going into the database perfectly ok. 
-Data types in schema do not always match with JSON files. The JSON files for grade and lunchPeriod are strings in “”, but in the schema, it is type int. There may be other JSON files that run into this issue. 
-Need to remove habitsOfMind.json in server>model & entry.js
-Ensure academic support teachers are as follows (Stephanie Moore, Angel Kalat, Christy Mathews)
-Clean/organize files
+* The attendance function does not work (no database structure and the buttons don’t update the values correctly)
+* Request a tutor does not send a request (Students can fill out and submit the form but after it is submitted, the form doesn’t go anywhere)
+* Authentication is not limited to district 203 members (people with non-school emails can log in and view the site)
+* When submitting the session form an error message pops up saying the form didn’t submit correctly despite it going into the database perfectly ok. 
+* Data types in schema do not always match with JSON files. The JSON files for grade and lunchPeriod are strings in “”, but in the schema, it is type int. There may be other JSON files that run into this issue. 
+* Need to remove habitsOfMind.json in server>model & entry.js
+* Ensure academic support teachers are as follows (Stephanie Moore, Angel Kalat, Christy Mathews)
+* Clean/organize files
