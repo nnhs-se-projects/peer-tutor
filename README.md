@@ -66,7 +66,7 @@ The code for the env file is in the Trello under database
 * [Session history]  array (session objects)
 
 **Teacher**
-Email - email
+* Email - email
 * Teacher first name - string
 * Teacher last name - string
 * Admin - boolean If the teacher can access admin page
