@@ -14,7 +14,7 @@ Used Tailwind CSS (lets you write CSS in your HTML in the form of predefined cla
 
 
 # How to Run it
-* For running locally, search for 8082 in router.js and auth.js files and change to 8080 (8082 used for running live server)
+* For running locally, search for 8082 in router.js and auth.js files and change to 8080 (8082 is used for running live server)
 
 # Expected Result
 * You will be asked to log in using google and then will reach the landing homepage. The session and tutor database tables should display the data from the database if correctly connected.
@@ -105,20 +105,22 @@ The code for the env file is in the Trello under database
 
 # User stories
 
-* As an admin, I want to see the schedule formed by student expertise form so that I can view the schedule
+* As an admin, I want to see the schedule formed by the student expertise form so that I can view the schedule
 * As an admin, I want to be able to have the information from the tutor session form organized for me in the desired format
-* As an admin, I want to be able to see the tutors ranked by tutor session so I can see who is nearing 100 sessions and compare tutors and their sessions. 
-* As an admin, I want an automated notification/email/message sent to tutors that have missed 1-2 sessions (have outstanding absences) So that I don't have to send them manually
+* As an admin, I want to see the tutors ranked by tutor session so I can see who is nearing 100 sessions and compare tutors and their sessions. 
+* As an admin, I want an automated notification/email/message sent to tutors who have missed 1-2 sessions (have outstanding absences) so that I don't have to send them manually
 * As an admin, I want to remove tutors so that after a semester has concluded, I can remove tutors who are no longer continuing. 
-* As an admin, I want to add tutors to add certain tutors at the beginning of the semester.
+* As an admin, I want to add certain tutors at the beginning of the semester.
+* As a tutor leader, I want to be able to take attendance for the tutors that come in each period/day and have it keep track of their attendance, letting me know how many days they've been absent
+* As a student/tutee I want to be able to see which subjects are being tutored on a given day and lunch period (updated daily)
 
 
 # Issues
-* The attendance function does not work (no database structure and the buttons don’t update the values correctly)
-* Request a tutor does not send a request (Students can fill out and submit the form but after it is submitted, the form doesn’t go anywhere)
+* The attendance function does not work (no database structure, and the buttons don’t update the values correctly)
+* Request a tutor does not send a request (Students can fill out and submit the form, but after it is submitted, the form doesn’t go anywhere)
 * Authentication is not limited to district 203 members (people with non-school emails can log in and view the site)
-* When submitting the session form an error message pops up saying the form didn’t submit correctly despite it going into the database perfectly ok. 
-* Data types in schema do not always match with JSON files. The JSON files for grade and lunchPeriod are strings in “”, but in the schema, it is type int. There may be other JSON files that run into this issue. 
+* When submitting the session form, an error message pops up saying the form didn’t submit correctly,y despite it going into the database perfectly ok. 
+* Data types in the schema do not always match with JSON files. The JSON files for grade and lunch period are strings in “”, but in the schema, it isof  type int. There may be other JSON files that run into this issue. 
 * Need to remove habitsOfMind.json in server>model & entry.js
 * Ensure academic support teachers are as follows (Stephanie Moore, Angel Kalat, Christy Mathews)
 * Clean/organize files
