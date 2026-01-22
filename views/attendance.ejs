@@ -131,6 +131,31 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
+
+  .button-disabled {
+    background-color: #cccccc !important;
+    color: #666666 !important;
+    cursor: pointer !important;
+    opacity: 0.6;
+  }
+
+  .button-disabled:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    opacity: 0.8;
+  }
+
+  .button-selected {
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  /* Ensure makeup button keeps blue color on hover/focus/active */
+  .makeup-button:hover,
+  .makeup-button:focus,
+  .makeup-button:active {
+    background-color: #2196f3 !important;
+    color: white !important;
+  }
   
   .filter-controls {
     display: flex;

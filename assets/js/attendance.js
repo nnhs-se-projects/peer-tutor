@@ -68,15 +68,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Add event listeners to attendance buttons
   document.querySelectorAll('.absent-button').forEach(button => {
-    button.addEventListener('click', () => updateAttendance(button.dataset.id, -1, 'daysMissed'));
+    button.addEventListener('click', () => {
+      disableOtherButtons(button);
+      updateAttendance(button.dataset.id, -1, 'daysMissed');
+    });
   });
 
   document.querySelectorAll('.present-button').forEach(button => {
-    button.addEventListener('click', () => updateAttendance(button.dataset.id, 0, null));
+    button.addEventListener('click', () => {
+      disableOtherButtons(button);
+      updateAttendance(button.dataset.id, 0, null);
+    });
   });
 
   document.querySelectorAll('.makeup-button').forEach(button => {
-    button.addEventListener('click', () => updateAttendance(button.dataset.id, 1, null));
+    button.addEventListener('click', () => {
+      disableOtherButtons(button);
+      updateAttendance(button.dataset.id, 1, null);
+    });
   });
 
   // Animation for table rows on load
@@ -139,6 +148,38 @@ function updateSortIcons(column, isDescending) {
   icon.textContent = isDescending ? '↓' : '↑';
 }
 
+// Function to toggle attendance buttons in the same row
+function disableOtherButtons(clickedButton) {
+  // Find the parent row
+  const row = clickedButton.closest('tr');
+  if (!row) return;
+
+  // Get all buttons in this row
+  const buttons = row.querySelectorAll('.absent-button, .present-button, .makeup-button');
+
+  // Check if the clicked button is already selected
+  const isAlreadySelected = clickedButton.classList.contains('button-selected');
+
+  // If clicking the same button, deselect all
+  if (isAlreadySelected) {
+    buttons.forEach(button => {
+      button.classList.remove('button-disabled');
+      button.classList.remove('button-selected');
+    });
+  } else {
+    // Clicking a different button: select clicked one, grey out others (but keep clickable)
+    buttons.forEach(button => {
+      if (button !== clickedButton) {
+        button.classList.add('button-disabled');
+        button.classList.remove('button-selected');
+      } else {
+        button.classList.remove('button-disabled');
+        button.classList.add('button-selected');
+      }
+    });
+  }
+}
+
 // Function to update attendance
 async function updateAttendance(tutorId, change, columnToUpdate) {
   try {
@@ -168,3 +209,4 @@ async function updateAttendance(tutorId, change, columnToUpdate) {
     console.error('Error updating attendance:', error);
   }
 }
+
