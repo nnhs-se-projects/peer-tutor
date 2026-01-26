@@ -1,0 +1,59 @@
+<%- include('include/_header') %> <%- include('include/_homepageNavBar') %>
+
+<main class="container mx-auto px-4 py-12 flex-grow">
+  <div class="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-8">
+    <h1 class="text-3xl font-bold text-center text-gray-900 mb-6">
+      Send a Test Notification Email
+    </h1>
+    <p class="text-gray-700 mb-6">
+      This simple form triggers the new notification endpoint. Enter a recipient, subject, and
+      message, then press the button to send. We will wire it into real flows later.
+    </p>
+
+    <div class="space-y-4">
+      <label class="block">
+        <span class="text-sm font-semibold text-gray-800">Recipient email</span>
+        <input
+          id="notification-to"
+          type="email"
+          value="<%= userEmail %>"
+          placeholder="student@example.com"
+          class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </label>
+
+      <label class="block">
+        <span class="text-sm font-semibold text-gray-800">Subject</span>
+        <input
+          id="notification-subject"
+          type="text"
+          value="Peer Tutoring Notification"
+          class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </label>
+
+      <label class="block">
+        <span class="text-sm font-semibold text-gray-800">Message</span>
+        <textarea
+          id="notification-message"
+          rows="5"
+          class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+Hello! This is a test notification from the peer tutoring app.</textarea
+        >
+      </label>
+
+      <button
+        id="send-notification"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition-colors"
+      >
+        Send Email
+      </button>
+
+      <div id="notification-status" class="text-sm"></div>
+    </div>
+  </div>
+</main>
+
+<script src="/js/notifications.js"></script>
+<%- include('include/_end') %>

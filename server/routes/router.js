@@ -3,6 +3,7 @@ const route = express.Router();
 const Entry = require('../model/entry');
 const Session = require('../model/session'); // Import the Session schema
 const Tutor = require('../model/tutor'); // Import the Tutor schema
+const nodemailer = require('nodemailer');
 
 // assigning variable to the JSON file
 const gradeSelection = require('../model/grades.json');
@@ -198,6 +199,13 @@ route.get('/teachHome', async (req, res) => {
 // route to admin home page
 route.get('/adminHome', async (req, res) => {
   res.render('adminHome');
+});
+
+// route to a simple notification test page
+route.get('/notifications', (req, res) => {
+  res.render('notifications', {
+    userEmail: req.session.email || '',
+  });
 });
 
 // route to expertise form page
@@ -410,18 +418,17 @@ route.use('/attendance', require('../../routes/attendance'));
 route.get('/api/tutor-attendance/:id', async (req, res) => {
   try {
     const tutorID = parseInt(req.params.id); // Convert string to number
-    
+
     // Find the tutor in the database
     const tutorData = await Tutor.findOne({ tutorID: tutorID });
-    
+
     if (!tutorData) {
       return res.status(404).json({ error: 'Tutor not found' });
     }
-    
+
     // Get tutor's sessions
-    const sessions = await Session.find({ tutorID: tutorID.toString() })
-      .sort({ sessionDate: -1 });
-    
+    const sessions = await Session.find({ tutorID: tutorID.toString() }).sort({ sessionDate: -1 });
+
     const response = {
       name: `${tutorData.tutorFirstName} ${tutorData.tutorLastName}`,
       daysMissed: tutorData.attendance || 0,
@@ -430,10 +437,10 @@ route.get('/api/tutor-attendance/:id', async (req, res) => {
         date: session.sessionDate,
         subject: session.subject,
         student: `${session.tuteeFirstName} ${session.tuteeLastName}`,
-        duration: session.sessionPeriod
-      }))
+        duration: session.sessionPeriod,
+      })),
     };
-    
+
     res.json(response);
   } catch (error) {
     console.error('Error fetching tutor data:', error);
@@ -444,6 +451,49 @@ route.get('/api/tutor-attendance/:id', async (req, res) => {
 // API endpoint to get courses for subject/class dropdowns
 route.get('/api/courses', (req, res) => {
   res.json(courses);
+});
+
+// API endpoint to send a notification email
+route.post('/api/notifications/send', async (req, res) => {
+  const { to, subject, message } = req.body;
+
+  if (!to || !subject || !message) {
+    return res.status(400).json({ success: false, error: 'Missing to, subject, or message' });
+  }
+
+  const senderEmail = process.env.EMAIL_SENDER;
+  const senderPassword = process.env.EMAIL_PASSWORD;
+
+  if (!senderEmail || !senderPassword) {
+    return res
+      .status(500)
+      .json({
+        success: false,
+        error: 'Email credentials not configured. Set EMAIL_SENDER and EMAIL_PASSWORD.',
+      });
+  }
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: senderEmail,
+      pass: senderPassword,
+    },
+  });
+
+  try {
+    await transporter.sendMail({
+      from: senderEmail,
+      to,
+      subject,
+      text: message,
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error sending notification email:', error);
+    res.status(500).json({ success: false, error: 'Failed to send email' });
+  }
 });
 
 module.exports = route;
