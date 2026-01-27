@@ -60,4 +60,11 @@ router.post('/updateAttendance', async (req, res) => {
   }
 });
 
+// Log attendance payload for a lunch period (debug endpoint)
+router.post('/logSubmission', (req, res) => {
+  console.log('Received attendance submission payload:', req.body);
+  res.json({ success: true });
+});
+
 module.exports = router;
+

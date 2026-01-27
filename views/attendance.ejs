@@ -285,7 +285,6 @@
       <div class="filter-section">
         <label for="lunchFilter" class="mr-2">Lunch Period:</label>
         <select id="lunchFilter" class="filter-dropdown">
-          <option value="all">All Periods</option>
           <option value="4">Period 4</option>
           <option value="5">Period 5</option>
           <option value="6">Period 6</option>
@@ -326,7 +325,15 @@
         <tbody>
           <% if (tutors && tutors.length > 0) { %>
             <% tutors.forEach(tutor => { %>
-            <tr data-lunch="<%= tutor.lunchPeriod %>" data-days="<%= tutor.daysAvailable ? tutor.daysAvailable.join(',') : '' %>" class="tutor-row">
+            <tr
+              data-lunch="<%= tutor.lunchPeriod %>"
+              data-days="<%= tutor.daysAvailable ? tutor.daysAvailable.join(',') : '' %>"
+              data-tutor-id="<%= tutor.tutorID %>"
+              data-email="<%= tutor.email %>"
+              data-first-name="<%= tutor.tutorFirstName || tutor.firstName || '' %>"
+              data-last-name="<%= tutor.tutorLastName || tutor.lastName || '' %>"
+              class="tutor-row"
+            >
               <td><%= tutor.tutorFirstName || tutor.firstName || 'Unknown' %></td>
               <td><%= tutor.tutorLastName || tutor.lastName || 'Unknown' %></td>
               <td id="daysMissed-<%= tutor._id %>"><%= tutor.attendance || 0 %></td>
@@ -374,7 +381,7 @@
           const lunchPeriod = row.getAttribute('data-lunch');
           console.log('Tutor row lunch period:', lunchPeriod);
           
-          if (this.value === 'all' || lunchPeriod === this.value) {
+          if (lunchPeriod === this.value) {
             row.style.display = '';
             console.log('Showing row with lunch period:', lunchPeriod);
           } else {
@@ -393,7 +400,6 @@
   });
 </script>
 
-  <!-- Submit button container (placed above the footer) -->
   <div class="container mx-auto px-4" style="max-width: 1400px;">
     <div class="submit-attendance-container">
       <button id="attendanceSubmitBtn" class="submit-attendance-button">Submit</button>
@@ -446,8 +452,18 @@
 
         if (ok) {
           ok.addEventListener('click', function () {
-            // proceed with redirect
-            window.location.href = '/leadHome';
+            if (window.buildAttendancePayload) {
+              const payload = window.buildAttendancePayload();
+              if (!payload) {
+                console.warn('No attendance payload generated. Ensure a lunch is selected and all tutors are marked.');
+              } else {
+                if (window.sendAttendancePayload) {
+                  window.sendAttendancePayload(payload);
+                }
+                console.log('Attendance submission payload:', payload);
+              }
+            }
+            hideModal();
           });
         }
 

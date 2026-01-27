@@ -410,18 +410,17 @@ route.use('/attendance', require('../../routes/attendance'));
 route.get('/api/tutor-attendance/:id', async (req, res) => {
   try {
     const tutorID = parseInt(req.params.id); // Convert string to number
-    
+
     // Find the tutor in the database
     const tutorData = await Tutor.findOne({ tutorID: tutorID });
-    
+
     if (!tutorData) {
       return res.status(404).json({ error: 'Tutor not found' });
     }
-    
+
     // Get tutor's sessions
-    const sessions = await Session.find({ tutorID: tutorID.toString() })
-      .sort({ sessionDate: -1 });
-    
+    const sessions = await Session.find({ tutorID: tutorID.toString() }).sort({ sessionDate: -1 });
+
     const response = {
       name: `${tutorData.tutorFirstName} ${tutorData.tutorLastName}`,
       daysMissed: tutorData.attendance || 0,
@@ -430,10 +429,10 @@ route.get('/api/tutor-attendance/:id', async (req, res) => {
         date: session.sessionDate,
         subject: session.subject,
         student: `${session.tuteeFirstName} ${session.tuteeLastName}`,
-        duration: session.sessionPeriod
-      }))
+        duration: session.sessionPeriod,
+      })),
     };
-    
+
     res.json(response);
   } catch (error) {
     console.error('Error fetching tutor data:', error);
@@ -447,3 +446,4 @@ route.get('/api/courses', (req, res) => {
 });
 
 module.exports = route;
+
