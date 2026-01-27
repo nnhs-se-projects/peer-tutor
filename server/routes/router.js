@@ -307,6 +307,7 @@ route.get('/tutorTable', async (req, res) => {
     const tutorsFormatted = tutors.map(tutor => {
       return {
         tutorName: `${tutor.tutorFirstName} ${tutor.tutorLastName}`,
+        email: tutor.email,
         date: tutor.date,
         grade: tutor.grade,
         tutorID: tutor.tutorID,
@@ -465,12 +466,10 @@ route.post('/api/notifications/send', async (req, res) => {
   const senderPassword = process.env.EMAIL_PASSWORD;
 
   if (!senderEmail || !senderPassword) {
-    return res
-      .status(500)
-      .json({
-        success: false,
-        error: 'Email credentials not configured. Set EMAIL_SENDER and EMAIL_PASSWORD.',
-      });
+    return res.status(500).json({
+      success: false,
+      error: 'Email credentials not configured. Set EMAIL_SENDER and EMAIL_PASSWORD.',
+    });
   }
 
   const transporter = nodemailer.createTransport({

@@ -176,7 +176,7 @@
       <table id="tutorTable" class="bordered-table">
         <thead>
           <tr>
-            <% const headers = ['Tutor Name', 'Tutor Grade', 'Tutor ID',
+            <% const headers = ['Tutor Name', 'Tutor Grade', 'Tutor ID', 'Email',
             'Classes', 'Days', 'Lunch', 'Total Sessions']; %> <%
             headers.forEach((header, index) => { %>
             <th>
@@ -212,6 +212,7 @@
             <td><%= tutor.tutorName %></td>
             <td><%= tutor.grade %></td>
             <td><%= tutor.tutorID %></td>
+            <td><%= tutor.email %></td>
             <td><%= tutor.classes.join(', ') %></td>
             <td>
               <%= tutor.daysAvailable ? tutor.daysAvailable.join(', ') : '' %>
