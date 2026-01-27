@@ -276,23 +276,55 @@ route.post('/submitTutorForm', async (req, res) => {
 // Route to handle expertise form submission
 route.post('/submitExpertiseForm', async (req, res) => {
   try {
-    console.log(req.body);
+    const {
+      tutorFirstName,
+      tutorLastName,
+      tutorID,
+      email,
+      grade,
+      returning,
+      lunchPeriod,
+      daysAvailable,
+      classes,
+      tutorLeader,
+      attendance,
+    } = req.body;
+
+    // If a tutor with this ID exists, update instead of creating a duplicate
+    const existingTutor = await Tutor.findOne({ tutorID });
+
+    if (existingTutor) {
+      existingTutor.tutorFirstName = tutorFirstName;
+      existingTutor.tutorLastName = tutorLastName;
+      existingTutor.email = email;
+      existingTutor.grade = grade;
+      existingTutor.returning = returning;
+      existingTutor.lunchPeriod = lunchPeriod;
+      existingTutor.daysAvailable = daysAvailable;
+      existingTutor.classes = classes;
+      existingTutor.tutorLeader = tutorLeader;
+      existingTutor.attendance = attendance;
+
+      await existingTutor.save();
+      return res.json({ success: true, updated: true });
+    }
+
     const newTutor = new Tutor({
-      tutorFirstName: req.body.tutorFirstName,
-      tutorLastName: req.body.tutorLastName,
-      tutorID: req.body.tutorID,
-      email: req.body.email,
-      grade: req.body.grade,
-      returning: req.body.returning,
-      lunchPeriod: req.body.lunchPeriod,
-      daysAvailable: req.body.daysAvailable,
-      classes: req.body.classes,
-      tutorLeader: req.body.tutorLeader,
-      attendance: req.body.attendance,
-      sessionHistory: req.body.sessionHistory,
+      tutorFirstName,
+      tutorLastName,
+      tutorID,
+      email,
+      grade,
+      returning,
+      lunchPeriod,
+      daysAvailable,
+      classes,
+      tutorLeader,
+      attendance,
+      sessionHistory: [],
     });
     await newTutor.save();
-    res.json({ success: true });
+    res.json({ success: true, created: true });
   } catch (error) {
     console.error('Error saving expertise sheet:', error);
     res.status(500).json({ success: false, error: 'Failed to save expertise sheet' });
