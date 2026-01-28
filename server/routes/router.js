@@ -445,5 +445,9 @@ route.get('/api/courses', (req, res) => {
   res.json(courses);
 });
 
+route.get('/adminAttendance', (req, res) => {
+  res.render('adminAttendance');
+});
+
 module.exports = route;
 
