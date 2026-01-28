@@ -296,19 +296,19 @@
       <table id="studentTable" class="bordered-table">
         <thead>
           <tr>
-            <% const headers = ['First Name', 'Last Name', 'Days Missed', 'Lunch Period', 'Days Available', 'Attendance']; %> 
+            <% const headers = ['First Name', 'Last Name', 'Days Missed', 'Days Available', 'Attendance']; %> 
             <% headers.forEach((header, index) => { %>
-            <th>
+            <th<%= header === 'Attendance' ? ' style="min-width: 200px;"' : '' %>>
               <div class="header-container">
                 <span class="header-text" id="headerText<%= index %>"><%= header %></span>
-                <% if (index < 5) { %>
+                <% if (index < 4) { %>
                 <div class="icons" style="display: flex; gap: 5px">
                   <span class="sort-icon" id="sortIcon<%= index %>" data-index="<%= index %>">↑↓</span>
                   <span class="search-icon" data-index="<%= index %>">🔍</span>
                 </div>
                 <% } %>
               </div>
-              <% if (index < 5) { %>
+              <% if (index < 4) { %>
               <input
                 type="text"
                 class="search-input"
@@ -337,9 +337,8 @@
               <td><%= tutor.tutorFirstName || tutor.firstName || 'Unknown' %></td>
               <td><%= tutor.tutorLastName || tutor.lastName || 'Unknown' %></td>
               <td id="daysMissed-<%= tutor._id %>"><%= tutor.attendance || 0 %></td>
-              <td class="lunch-period-cell"><%= tutor.lunchPeriod %></td>
               <td><%= tutor.daysAvailable ? tutor.daysAvailable.join(', ') : '' %></td>
-              <td>
+              <td style="min-width: 200px;">
                 <button class="absent-button" data-id="<%= tutor._id %>" data-action="absent">A</button>
                 <button class="present-button" data-id="<%= tutor._id %>" data-action="present">P</button>
                 <button class="makeup-button" data-id="<%= tutor._id %>" data-action="makeup">M</button>
@@ -348,7 +347,7 @@
             <% }) %>
           <% } else { %>
             <tr>
-              <td colspan="6" class="text-center py-4">No tutors found</td>
+              <td colspan="5" class="text-center py-4">No tutors found</td>
             </tr>
           <% } %>
         </tbody>
@@ -368,28 +367,35 @@
     const lunchFilter = document.getElementById('lunchFilter');
     console.log('Lunch filter element:', lunchFilter);
     
+    // Function to filter rows by lunch period
+    function filterByLunchPeriod(selectedPeriod) {
+      const rows = document.querySelectorAll('.tutor-row');
+      console.log('Filtering by lunch period:', selectedPeriod);
+      console.log('Found tutor rows:', rows.length);
+      
+      rows.forEach(row => {
+        const lunchPeriod = row.getAttribute('data-lunch');
+        console.log('Tutor row lunch period:', lunchPeriod);
+        
+        if (lunchPeriod === selectedPeriod) {
+          row.style.display = '';
+          console.log('Showing row with lunch period:', lunchPeriod);
+        } else {
+          row.style.display = 'none';
+          console.log('Hiding row with lunch period:', lunchPeriod);
+        }
+      });
+    }
+    
     if (lunchFilter) {
-      // Add a direct event listener here for debugging
+      // Add event listener for changes
       lunchFilter.addEventListener('change', function() {
         console.log('Lunch filter changed to:', this.value);
-        
-        // Log all tutor rows and their lunch periods
-        const rows = document.querySelectorAll('.tutor-row');
-        console.log('Found tutor rows:', rows.length);
-        
-        rows.forEach(row => {
-          const lunchPeriod = row.getAttribute('data-lunch');
-          console.log('Tutor row lunch period:', lunchPeriod);
-          
-          if (lunchPeriod === this.value) {
-            row.style.display = '';
-            console.log('Showing row with lunch period:', lunchPeriod);
-          } else {
-            row.style.display = 'none';
-            console.log('Hiding row with lunch period:', lunchPeriod);
-          }
-        });
+        filterByLunchPeriod(this.value);
       });
+      
+      // Apply initial filter on page load (default is period 4)
+      filterByLunchPeriod(lunchFilter.value);
       
       // Log all initial lunch periods
       const rows = document.querySelectorAll('.tutor-row');
@@ -464,6 +470,7 @@
               }
             }
             hideModal();
+            window.location.href = '/leadHome?fromAttendance=true';
           });
         }
 
