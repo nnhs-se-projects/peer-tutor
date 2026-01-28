@@ -486,12 +486,39 @@ route.get('/api/courses', (req, res) => {
   res.json(courses);
 });
 
-// API endpoint to send a notification email
+// API endpoint to list tutor names and emails for notifications
+route.get('/api/tutor-emails', async (req, res) => {
+  try {
+    const tutors = await Tutor.find({ email: { $exists: true, $ne: '' } })
+      .select('tutorFirstName tutorLastName email lunchPeriod classes')
+      .sort({ tutorLastName: 1, tutorFirstName: 1 });
+
+    const results = tutors.map(tutor => ({
+      name: `${tutor.tutorFirstName || 'Unknown'} ${tutor.tutorLastName || 'Tutor'}`.trim(),
+      email: tutor.email,
+      lunchPeriod: tutor.lunchPeriod,
+      classes: Array.isArray(tutor.classes) ? tutor.classes : [],
+    }));
+
+    res.json({ success: true, tutors: results });
+  } catch (error) {
+    console.error('Error fetching tutor emails:', error);
+    res.status(500).json({ success: false, error: 'Failed to load tutor emails' });
+  }
+});
+
+// API endpoint to send a notification email (supports one or many recipients)
 route.post('/api/notifications/send', async (req, res) => {
   const { to, subject, message } = req.body;
 
-  if (!to || !subject || !message) {
-    return res.status(400).json({ success: false, error: 'Missing to, subject, or message' });
+  const recipientList = Array.isArray(to)
+    ? to.map(addr => (typeof addr === 'string' ? addr.trim() : '')).filter(Boolean)
+    : (typeof to === 'string' ? [to.trim()] : []).filter(Boolean);
+
+  if (!recipientList.length || !subject || !message) {
+    return res
+      .status(400)
+      .json({ success: false, error: 'Missing recipients, subject, or message' });
   }
 
   const senderEmail = process.env.EMAIL_SENDER;
@@ -515,7 +542,7 @@ route.post('/api/notifications/send', async (req, res) => {
   try {
     await transporter.sendMail({
       from: senderEmail,
-      to,
+      to: recipientList,
       subject,
       text: message,
     });

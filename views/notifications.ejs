@@ -11,15 +11,42 @@
     </p>
 
     <div class="space-y-4">
-      <label class="block">
-        <span class="text-sm font-semibold text-gray-800">Recipient email</span>
-        <input
+      <label class="block space-y-3">
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="text-sm font-semibold text-gray-800">Recipients (tutors)</span>
+          <input
+            id="notification-search"
+            type="text"
+            placeholder="Search by name"
+            class="w-48 rounded border border-gray-300 px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <input
+            id="notification-class"
+            type="text"
+            placeholder="Filter by class (e.g., Calculus BC)"
+            class="flex-1 min-w-[240px] rounded border border-gray-300 px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <select
+            id="notification-period"
+            class="w-32 rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Any period</option>
+            <option value="4">Period 4</option>
+            <option value="5">Period 5</option>
+            <option value="6">Period 6</option>
+          </select>
+        </div>
+        <select
           id="notification-to"
-          type="email"
-          value="<%= userEmail %>"
-          placeholder="student@example.com"
-          class="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+          size="10"
+          multiple
+          class="w-full rounded border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 overflow-y-auto"
+        >
+          <option value="" disabled selected>Loading tutor list...</option>
+        </select>
+        <p class="text-xs text-gray-500">
+          Use search/filters, then select one or more tutors (Ctrl/Cmd+Click).
+        </p>
       </label>
 
       <label class="block">
