@@ -338,6 +338,9 @@ route.get('/tutorTable', async (req, res) => {
     // Convert MongoDB objects to objects formatted for the EJS template
     const tutorsFormatted = tutors.map(tutor => {
       return {
+        id: tutor._id.toString(),
+        firstName: tutor.tutorFirstName,
+        lastName: tutor.tutorLastName,
         tutorName: `${tutor.tutorFirstName} ${tutor.tutorLastName}`,
         email: tutor.email,
         date: tutor.date,
@@ -346,6 +349,9 @@ route.get('/tutorTable', async (req, res) => {
         classes: Array.isArray(tutor.classes) ? tutor.classes : [],
         daysAvailable: Array.isArray(tutor.daysAvailable) ? tutor.daysAvailable : [],
         lunchPeriod: tutor.lunchPeriod,
+        returning: tutor.returning,
+        tutorLeader: tutor.tutorLeader,
+        attendance: tutor.attendance,
         totalSessions: tutor.sessionHistory.length,
       };
     });
@@ -484,6 +490,78 @@ route.get('/api/tutor-attendance/:id', async (req, res) => {
 // API endpoint to get courses for subject/class dropdowns
 route.get('/api/courses', (req, res) => {
   res.json(courses);
+});
+
+// API endpoint to delete a tutor by id
+route.post('/api/tutors/delete', async (req, res) => {
+  const { id } = req.body;
+
+  if (!id) {
+    return res.status(400).json({ success: false, error: 'Missing tutor id' });
+  }
+
+  try {
+    const deleted = await Tutor.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, error: 'Tutor not found' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting tutor:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete tutor' });
+  }
+});
+
+// API endpoint to update a tutor by id
+route.post('/api/tutors/update', async (req, res) => {
+  const {
+    id,
+    tutorFirstName,
+    tutorLastName,
+    tutorID,
+    email,
+    grade,
+    returning,
+    lunchPeriod,
+    daysAvailable,
+    classes,
+    tutorLeader,
+    attendance,
+  } = req.body;
+
+  if (!id || !tutorFirstName || !tutorLastName || !tutorID || !email || grade === undefined) {
+    return res.status(400).json({ success: false, error: 'Missing required tutor fields' });
+  }
+
+  try {
+    const updated = await Tutor.findByIdAndUpdate(
+      id,
+      {
+        tutorFirstName,
+        tutorLastName,
+        tutorID,
+        email,
+        grade,
+        returning,
+        lunchPeriod,
+        daysAvailable: Array.isArray(daysAvailable) ? daysAvailable : [],
+        classes: Array.isArray(classes) ? classes : [],
+        tutorLeader,
+        attendance,
+      },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ success: false, error: 'Tutor not found' });
+    }
+
+    res.json({ success: true, tutor: updated });
+  } catch (error) {
+    console.error('Error updating tutor:', error);
+    res.status(500).json({ success: false, error: 'Failed to update tutor' });
+  }
 });
 
 // API endpoint to list tutor names and emails for notifications
