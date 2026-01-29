@@ -287,7 +287,7 @@ function buildAttendancePayload() {
   });
 
   return {
-    date: new Date().toISOString(),
+    date: new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }),
     lunchPeriod: Number(selectedLunch),
     tutors,
   };

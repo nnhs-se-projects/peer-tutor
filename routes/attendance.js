@@ -109,12 +109,9 @@ router.get('/getAttendance', async (req, res) => {
       });
     }
 
-    // Create date range for the entire day (to match any time on that date)
-    const startOfDay = new Date(date);
-    startOfDay.setUTCHours(0, 0, 0, 0);
-
-    const endOfDay = new Date(date);
-    endOfDay.setUTCHours(23, 59, 59, 999);
+    // Create date range for the entire day (Central Standard Time)
+    const startOfDay = new Date(date + 'T00:00:00-06:00');
+    const endOfDay = new Date(date + 'T23:59:59-06:00');
 
     // Find attendance record for the given date range and lunch period
     const attendanceRecord = await Attendance.findOne({

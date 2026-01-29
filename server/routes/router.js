@@ -325,7 +325,7 @@ route.get('/sessionTable', async (req, res) => {
       return {
         date: session.sessionDate
           ? new Date(session.sessionDate).toLocaleDateString('en-US', {
-              timeZone: 'UTC',
+              timeZone: 'America/Chicago',
             })
           : null,
         tuteeName: `${session.tuteeFirstName} ${session.tuteeLastName}`,

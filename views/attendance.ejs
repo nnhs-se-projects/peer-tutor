@@ -103,13 +103,14 @@
   }
   
   .absent-button, .present-button, .makeup-button {
-    padding: 8px 12px;
-    margin: 0 5px;
+    padding: 10px 16px;
+    margin: 0 8px;
     border-radius: 6px;
     border: none;
     cursor: pointer;
     font-weight: bold;
     transition: all 0.2s;
+    font-size: 1rem;
   }
   
   .absent-button {
@@ -298,7 +299,7 @@
           <tr>
             <% const headers = ['First Name', 'Last Name', 'Days Missed', 'Days Available', 'Attendance']; %> 
             <% headers.forEach((header, index) => { %>
-            <th<%= header === 'Attendance' ? ' style="min-width: 200px;"' : '' %>>
+            <th<%= header === 'Attendance' ? ' style="min-width: 280px;"' : '' %>>
               <div class="header-container">
                 <span class="header-text" id="headerText<%= index %>"><%= header %></span>
                 <% if (index < 4) { %>
@@ -338,7 +339,7 @@
               <td><%= tutor.tutorLastName || tutor.lastName || 'Unknown' %></td>
               <td id="daysMissed-<%= tutor._id %>"><%= tutor.attendance || 0 %></td>
               <td><%= tutor.daysAvailable ? tutor.daysAvailable.join(', ') : '' %></td>
-              <td style="min-width: 200px;">
+              <td style="min-width: 280px;">
                 <button class="absent-button" data-id="<%= tutor._id %>" data-action="absent">A</button>
                 <button class="present-button" data-id="<%= tutor._id %>" data-action="present">P</button>
                 <button class="makeup-button" data-id="<%= tutor._id %>" data-action="makeup">M</button>

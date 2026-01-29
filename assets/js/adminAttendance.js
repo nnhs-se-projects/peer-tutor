@@ -6,8 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const dateInput = document.getElementById('attendanceDate');
   const lunchPeriodSelect = document.getElementById('lunchPeriod');
 
-  // Set default date to today
-  const today = new Date().toISOString().split('T')[0];
+  // Set default date to today (Central Standard Time)
+  const now = new Date();
+  const today = now.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
   dateInput.value = today;
 
   searchButton.addEventListener('click', async () => {
