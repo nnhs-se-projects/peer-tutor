@@ -137,5 +137,125 @@ router.get('/getAttendance', async (req, res) => {
   }
 });
 
+// Update attendance status for a tutor in an existing attendance record
+router.post('/updateTutorStatus', async (req, res) => {
+  try {
+    const { attendanceId, tutorId, newStatus } = req.body;
+
+    // Validate required fields
+    if (!attendanceId || tutorId === undefined || !newStatus) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: attendanceId, tutorId, or newStatus',
+      });
+    }
+
+    // Validate status value
+    const validStatuses = ['present', 'absent', 'makeup'];
+    if (!validStatuses.includes(newStatus)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid status. Must be one of: present, absent, makeup',
+      });
+    }
+
+    // Find and update the specific tutor's status in the attendance record
+    const updatedRecord = await Attendance.findOneAndUpdate(
+      {
+        _id: attendanceId,
+        'tutors.tutorId': tutorId,
+      },
+      {
+        $set: { 'tutors.$.status': newStatus },
+      },
+      { new: true }
+    );
+
+    if (!updatedRecord) {
+      return res.status(404).json({
+        success: false,
+        error: 'Attendance record or tutor not found',
+      });
+    }
+
+    console.log(`Updated tutor ${tutorId} status to ${newStatus} in attendance ${attendanceId}`);
+    res.json({ success: true, data: updatedRecord });
+  } catch (error) {
+    console.error('Error updating tutor status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error updating tutor status',
+    });
+  }
+});
+
+// Bulk update attendance statuses for multiple tutors
+router.post('/bulkUpdateStatus', async (req, res) => {
+  try {
+    const { attendanceId, updates } = req.body;
+
+    // Validate required fields
+    if (!attendanceId || !updates || !Array.isArray(updates)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: attendanceId or updates array',
+      });
+    }
+
+    // Validate all status values
+    const validStatuses = ['present', 'absent', 'makeup'];
+    for (const update of updates) {
+      if (!validStatuses.includes(update.newStatus)) {
+        return res.status(400).json({
+          success: false,
+          error: `Invalid status "${update.newStatus}". Must be one of: present, absent, makeup`,
+        });
+      }
+    }
+
+    // Update each tutor's status using MongoDB _id for matching
+    // The frontend now sends the subdocument _id as tutorId
+    let updatedCount = 0;
+    for (const update of updates) {
+      console.log(
+        `Attempting to update tutor _id: ${update.tutorId} to status: ${update.newStatus}`
+      );
+
+      // Use findOneAndUpdate with the subdocument _id
+      const result = await Attendance.findOneAndUpdate(
+        {
+          _id: attendanceId,
+          'tutors._id': update.tutorId,
+        },
+        {
+          $set: { 'tutors.$.status': update.newStatus },
+        },
+        { new: true }
+      );
+
+      if (result) {
+        updatedCount++;
+        console.log(`Updated tutor ${update.tutorId} to status ${update.newStatus}`);
+      } else {
+        console.log(`Tutor ${update.tutorId} not found in attendance record ${attendanceId}`);
+      }
+    }
+
+    // Fetch the final updated record to return
+    const updatedRecord = await Attendance.findById(attendanceId);
+
+    console.log(
+      `Bulk updated ${updatedCount}/${updates.length} tutor statuses in attendance ${attendanceId}`
+    );
+    res.json({ success: true, data: updatedRecord, updatedCount });
+  } catch (error) {
+    console.error('Error bulk updating tutor statuses:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error bulk updating tutor statuses',
+    });
+  }
+});
+
 module.exports = router;
 
