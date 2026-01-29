@@ -68,16 +68,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Add event listeners to attendance buttons
   document.querySelectorAll('.absent-button').forEach(button => {
-    button.addEventListener('click', () => updateAttendance(button.dataset.id, -1, 'daysMissed'));
+    button.addEventListener('click', () => {
+      disableOtherButtons(button);
+      updateAttendance(button.dataset.id, -1, 'daysMissed');
+    });
   });
 
   document.querySelectorAll('.present-button').forEach(button => {
-    button.addEventListener('click', () => updateAttendance(button.dataset.id, 0, null));
+    button.addEventListener('click', () => {
+      disableOtherButtons(button);
+      updateAttendance(button.dataset.id, 0, null);
+    });
   });
 
   document.querySelectorAll('.makeup-button').forEach(button => {
-    button.addEventListener('click', () => updateAttendance(button.dataset.id, 1, null));
+    button.addEventListener('click', () => {
+      disableOtherButtons(button);
+      updateAttendance(button.dataset.id, 1, null);
+    });
   });
+
+  // Re-evaluate submit availability when lunch period selection changes
+  const lunchFilter = document.getElementById('lunchFilter');
+  if (lunchFilter) {
+    lunchFilter.addEventListener('change', updateSubmitState);
+  }
+
+  // Initialize submit button state based on whether every row has a selection
+  updateSubmitState();
 
   // Animation for table rows on load
   const rows = document.querySelectorAll('#studentTable tbody tr');
@@ -139,6 +157,44 @@ function updateSortIcons(column, isDescending) {
   icon.textContent = isDescending ? '↓' : '↑';
 }
 
+// Function to toggle attendance buttons in the same row
+function disableOtherButtons(clickedButton) {
+  // Find the parent row
+  const row = clickedButton.closest('tr');
+  if (!row) return;
+
+  // Get all buttons in this row
+  const buttons = row.querySelectorAll('.absent-button, .present-button, .makeup-button');
+
+  // Check if the clicked button is already selected
+  const isAlreadySelected = clickedButton.classList.contains('button-selected');
+
+  const status = clickedButton.dataset.action;
+
+  // If clicking the same button, deselect all
+  if (isAlreadySelected) {
+    buttons.forEach(button => {
+      button.classList.remove('button-disabled');
+      button.classList.remove('button-selected');
+    });
+    delete row.dataset.attendanceStatus;
+  } else {
+    // Clicking a different button: select clicked one, grey out others (but keep clickable)
+    buttons.forEach(button => {
+      if (button !== clickedButton) {
+        button.classList.add('button-disabled');
+        button.classList.remove('button-selected');
+      } else {
+        button.classList.remove('button-disabled');
+        button.classList.add('button-selected');
+      }
+    });
+    row.dataset.attendanceStatus = status;
+  }
+
+  updateSubmitState();
+}
+
 // Function to update attendance
 async function updateAttendance(tutorId, change, columnToUpdate) {
   try {
@@ -168,3 +224,92 @@ async function updateAttendance(tutorId, change, columnToUpdate) {
     console.error('Error updating attendance:', error);
   }
 }
+
+// Disable submit until every tutor row has a selected attendance status
+function updateSubmitState() {
+  const submitBtn = document.getElementById('attendanceSubmitBtn');
+  if (!submitBtn) return;
+
+  const rows = Array.from(document.querySelectorAll('.tutor-row'));
+  const lunchFilter = document.getElementById('lunchFilter');
+  let selectedLunch = lunchFilter ? lunchFilter.value : null;
+
+  if (!selectedLunch && rows.length > 0) {
+    selectedLunch = rows[0].getAttribute('data-lunch');
+  }
+
+  const isLunchComplete = lunchVal => {
+    const lunchRows = rows.filter(row => row.getAttribute('data-lunch') === lunchVal);
+    return lunchRows.length > 0 && lunchRows.every(row => row.dataset.attendanceStatus);
+  };
+
+  let canSubmit = false;
+
+  if (selectedLunch) {
+    canSubmit = isLunchComplete(selectedLunch);
+  }
+
+  if (canSubmit) {
+    submitBtn.disabled = false;
+    submitBtn.classList.remove('button-disabled');
+  } else {
+    submitBtn.disabled = true;
+    submitBtn.classList.add('button-disabled');
+  }
+}
+
+// Build an attendance payload for the currently selected lunch period
+function buildAttendancePayload() {
+  const lunchFilter = document.getElementById('lunchFilter');
+  const selectedLunch = lunchFilter ? lunchFilter.value : null;
+
+  if (!selectedLunch) return null;
+
+  const rows = Array.from(document.querySelectorAll('.tutor-row')).filter(
+    row => row.getAttribute('data-lunch') === selectedLunch && row.dataset.attendanceStatus
+  );
+
+  if (rows.length === 0) return null;
+
+  const tutors = rows.map(row => {
+    const tutorId = row.getAttribute('data-tutor-id');
+    const firstName = row.getAttribute('data-first-name') || '';
+    const lastName = row.getAttribute('data-last-name') || '';
+    const email = row.getAttribute('data-email') || '';
+
+    return {
+      tutorId: tutorId ? Number(tutorId) : undefined,
+      tutorFirstName: firstName,
+      tutorLastName: lastName,
+      email,
+      status: row.dataset.attendanceStatus,
+    };
+  });
+
+  return {
+    date: new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }),
+    lunchPeriod: Number(selectedLunch),
+    tutors,
+  };
+}
+
+// Expose payload builder for inline scripts
+window.buildAttendancePayload = buildAttendancePayload;
+
+async function sendAttendancePayload(payload) {
+  if (!payload) return;
+  try {
+    await fetch('/attendance/logSubmission', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.error('Failed to send attendance payload', err);
+  }
+}
+
+window.sendAttendancePayload = sendAttendancePayload;
+
