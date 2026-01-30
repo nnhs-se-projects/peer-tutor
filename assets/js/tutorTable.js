@@ -78,6 +78,38 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('exportBtn').addEventListener('click', function () {
     exportTableToTextFile();
   });
+
+  // Delete tutor buttons
+  document.querySelectorAll('.delete-tutor').forEach(btn => {
+    btn.addEventListener('click', async event => {
+      const row = event.target.closest('tr');
+      const tutorId = row?.dataset?.id;
+      const tutorName = row?.children?.[0]?.textContent || 'this tutor';
+
+      if (!tutorId) return;
+
+      const confirmDelete = window.confirm(`Delete ${tutorName}? This cannot be undone.`);
+      if (!confirmDelete) return;
+
+      try {
+        const res = await fetch('/api/tutors/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: tutorId }),
+        });
+
+        if (!res.ok) {
+          const errorBody = await res.json().catch(() => ({}));
+          throw new Error(errorBody.error || 'Failed to delete tutor');
+        }
+
+        row.remove();
+      } catch (error) {
+        console.error('Delete tutor error:', error);
+        alert('Error deleting tutor. Please try again.');
+      }
+    });
+  });
 });
 
 function filterTable(column) {

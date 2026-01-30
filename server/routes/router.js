@@ -3,6 +3,7 @@ const route = express.Router();
 const Entry = require('../model/entry');
 const Session = require('../model/session'); // Import the Session schema
 const Tutor = require('../model/tutor'); // Import the Tutor schema
+const nodemailer = require('nodemailer');
 
 // assigning variable to the JSON file
 const gradeSelection = require('../model/grades.json');
@@ -200,6 +201,13 @@ route.get('/adminHome', async (req, res) => {
   res.render('adminHome');
 });
 
+// route to a simple notification test page
+route.get('/notifications', (req, res) => {
+  res.render('notifications', {
+    userEmail: req.session.email || '',
+  });
+});
+
 // route to expertise form page
 route.get('/expertiseForm', async (req, res) => {
   res.render('expertiseForm', {
@@ -268,23 +276,55 @@ route.post('/submitTutorForm', async (req, res) => {
 // Route to handle expertise form submission
 route.post('/submitExpertiseForm', async (req, res) => {
   try {
-    console.log(req.body);
+    const {
+      tutorFirstName,
+      tutorLastName,
+      tutorID,
+      email,
+      grade,
+      returning,
+      lunchPeriod,
+      daysAvailable,
+      classes,
+      tutorLeader,
+      attendance,
+    } = req.body;
+
+    // If a tutor with this ID exists, update instead of creating a duplicate
+    const existingTutor = await Tutor.findOne({ tutorID });
+
+    if (existingTutor) {
+      existingTutor.tutorFirstName = tutorFirstName;
+      existingTutor.tutorLastName = tutorLastName;
+      existingTutor.email = email;
+      existingTutor.grade = grade;
+      existingTutor.returning = returning;
+      existingTutor.lunchPeriod = lunchPeriod;
+      existingTutor.daysAvailable = daysAvailable;
+      existingTutor.classes = classes;
+      existingTutor.tutorLeader = tutorLeader;
+      existingTutor.attendance = attendance;
+
+      await existingTutor.save();
+      return res.json({ success: true, updated: true });
+    }
+
     const newTutor = new Tutor({
-      tutorFirstName: req.body.tutorFirstName,
-      tutorLastName: req.body.tutorLastName,
-      tutorID: req.body.tutorID,
-      email: req.body.email,
-      grade: req.body.grade,
-      returning: req.body.returning,
-      lunchPeriod: req.body.lunchPeriod,
-      daysAvailable: req.body.daysAvailable,
-      classes: req.body.classes,
-      tutorLeader: req.body.tutorLeader,
-      attendance: req.body.attendance,
-      sessionHistory: req.body.sessionHistory,
+      tutorFirstName,
+      tutorLastName,
+      tutorID,
+      email,
+      grade,
+      returning,
+      lunchPeriod,
+      daysAvailable,
+      classes,
+      tutorLeader,
+      attendance,
+      sessionHistory: [],
     });
     await newTutor.save();
-    res.json({ success: true });
+    res.json({ success: true, created: true });
   } catch (error) {
     console.error('Error saving expertise sheet:', error);
     res.status(500).json({ success: false, error: 'Failed to save expertise sheet' });
@@ -298,7 +338,9 @@ route.get('/tutorTable', async (req, res) => {
     // Convert MongoDB objects to objects formatted for the EJS template
     const tutorsFormatted = tutors.map(tutor => {
       return {
+        id: tutor._id.toString(),
         tutorName: `${tutor.tutorFirstName} ${tutor.tutorLastName}`,
+        email: tutor.email,
         date: tutor.date,
         grade: tutor.grade,
         tutorID: tutor.tutorID,
@@ -445,6 +487,93 @@ route.get('/api/courses', (req, res) => {
   res.json(courses);
 });
 
+// API endpoint to delete a tutor by id
+route.post('/api/tutors/delete', async (req, res) => {
+  const { id } = req.body;
+
+  if (!id) {
+    return res.status(400).json({ success: false, error: 'Missing tutor id' });
+  }
+
+  try {
+    const deleted = await Tutor.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, error: 'Tutor not found' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting tutor:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete tutor' });
+  }
+});
+
+// API endpoint to list tutor names and emails for notifications
+route.get('/api/tutor-emails', async (req, res) => {
+  try {
+    const tutors = await Tutor.find({ email: { $exists: true, $ne: '' } })
+      .select('tutorFirstName tutorLastName email lunchPeriod classes')
+      .sort({ tutorLastName: 1, tutorFirstName: 1 });
+
+    const results = tutors.map(tutor => ({
+      name: `${tutor.tutorFirstName || 'Unknown'} ${tutor.tutorLastName || 'Tutor'}`.trim(),
+      email: tutor.email,
+      lunchPeriod: tutor.lunchPeriod,
+      classes: Array.isArray(tutor.classes) ? tutor.classes : [],
+    }));
+
+    res.json({ success: true, tutors: results });
+  } catch (error) {
+    console.error('Error fetching tutor emails:', error);
+    res.status(500).json({ success: false, error: 'Failed to load tutor emails' });
+  }
+});
+
+// API endpoint to send a notification email (supports one or many recipients)
+route.post('/api/notifications/send', async (req, res) => {
+  const { to, subject, message } = req.body;
+
+  const recipientList = Array.isArray(to)
+    ? to.map(addr => (typeof addr === 'string' ? addr.trim() : '')).filter(Boolean)
+    : (typeof to === 'string' ? [to.trim()] : []).filter(Boolean);
+
+  if (!recipientList.length || !subject || !message) {
+    return res
+      .status(400)
+      .json({ success: false, error: 'Missing recipients, subject, or message' });
+  }
+
+  const senderEmail = process.env.EMAIL_SENDER;
+  const senderPassword = process.env.EMAIL_PASSWORD;
+
+  if (!senderEmail || !senderPassword) {
+    return res.status(500).json({
+      success: false,
+      error: 'Email credentials not configured. Set EMAIL_SENDER and EMAIL_PASSWORD.',
+    });
+  }
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: senderEmail,
+      pass: senderPassword,
+    },
+  });
+
+  try {
+    await transporter.sendMail({
+      from: senderEmail,
+      to: recipientList,
+      subject,
+      text: message,
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error sending notification email:', error);
+    res.status(500).json({ success: false, error: 'Failed to send email' });
+  }
 route.get('/adminAttendance', (req, res) => {
   res.render('adminAttendance');
 });
