@@ -17,6 +17,8 @@ const courseList = require('../model/courseList.json');
 const courses = require('../model/courses.json');
 
 // Route to render the authentication page
+
+// No additional logic needed here; the handler ends after sending the response.
 route.get('/auth', (req, res) => {
   res.render('auth'); // Render the 'auth' EJS template
 });
@@ -574,9 +576,10 @@ route.post('/api/notifications/send', async (req, res) => {
     console.error('Error sending notification email:', error);
     res.status(500).json({ success: false, error: 'Failed to send email' });
   }
+});
+
 route.get('/adminAttendance', (req, res) => {
   res.render('adminAttendance');
 });
 
 module.exports = route;
-
