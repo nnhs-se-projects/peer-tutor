@@ -367,7 +367,7 @@ route.get('/sessionTable', async (req, res) => {
       return {
         date: session.sessionDate
           ? new Date(session.sessionDate).toLocaleDateString('en-US', {
-              timeZone: 'UTC',
+              timeZone: 'America/Chicago',
             })
           : null,
         tuteeName: `${session.tuteeFirstName} ${session.tuteeLastName}`,
@@ -574,6 +574,9 @@ route.post('/api/notifications/send', async (req, res) => {
     console.error('Error sending notification email:', error);
     res.status(500).json({ success: false, error: 'Failed to send email' });
   }
+route.get('/adminAttendance', (req, res) => {
+  res.render('adminAttendance');
 });
 
 module.exports = route;
+

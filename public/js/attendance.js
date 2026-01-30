@@ -21,13 +21,17 @@ function updateDateDisplay() {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    timeZone: 'America/Chicago',
   };
   const formattedDate = today.toLocaleDateString('en-US', options);
 
   dateElement.textContent = formattedDate;
 
-  // Filter tutors based on day of week
-  filterTutorsByDay(today.getDay());
+  // Filter tutors based on day of week (Central Time)
+  const centralDay = new Date(
+    today.toLocaleString('en-US', { timeZone: 'America/Chicago' })
+  ).getDay();
+  filterTutorsByDay(centralDay);
 }
 
 // Function to filter tutors based on day of week
@@ -334,3 +338,4 @@ function sortTable(columnIndex) {
     }
   }
 }
+
