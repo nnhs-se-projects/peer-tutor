@@ -574,9 +574,167 @@ route.post('/api/notifications/send', async (req, res) => {
     console.error('Error sending notification email:', error);
     res.status(500).json({ success: false, error: 'Failed to send email' });
   }
+});
+
+// Helper function to send absence notification emails (reusable)
+async function sendAbsenceNotification(tutorEmail, tutorName, date, absenceCount) {
+  const senderEmail = process.env.EMAIL_SENDER;
+  const senderPassword = process.env.EMAIL_PASSWORD;
+
+  if (!senderEmail || !senderPassword) {
+    throw new Error('Email credentials not configured');
+  }
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: senderEmail,
+      pass: senderPassword,
+    },
+  });
+
+  const subject = `Peer Tutoring: Absence Recorded - ${date}`;
+  const message = `Hello ${tutorName},
+
+This is an automated notification to inform you that you were marked absent from your peer tutoring session on ${date}.
+
+Your current total absences: ${absenceCount}
+
+If you believe this was recorded in error, please contact your tutor lead or teacher coordinator.
+
+${absenceCount >= 2 ? '⚠️ Please note: You have 2 or more absences. Please make arrangements with your tutor lead to make up missed sessions.' : ''}
+
+Thank you,
+Peer Tutoring Program`;
+
+  await transporter.sendMail({
+    from: senderEmail,
+    to: tutorEmail,
+    subject,
+    text: message,
+  });
+
+  return true;
+}
+
+// API endpoint to send absence notifications for specific tutors
+route.post('/api/notifications/absence', async (req, res) => {
+  const { tutors, date } = req.body;
+
+  if (!tutors || !Array.isArray(tutors) || !tutors.length) {
+    return res.status(400).json({ success: false, error: 'Missing tutors array' });
+  }
+
+  const results = { sent: [], failed: [] };
+
+  for (const tutor of tutors) {
+    try {
+      if (!tutor.email) {
+        results.failed.push({ name: tutor.name || 'Unknown', reason: 'No email address' });
+        continue;
+      }
+
+      await sendAbsenceNotification(
+        tutor.email,
+        tutor.name || 'Tutor',
+        date || new Date().toLocaleDateString(),
+        tutor.absenceCount || 1
+      );
+
+      results.sent.push({ name: tutor.name, email: tutor.email });
+    } catch (error) {
+      console.error(`Failed to send absence notification to ${tutor.email}:`, error);
+      results.failed.push({
+        name: tutor.name || 'Unknown',
+        email: tutor.email,
+        reason: error.message,
+      });
+    }
+  }
+
+  res.json({
+    success: true,
+    message: `Sent ${results.sent.length} notification(s), ${results.failed.length} failed`,
+    results,
+  });
+});
+
+// API endpoint to get tutors with outstanding absences (1 or more missed days)
+route.get('/api/tutors/absences', async (req, res) => {
+  try {
+    const minAbsences = parseInt(req.query.min) || 1;
+
+    const tutorsWithAbsences = await Tutor.find({
+      attendance: { $gte: minAbsences },
+      email: { $exists: true, $ne: '' },
+    })
+      .select('tutorFirstName tutorLastName email attendance lunchPeriod')
+      .sort({ attendance: -1 });
+
+    const results = tutorsWithAbsences.map(tutor => ({
+      name: `${tutor.tutorFirstName || 'Unknown'} ${tutor.tutorLastName || 'Tutor'}`.trim(),
+      email: tutor.email,
+      absenceCount: tutor.attendance || 0,
+      lunchPeriod: tutor.lunchPeriod,
+    }));
+
+    res.json({ success: true, tutors: results });
+  } catch (error) {
+    console.error('Error fetching tutors with absences:', error);
+    res.status(500).json({ success: false, error: 'Failed to load tutors with absences' });
+  }
+});
+
+// API endpoint to notify all tutors with outstanding absences
+route.post('/api/notifications/absence/bulk', async (req, res) => {
+  try {
+    const minAbsences = parseInt(req.body.minAbsences) || 1;
+
+    const tutorsWithAbsences = await Tutor.find({
+      attendance: { $gte: minAbsences },
+      email: { $exists: true, $ne: '' },
+    }).select('tutorFirstName tutorLastName email attendance');
+
+    if (!tutorsWithAbsences.length) {
+      return res.json({
+        success: true,
+        message: 'No tutors with outstanding absences found',
+        results: { sent: [], failed: [] },
+      });
+    }
+
+    const results = { sent: [], failed: [] };
+
+    for (const tutor of tutorsWithAbsences) {
+      const tutorName =
+        `${tutor.tutorFirstName || ''} ${tutor.tutorLastName || ''}`.trim() || 'Tutor';
+      try {
+        await sendAbsenceNotification(
+          tutor.email,
+          tutorName,
+          new Date().toLocaleDateString(),
+          tutor.attendance
+        );
+        results.sent.push({ name: tutorName, email: tutor.email, absences: tutor.attendance });
+      } catch (error) {
+        console.error(`Failed to notify ${tutor.email}:`, error);
+        results.failed.push({ name: tutorName, email: tutor.email, reason: error.message });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Notified ${results.sent.length} tutor(s) with ${minAbsences}+ absences`,
+      results,
+    });
+  } catch (error) {
+    console.error('Error sending bulk absence notifications:', error);
+    res.status(500).json({ success: false, error: 'Failed to send bulk notifications' });
+  }
+});
+
 route.get('/adminAttendance', (req, res) => {
   res.render('adminAttendance');
 });
 
 module.exports = route;
-

@@ -1,13 +1,74 @@
 <%- include('include/_header') %> <%- include('include/_homepageNavBar') %>
 
 <main class="container mx-auto px-4 py-12 flex-grow">
+  <!-- Absence Notifications Section -->
+  <div class="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-8 mb-8">
+    <h1 class="text-3xl font-bold text-center text-gray-900 mb-6">Absence Notifications</h1>
+    <p class="text-gray-700 mb-6">
+      Send automated notifications to tutors with outstanding absences. Use the controls below to
+      notify tutors who have missed sessions.
+    </p>
+
+    <div class="space-y-4">
+      <div class="flex flex-wrap items-center gap-4 mb-4">
+        <label class="flex items-center gap-2">
+          <span class="text-sm font-semibold text-gray-800">Minimum absences:</span>
+          <select
+            id="absence-threshold"
+            class="w-24 rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="1">1+</option>
+            <option value="2" selected>2+</option>
+            <option value="3">3+</option>
+          </select>
+        </label>
+        <button
+          id="load-absent-tutors"
+          class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded transition-colors"
+        >
+          Load Tutors
+        </button>
+        <button
+          id="notify-all-absent"
+          class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded transition-colors"
+          disabled
+        >
+          Notify All Listed
+        </button>
+      </div>
+
+      <div id="absent-tutors-list" class="border rounded-lg overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="px-4 py-2 text-left">Name</th>
+              <th class="px-4 py-2 text-left">Email</th>
+              <th class="px-4 py-2 text-center">Absences</th>
+              <th class="px-4 py-2 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody id="absent-tutors-body">
+            <tr>
+              <td colspan="4" class="px-4 py-8 text-center text-gray-500">
+                Click "Load Tutors" to see tutors with absences
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="absence-status" class="text-sm"></div>
+    </div>
+  </div>
+
+  <!-- Manual Notification Section -->
   <div class="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-8">
     <h1 class="text-3xl font-bold text-center text-gray-900 mb-6">
-      Send a Test Notification Email
+      Send a Custom Notification Email
     </h1>
     <p class="text-gray-700 mb-6">
-      This simple form triggers the new notification endpoint. Enter a recipient, subject, and
-      message, then press the button to send. We will wire it into real flows later.
+      This form allows you to send custom notifications to selected tutors. Use the filters to find
+      specific tutors.
     </p>
 
     <div class="space-y-4">
