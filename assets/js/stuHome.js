@@ -99,6 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
               <div class="border rounded-lg p-4 hover:bg-gray-50">
                 <div class="font-bold">${tutor.tutorFirstName} ${tutor.tutorLastName}</div>
                 <div class="text-sm text-gray-600">Grade: ${tutor.grade}</div>
+                <div class="text-sm text-gray-600">Lunch Period: ${tutor.lunchPeriod || 'Not set'}</div>
                 <div class="text-sm text-gray-600">Available: ${tutor.daysAvailable.join(', ')}</div>
                 <button 
                   class="mt-2 bg-orange-500 text-white px-3 py-1 rounded-lg hover:bg-orange-600 text-sm"
@@ -126,13 +127,20 @@ document.addEventListener('DOMContentLoaded', function () {
     tutoringRequestForm.addEventListener('submit', function (e) {
       e.preventDefault();
 
+      // Get selected tutor info from banner if present
+      const tutorBanner = document.getElementById('selectedTutorBanner');
+      const tutorId = tutorBanner?.dataset?.tutorId || null;
+      const tutorName = tutorBanner?.dataset?.tutorName || null;
+
       const formData = {
         subject: document.getElementById('requestSubject').value,
         class: document.getElementById('requestClass').value,
         topic: document.getElementById('requestTopic').value,
         preferredDate: document.getElementById('preferredDate').value,
-        preferredPeriod: document.getElementById('preferredPeriod').value,
+        preferredPeriod: document.getElementById('lunchPeriod').value,
         additionalNotes: document.getElementById('additionalNotes').value,
+        tutorId: tutorId,
+        tutorName: tutorName,
       };
 
       // Submit form data
@@ -154,6 +162,9 @@ document.addEventListener('DOMContentLoaded', function () {
             // Show success message
             alert('Your tutoring request has been submitted successfully!');
             tutoringRequestForm.reset();
+            // Clear selected tutor banner
+            const banner = document.getElementById('selectedTutorBanner');
+            if (banner) banner.remove();
           } else {
             alert('Error submitting request: ' + data.error);
           }
@@ -266,6 +277,29 @@ function requestTutor(tutorId, tutorName) {
     document.getElementById('requestClass').value = className;
   }, 100);
 
+  // Show selected tutor banner on the form
+  const formContainer = document.querySelector('#tutoringRequestForm').parentElement;
+  let tutorBanner = document.getElementById('selectedTutorBanner');
+
+  if (!tutorBanner) {
+    tutorBanner = document.createElement('div');
+    tutorBanner.id = 'selectedTutorBanner';
+    tutorBanner.className =
+      'bg-orange-100 border border-orange-400 text-orange-800 px-4 py-3 rounded-lg mb-4 flex justify-between items-center';
+    formContainer.insertBefore(tutorBanner, document.getElementById('tutoringRequestForm'));
+  }
+
+  tutorBanner.innerHTML = `
+    <div>
+      <span class="font-bold">Selected Tutor:</span> ${tutorName}
+    </div>
+    <button type="button" onclick="clearSelectedTutor()" class="text-orange-600 hover:text-orange-800 font-bold text-lg">&times;</button>
+  `;
+
+  // Store tutor info for form submission
+  tutorBanner.dataset.tutorId = tutorId;
+  tutorBanner.dataset.tutorName = tutorName;
+
   // Scroll to request form
   document.querySelector('form#tutoringRequestForm').scrollIntoView({
     behavior: 'smooth',
@@ -273,4 +307,12 @@ function requestTutor(tutorId, tutorName) {
 
   // Display alert about the selection
   alert(`You've selected ${tutorName} as your tutor. Please complete the request form below.`);
+}
+
+// Function to clear selected tutor
+function clearSelectedTutor() {
+  const banner = document.getElementById('selectedTutorBanner');
+  if (banner) {
+    banner.remove();
+  }
 }

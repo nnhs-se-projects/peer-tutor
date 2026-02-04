@@ -3,6 +3,7 @@ const route = express.Router();
 const Entry = require('../model/entry');
 const Session = require('../model/session'); // Import the Session schema
 const Tutor = require('../model/tutor'); // Import the Tutor schema
+const TutoringRequest = require('../model/tutoringRequest'); // Import the TutoringRequest schema
 const nodemailer = require('nodemailer');
 
 // assigning variable to the JSON file
@@ -133,6 +134,8 @@ route.post('/api/tutoringRequest', async (req, res) => {
       preferredDate,
       preferredPeriod,
       additionalNotes,
+      tutorId,
+      tutorName,
     } = req.body;
 
     // Validate required fields
@@ -153,35 +156,119 @@ route.post('/api/tutoringRequest', async (req, res) => {
       });
     }
 
+    // Get tutor email if tutorId is provided
+    let tutorEmail = null;
+    if (tutorId) {
+      const tutor = await Tutor.findById(tutorId);
+      if (tutor) {
+        tutorEmail = tutor.email;
+      }
+    }
+
     // Create new tutoring request
-    // This would typically be stored in a TutoringRequest model
-    // For now, we'll create a placeholder session
-    const newSession = new Session({
-      tutorFirstName: 'To Be Assigned',
-      tutorLastName: '',
-      tutorID: '0',
-      sessionDate: preferredDate,
-      sessionPeriod: preferredPeriod,
-      sessionPlace: 'To Be Determined',
+    const newRequest = new TutoringRequest({
+      studentEmail: studentEmail,
+      studentFirstName: req.session.firstName || 'Student',
+      studentLastName: req.session.lastName || '',
+      studentID: req.session.studentID || '',
+      tutorId: tutorId || null,
+      tutorName: tutorName || null,
+      tutorEmail: tutorEmail,
       subject: subject,
       class: className,
-      teacher: 'Not Specified',
-      focusOfSession: topic,
-      workAccomplished: additionalNotes || 'Not yet completed',
-      tuteeFirstName: req.session.firstName || 'Student',
-      tuteeLastName: req.session.lastName || 'User',
-      tuteeID: req.session.studentID || '0',
-      tuteeGrade: req.session.grade || '9',
+      topic: topic,
+      preferredDate: new Date(preferredDate),
+      preferredPeriod: preferredPeriod,
+      additionalNotes: additionalNotes || '',
+      status: 'pending',
     });
 
-    await newSession.save();
+    await newRequest.save();
 
-    res.json({ success: true });
+    res.json({ success: true, requestId: newRequest._id });
   } catch (error) {
     console.error('Error creating tutoring request:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to create tutoring request',
+    });
+  }
+});
+
+// Get tutoring requests for a specific tutor (by tutor ID number)
+route.get('/api/tutor/requests', async (req, res) => {
+  try {
+    const tutorID = req.query.tutorID;
+
+    if (!tutorID) {
+      return res.status(400).json({
+        success: false,
+        error: 'Tutor ID is required',
+      });
+    }
+
+    // First find the tutor by their ID number to get their MongoDB _id
+    const tutor = await Tutor.findOne({ tutorID: parseInt(tutorID) });
+
+    if (!tutor) {
+      return res.status(404).json({
+        success: false,
+        error: 'Tutor not found',
+      });
+    }
+
+    // Find all requests for this tutor
+    const requests = await TutoringRequest.find({
+      tutorId: tutor._id,
+      status: { $in: ['pending', 'accepted'] },
+    }).sort({ createdAt: -1 });
+
+    res.json({ success: true, requests });
+  } catch (error) {
+    console.error('Error fetching tutor requests:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch requests',
+    });
+  }
+});
+
+// Update tutoring request status (accept/decline)
+route.post('/api/tutor/requests/:requestId/respond', async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const { status, responseMessage } = req.body;
+
+    if (!['accepted', 'declined'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid status. Must be "accepted" or "declined"',
+      });
+    }
+
+    const request = await TutoringRequest.findByIdAndUpdate(
+      requestId,
+      {
+        status: status,
+        responseMessage: responseMessage || '',
+        respondedAt: new Date(),
+      },
+      { new: true }
+    );
+
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        error: 'Request not found',
+      });
+    }
+
+    res.json({ success: true, request });
+  } catch (error) {
+    console.error('Error updating request:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update request',
     });
   }
 });
@@ -664,21 +751,30 @@ route.get('/api/tutors/absences', async (req, res) => {
   try {
     const minAbsences = parseInt(req.query.min) || 1;
 
+    // Query using daysMissed field which tracks actual absences
+    // Also include tutors with negative attendance (meaning net absences)
     const tutorsWithAbsences = await Tutor.find({
-      attendance: { $gte: minAbsences },
+      $or: [
+        { daysMissed: { $gte: minAbsences } },
+        { attendance: { $lte: -minAbsences } }, // negative attendance = missed days
+      ],
       email: { $exists: true, $ne: '' },
     })
-      .select('tutorFirstName tutorLastName email attendance lunchPeriod')
-      .sort({ attendance: -1 });
+      .select('tutorFirstName tutorLastName email attendance daysMissed lunchPeriod')
+      .sort({ daysMissed: -1, attendance: 1 });
 
     const results = tutorsWithAbsences.map(tutor => ({
       name: `${tutor.tutorFirstName || 'Unknown'} ${tutor.tutorLastName || 'Tutor'}`.trim(),
       email: tutor.email,
-      absenceCount: tutor.attendance || 0,
+      // Use daysMissed if available, otherwise use absolute value of negative attendance
+      absenceCount: tutor.daysMissed || (tutor.attendance < 0 ? Math.abs(tutor.attendance) : 0),
       lunchPeriod: tutor.lunchPeriod,
     }));
 
-    res.json({ success: true, tutors: results });
+    // Filter out any tutors with 0 absences after calculation
+    const filteredResults = results.filter(t => t.absenceCount >= minAbsences);
+
+    res.json({ success: true, tutors: filteredResults });
   } catch (error) {
     console.error('Error fetching tutors with absences:', error);
     res.status(500).json({ success: false, error: 'Failed to load tutors with absences' });
@@ -690,12 +786,21 @@ route.post('/api/notifications/absence/bulk', async (req, res) => {
   try {
     const minAbsences = parseInt(req.body.minAbsences) || 1;
 
+    // Query using daysMissed field or negative attendance
     const tutorsWithAbsences = await Tutor.find({
-      attendance: { $gte: minAbsences },
+      $or: [{ daysMissed: { $gte: minAbsences } }, { attendance: { $lte: -minAbsences } }],
       email: { $exists: true, $ne: '' },
-    }).select('tutorFirstName tutorLastName email attendance');
+    }).select('tutorFirstName tutorLastName email attendance daysMissed');
 
-    if (!tutorsWithAbsences.length) {
+    // Filter and calculate actual absence count
+    const tutorsToNotify = tutorsWithAbsences
+      .map(tutor => ({
+        ...tutor.toObject(),
+        absenceCount: tutor.daysMissed || (tutor.attendance < 0 ? Math.abs(tutor.attendance) : 0),
+      }))
+      .filter(t => t.absenceCount >= minAbsences);
+
+    if (!tutorsToNotify.length) {
       return res.json({
         success: true,
         message: 'No tutors with outstanding absences found',
@@ -705,7 +810,7 @@ route.post('/api/notifications/absence/bulk', async (req, res) => {
 
     const results = { sent: [], failed: [] };
 
-    for (const tutor of tutorsWithAbsences) {
+    for (const tutor of tutorsToNotify) {
       const tutorName =
         `${tutor.tutorFirstName || ''} ${tutor.tutorLastName || ''}`.trim() || 'Tutor';
       try {
@@ -713,9 +818,9 @@ route.post('/api/notifications/absence/bulk', async (req, res) => {
           tutor.email,
           tutorName,
           new Date().toLocaleDateString(),
-          tutor.attendance
+          tutor.absenceCount
         );
-        results.sent.push({ name: tutorName, email: tutor.email, absences: tutor.attendance });
+        results.sent.push({ name: tutorName, email: tutor.email, absences: tutor.absenceCount });
       } catch (error) {
         console.error(`Failed to notify ${tutor.email}:`, error);
         results.failed.push({ name: tutorName, email: tutor.email, reason: error.message });
