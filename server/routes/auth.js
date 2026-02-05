@@ -14,9 +14,9 @@ const CLIENT_ID = '730546621620-dnost72pte48o0p59hbc7nj03ra94efl.apps.googleuser
 // Developer emails - these users always have developer role with full access
 const DEVELOPER_EMAILS = [
   'eqin@stu.naperville203.org',
-  'mkfedorovskiy@stu.naperville203.org',
-  'jxwu@stu.naperville203.org',
-  'opbhide@stu.naperville203.org',
+  //'mkfedorovskiy@stu.naperville203.org',
+  //'jxwu@stu.naperville203.org',
+  //'opbhide@stu.naperville203.org',
 ];
 
 // from: https://developers.google.com/identity/gsi/web/guides/verify-google-id-token#node.js
