@@ -1,12 +1,30 @@
 /**
- * schema for a Tutoring Session
+ * schema for a Tutor
  */
 
 const mongoose = require('mongoose');
-// Remove incorrect import
-// const ses = require('./session');
 
 const schema = new mongoose.Schema({
+  // Role assigned by admin: 'student', 'tutor', 'lead', 'teacher', 'admin', 'developer'
+  // 'developer' has access to all permissions
+  role: {
+    type: String,
+    enum: ['student', 'tutor', 'lead', 'teacher', 'admin', 'developer'],
+    default: 'tutor',
+  },
+
+  // Google OAuth subject ID (for future use)
+  googleId: {
+    type: String,
+    sparse: true,
+  },
+
+  // Account status
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
+
   // tutor last name
   tutorFirstName: {
     type: String,

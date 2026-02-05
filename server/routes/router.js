@@ -4,7 +4,9 @@ const Entry = require('../model/entry');
 const Session = require('../model/session'); // Import the Session schema
 const Tutor = require('../model/tutor'); // Import the Tutor schema
 const TutoringRequest = require('../model/tutoringRequest'); // Import the TutoringRequest schema
+const Teacher = require('../model/teacher'); // Import the Teacher schema
 const nodemailer = require('nodemailer');
+const { requireRole } = require('../middleware/roleAuth'); // Import role middleware
 
 // assigning variable to the JSON file
 const gradeSelection = require('../model/grades.json');
@@ -55,13 +57,13 @@ route.get('/', async (req, res) => {
   }
 });
 
-// route to render classes, grades
-route.get('/tutHome', (req, res) => {
+// route to render classes, grades (tutor resources)
+route.get('/tutHome', requireRole('tutor'), (req, res) => {
   res.render('tutHome');
 });
 
-// route to student home page
-route.get('/stuHome', async (req, res) => {
+// route to student home page (accessible to all authenticated users)
+route.get('/stuHome', requireRole('student'), async (req, res) => {
   res.render('stuHome');
 });
 
@@ -274,29 +276,29 @@ route.post('/api/tutor/requests/:requestId/respond', async (req, res) => {
 });
 
 // route to tutor leader home page
-route.get('/leadHome', async (req, res) => {
+route.get('/leadHome', requireRole('lead'), async (req, res) => {
   res.render('leadHome');
 });
 
 // route to teacher home page
-route.get('/teachHome', async (req, res) => {
+route.get('/teachHome', requireRole('teacher'), async (req, res) => {
   res.render('teachHome');
 });
 
 // route to admin home page
-route.get('/adminHome', async (req, res) => {
+route.get('/adminHome', requireRole('admin'), async (req, res) => {
   res.render('adminHome');
 });
 
-// route to a simple notification test page
-route.get('/notifications', (req, res) => {
+// route to a simple notification test page (lead and above)
+route.get('/notifications', requireRole('lead'), (req, res) => {
   res.render('notifications', {
     userEmail: req.session.email || '',
   });
 });
 
-// route to expertise form page
-route.get('/expertiseForm', async (req, res) => {
+// route to expertise form page (tutor and above)
+route.get('/expertiseForm', requireRole('tutor'), async (req, res) => {
   res.render('expertiseForm', {
     grades: gradeSelection,
     options: newReturningOptions,
@@ -309,13 +311,13 @@ route.get('/expertiseForm', async (req, res) => {
 // delegate all authentication to the auth.js router
 route.use('/auth', require('./auth'));
 
-// Route to render the tutor attendance
-route.get('/tutorAttendance', async (req, res) => {
+// Route to render the tutor attendance (tutor and above)
+route.get('/tutorAttendance', requireRole('tutor'), async (req, res) => {
   res.render('tutorAttendance');
 });
 
-// Route to render the tutor form
-route.get('/tutorForm', async (req, res) => {
+// Route to render the tutor form (tutor and above)
+route.get('/tutorForm', requireRole('tutor'), async (req, res) => {
   res.render('tutorForm');
 });
 
@@ -418,7 +420,8 @@ route.post('/submitExpertiseForm', async (req, res) => {
   }
 });
 
-route.get('/tutorTable', async (req, res) => {
+// Route to view tutor database (teacher and above)
+route.get('/tutorTable', requireRole('teacher'), async (req, res) => {
   try {
     const tutors = await Tutor.find().sort({ date: -1 });
 
@@ -445,7 +448,8 @@ route.get('/tutorTable', async (req, res) => {
   }
 });
 
-route.get('/sessionTable', async (req, res) => {
+// Route to view session database (teacher and above)
+route.get('/sessionTable', requireRole('teacher'), async (req, res) => {
   try {
     const sessions = await Session.find().sort({ date: -1 });
 
@@ -474,8 +478,8 @@ route.get('/sessionTable', async (req, res) => {
   }
 });
 
-// Route to render the attendance
-route.get('/attendance', async (req, res) => {
+// Route to render the attendance (lead and above)
+route.get('/attendance', requireRole('lead'), async (req, res) => {
   try {
     const tutors = await Tutor.find().sort({ date: -1 });
 
@@ -838,8 +842,107 @@ route.post('/api/notifications/absence/bulk', async (req, res) => {
   }
 });
 
-route.get('/adminAttendance', (req, res) => {
+// Route to admin attendance (admin only)
+route.get('/adminAttendance', requireRole('admin'), (req, res) => {
   res.render('adminAttendance');
+});
+
+// =====================================================
+// ADMIN USER MANAGEMENT ROUTES
+// =====================================================
+
+// Route to admin user management page (admin only)
+route.get('/admin/users', requireRole('admin'), async (req, res) => {
+  try {
+    const tutors = await Tutor.find().sort({ tutorLastName: 1, tutorFirstName: 1 });
+    const teachers = await Teacher.find().sort({ teacherLastName: 1, teacherFirstName: 1 });
+
+    res.render('adminUsers', {
+      tutors,
+      teachers,
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).send('Error loading user management page');
+  }
+});
+
+// API endpoint to update a user's role (admin only)
+route.post('/api/admin/users/:id/role', requireRole('admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    // Validate role
+    const validRoles = ['student', 'tutor', 'lead', 'teacher', 'admin', 'developer'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ success: false, error: 'Invalid role' });
+    }
+
+    // Only developers can assign developer role
+    if (role === 'developer' && req.session.role !== 'developer') {
+      return res.status(403).json({
+        success: false,
+        error: 'Only developers can assign the developer role',
+      });
+    }
+
+    // Find the tutor and update their role
+    const tutor = await Tutor.findById(id);
+    if (!tutor) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Prevent demoting developers (unless you're a developer)
+    if (tutor.role === 'developer' && req.session.role !== 'developer') {
+      return res.status(403).json({
+        success: false,
+        error: 'Cannot modify developer accounts',
+      });
+    }
+
+    tutor.role = role;
+    await tutor.save();
+
+    res.json({ success: true, role: tutor.role });
+  } catch (error) {
+    console.error('Error updating user role:', error);
+    res.status(500).json({ success: false, error: 'Failed to update role' });
+  }
+});
+
+// API endpoint to get all users with their roles (admin only)
+route.get('/api/admin/users', requireRole('admin'), async (req, res) => {
+  try {
+    const tutors = await Tutor.find()
+      .select('tutorFirstName tutorLastName email role isActive tutorID')
+      .sort({ tutorLastName: 1 });
+
+    const teachers = await Teacher.find()
+      .select('teacherFirstName teacherLastName email admin')
+      .sort({ teacherLastName: 1 });
+
+    res.json({
+      success: true,
+      tutors: tutors.map(t => ({
+        id: t._id,
+        name: `${t.tutorFirstName} ${t.tutorLastName}`,
+        email: t.email,
+        role: t.role || 'tutor',
+        isActive: t.isActive !== false,
+        tutorID: t.tutorID,
+      })),
+      teachers: teachers.map(t => ({
+        id: t._id,
+        name: `${t.teacherFirstName} ${t.teacherLastName}`,
+        email: t.email,
+        role: t.admin ? 'admin' : 'teacher',
+      })),
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch users' });
+  }
 });
 
 module.exports = route;
