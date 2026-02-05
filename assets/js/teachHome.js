@@ -1,11 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
-  // Password protection popup for Teacher
-  const password = prompt('Enter teacher password to access this page:');
-  if (password !== 'teacher') {
-    alert('Incorrect password. Redirecting to homepage.');
-    window.location.href = '/';
-    return;
-  }
+  // Role-based access is now handled by server middleware via Google OAuth
+  // No password needed - user role is verified on the server
 });
 
 function sortTable(columnIndex, ascending) {

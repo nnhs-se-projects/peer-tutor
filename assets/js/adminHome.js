@@ -1,11 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
-  // Password protection popup
-  const password = prompt('Enter admin password to access this page:');
-  if (password !== 'moore') {
-    alert('Incorrect password. Redirecting to homepage.');
-    window.location.href = '/';
-    return;
-  }
+  // Role-based access is now handled by server middleware via Google OAuth
+  // No password needed - user role is verified on the server
 
   // Load session history for admin
   function loadSessionHistory() {
