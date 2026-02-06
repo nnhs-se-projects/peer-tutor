@@ -49,7 +49,6 @@ route.get('/', async (req, res) => {
     res.render('homepage', {
       tutors: formattedTutors,
       top3: top3,
-      user: req.session.user || null,
     });
   } catch (error) {
     console.error('Error rendering homepage:', error);
