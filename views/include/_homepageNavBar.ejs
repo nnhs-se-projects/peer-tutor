@@ -45,8 +45,8 @@
       
       <!-- Navigation links (center) -->
       <div class="flex items-center space-x-6">
-        <!-- Tutor Homepage - only if user is tutor or higher -->
-        <% if (user && ['developer', 'admin', 'lead', 'tutor'].includes(user.role)) { %>
+        <!-- Tutor Homepage - only if user is tutor, lead, or developer -->
+        <% if (user && ['developer', 'lead', 'tutor'].includes(user.role)) { %>
         <a
           href="/tutHome"
           class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
@@ -56,8 +56,8 @@
         </a>
         <% } %>
         
-        <!-- Tutor Leader Homepage - only if user is lead or higher -->
-        <% if (user && ['developer', 'admin', 'lead'].includes(user.role)) { %>
+        <!-- Tutor Leader Homepage - only if user is lead or developer -->
+        <% if (user && ['developer', 'lead'].includes(user.role)) { %>
         <a
           href="/leadHome"
           class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
