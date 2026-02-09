@@ -484,8 +484,19 @@ route.get('/attendance', requireRole('lead'), async (req, res) => {
   try {
     const tutors = await Tutor.find().sort({ date: -1 });
 
+    // Determine the current day of the week (in Central Time)
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+    const todayName = dayNames[now.getDay()];
+
+    // Only include tutors who are available on today's day of the week
+    const filteredTutors = tutors.filter(tutor => {
+      const days = Array.isArray(tutor.daysAvailable) ? tutor.daysAvailable : [];
+      return days.includes(todayName);
+    });
+
     // Convert MongoDB objects to objects formatted for the EJS template
-    const tutorsFormatted = tutors.map(tutor => {
+    const tutorsFormatted = filteredTutors.map(tutor => {
       return {
         firstName: tutor.tutorFirstName,
         lastName: tutor.tutorLastName,
@@ -496,7 +507,7 @@ route.get('/attendance', requireRole('lead'), async (req, res) => {
       };
     });
 
-    res.render('attendance', { tutors: tutorsFormatted });
+    res.render('attendance', { tutors: tutorsFormatted, currentDay: todayName });
   } catch (error) {
     console.error('Error fetching tutors:', error);
     res.status(500).send('Error fetching tutors');
@@ -668,8 +679,56 @@ route.post('/api/notifications/send', async (req, res) => {
   }
 });
 
-route.get('/adminAttendance', (req, res) => {
+route.get('/adminAttendance', requireRole('admin'), (req, res) => {
   res.render('adminAttendance');
 });
 
+// Route to render admin user management page (admin and above)
+route.get('/admin/users', requireRole('admin'), async (req, res) => {
+  try {
+    const tutors = await Tutor.find().sort({ tutorLastName: 1, tutorFirstName: 1 });
+    const teachers = await Teacher.find().sort({ teacherLastName: 1, teacherFirstName: 1 });
+
+    res.render('adminUsers', {
+      tutors,
+      teachers,
+      user: req.session,
+    });
+  } catch (error) {
+    console.error('Error loading admin users page:', error);
+    res.status(500).send('Error loading user management page');
+  }
+});
+
+// API endpoint to update a user's role (admin and above)
+route.post('/api/admin/users/:id/role', requireRole('admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    const validRoles = ['student', 'tutor', 'lead', 'teacher', 'admin', 'developer'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ success: false, error: 'Invalid role' });
+    }
+
+    // Only developers can assign the developer role
+    if (role === 'developer' && req.session.role !== 'developer') {
+      return res
+        .status(403)
+        .json({ success: false, error: 'Only developers can assign the developer role' });
+    }
+
+    const tutor = await Tutor.findByIdAndUpdate(id, { role }, { new: true });
+    if (!tutor) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    res.json({ success: true, role: tutor.role });
+  } catch (error) {
+    console.error('Error updating user role:', error);
+    res.status(500).json({ success: false, error: 'Failed to update role' });
+  }
+});
+
 module.exports = route;
+
