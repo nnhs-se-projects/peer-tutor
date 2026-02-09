@@ -64,7 +64,7 @@ router.post('/updateAttendance', async (req, res) => {
 // Save attendance for a lunch period
 router.post('/logSubmission', async (req, res) => {
   try {
-    const { date, lunchPeriod, tutors } = req.body;
+    const { date, lunchPeriod, tutors, sendNotifications = false } = req.body;
 
     // Validate required fields
     if (!date || !lunchPeriod || !tutors) {
@@ -85,8 +85,37 @@ router.post('/logSubmission', async (req, res) => {
       { upsert: true, new: true }
     );
 
+    // If sendNotifications is enabled, notify absent tutors
+    let notificationResults = null;
+    if (sendNotifications) {
+      const absentTutors = tutors.filter(t => t.status === 'absent');
+      if (absentTutors.length > 0) {
+        try {
+          const notifyResponse = await fetch(
+            `${req.protocol}://${req.get('host')}/api/notifications/absence`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                date: new Date(date).toLocaleDateString(),
+                tutors: absentTutors.map(t => ({
+                  email: t.email,
+                  name: `${t.tutorFirstName} ${t.tutorLastName}`,
+                  absenceCount: 1, // Could be enhanced to fetch actual count from Tutor model
+                })),
+              }),
+            }
+          );
+          notificationResults = await notifyResponse.json();
+        } catch (notifyError) {
+          console.error('Error sending absence notifications:', notifyError);
+          notificationResults = { error: 'Failed to send notifications' };
+        }
+      }
+    }
+
     console.log('Attendance saved successfully:', attendanceRecord);
-    res.json({ success: true, data: attendanceRecord });
+    res.json({ success: true, data: attendanceRecord, notifications: notificationResults });
   } catch (error) {
     console.error('Error saving attendance:', error);
     res.status(500).json({
@@ -258,4 +287,3 @@ router.post('/bulkUpdateStatus', async (req, res) => {
 });
 
 module.exports = router;
-

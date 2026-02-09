@@ -49,6 +49,15 @@ app.use('/public', express.static('public'));
 // app.use takes a function that is added to the chain of a request.
 //  When we call next(), it goes to the next function in the chain.
 app.use((req, res, next) => {
+  // Make session data available to all views via res.locals
+  res.locals.user = {
+    email: req.session.email,
+    role: req.session.role,
+    userName: req.session.userName,
+    userId: req.session.userId,
+    tutorID: req.session.tutorID,
+  };
+
   // if the student is not already logged in, redirect all requests to the
   //  authentication page
   if (req.session.email === undefined && !req.path.startsWith('/auth')) {

@@ -1,4 +1,5 @@
-<!-- Homepage/Leaderboard Navigation Bar -->
+<!-- Sub-page Navigation Bar (for tutorTable, sessionTable, attendance pages) -->
+<!-- Shows appropriate homepage button based on user's actual role -->
 <nav class="bg-orange-500 shadow-lg rounded-lg mb-6">
   <div class="container mx-auto px-4 py-3">
     <div class="flex justify-between items-center">
@@ -43,32 +44,19 @@
         <% } %>
       </div>
       
-      <!-- Navigation links (center) -->
+      <!-- Navigation links (center) - Show appropriate homepage based on role -->
       <div class="flex items-center space-x-6">
-        <!-- Tutor Homepage - only if user is tutor, lead, or developer -->
-        <% if (user && ['developer', 'lead', 'tutor'].includes(user.role)) { %>
+        <% if (user && ['developer', 'admin'].includes(user.role)) { %>
+        <!-- Admin Homepage -->
         <a
-          href="/tutHome"
+          href="/adminHome"
           class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
         >
-          <span class="text-xl group-hover:scale-110 transition-transform">📚</span>
-          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Tutor Homepage</span>
+          <span class="text-xl group-hover:scale-110 transition-transform">⭐</span>
+          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Admin Homepage</span>
         </a>
-        <% } %>
-        
-        <!-- Tutor Leader Homepage - only if user is lead or developer -->
-        <% if (user && ['developer', 'lead'].includes(user.role)) { %>
-        <a
-          href="/leadHome"
-          class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
-        >
-          <span class="text-xl group-hover:scale-110 transition-transform">🏆</span>
-          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Tutor Leader Homepage</span>
-        </a>
-        <% } %>
-        
-        <!-- Teacher Homepage - only if user is teacher -->
-        <% if (user && ['developer', 'teacher'].includes(user.role)) { %>
+        <% } else if (user && user.role === 'teacher') { %>
+        <!-- Teacher Homepage -->
         <a
           href="/teachHome"
           class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
@@ -76,16 +64,23 @@
           <span class="text-xl group-hover:scale-110 transition-transform">🍎</span>
           <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Teacher Homepage</span>
         </a>
-        <% } %>
-        
-        <!-- Admin Homepage - only if user is admin or higher -->
-        <% if (user && ['developer', 'admin'].includes(user.role)) { %>
+        <% } else if (user && user.role === 'lead') { %>
+        <!-- Tutor Leader Homepage -->
         <a
-          href="/adminHome"
+          href="/leadHome"
           class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
         >
-          <span class="text-xl group-hover:scale-110 transition-transform">⭐</span>
-          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Admin Homepage</span>
+          <span class="text-xl group-hover:scale-110 transition-transform">🏆</span>
+          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Tutor Leader Homepage</span>
+        </a>
+        <% } else { %>
+        <!-- Default: Leaderboard -->
+        <a
+          href="/"
+          class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
+        >
+          <span class="text-xl group-hover:scale-110 transition-transform">🏅</span>
+          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Leaderboard</span>
         </a>
         <% } %>
       </div>

@@ -1,27 +1,95 @@
-<!-- Navigation Bar -->
+<!-- Tutor Navigation Bar -->
 <nav class="bg-orange-500 shadow-lg rounded-lg mb-6">
   <div class="container mx-auto px-4 py-3">
-    <div class="flex justify-center items-center space-x-6">
-      <a
-        href="/"
-        class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
-      >
-        <span class="text-xl group-hover:scale-110 transition-transform">🏠</span>
-        <span
-          class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all"
-          >Home</span
+    <div class="flex justify-between items-center">
+      <!-- Developer role switcher (left) -->
+      <div class="flex items-center">
+        <% if (user && user.role === 'developer') { %>
+        <div class="relative" id="devRoleSwitcher">
+          <button 
+            id="devRoleBtn"
+            class="flex items-center gap-1 px-2 py-1 bg-purple-700 hover:bg-purple-800 rounded text-xs font-medium text-white transition-colors"
+            onclick="toggleDevMenu()"
+          >
+            🛠️ View As
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div 
+            id="devRoleMenu"
+            class="hidden absolute left-0 top-full mt-1 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50 min-w-32"
+          >
+            <a href="/stuHome" class="block px-3 py-2 text-gray-700 hover:bg-purple-100 text-sm">✏️ Student</a>
+            <a href="/tutHome" class="block px-3 py-2 text-gray-700 hover:bg-purple-100 text-sm">📚 Tutor</a>
+            <a href="/leadHome" class="block px-3 py-2 text-gray-700 hover:bg-purple-100 text-sm">🏆 Lead</a>
+            <a href="/teachHome" class="block px-3 py-2 text-gray-700 hover:bg-purple-100 text-sm">🍎 Teacher</a>
+            <a href="/adminHome" class="block px-3 py-2 text-gray-700 hover:bg-purple-100 text-sm">⭐ Admin</a>
+            <hr class="my-1 border-gray-200">
+            <a href="/admin/users" class="block px-3 py-2 text-gray-700 hover:bg-purple-100 text-sm">👥 User Roles</a>
+          </div>
+        </div>
+        <script>
+          function toggleDevMenu() {
+            document.getElementById('devRoleMenu').classList.toggle('hidden');
+          }
+          document.addEventListener('click', function(e) {
+            const switcher = document.getElementById('devRoleSwitcher');
+            if (switcher && !switcher.contains(e.target)) {
+              document.getElementById('devRoleMenu').classList.add('hidden');
+            }
+          });
+        </script>
+        <% } %>
+      </div>
+      
+      <!-- Navigation links (center) -->
+      <div class="flex items-center space-x-6">
+        <!-- Tutor Homepage -->
+        <a
+          href="/tutHome"
+          class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
         >
-      </a>
-      <a
-        href="/tutHome"
-        class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
-      >
-        <span class="text-xl group-hover:scale-110 transition-transform">📚</span>
-        <span
-          class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all"
-          >Tutor Homepage</span
+          <span class="text-xl group-hover:scale-110 transition-transform">📚</span>
+          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Tutor Homepage</span>
+        </a>
+        
+        <!-- Student Homepage -->
+        <a
+          href="/stuHome"
+          class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
         >
-      </a>
+          <span class="text-xl group-hover:scale-110 transition-transform">✏️</span>
+          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Student Homepage</span>
+        </a>
+        
+        <!-- Leaderboard -->
+        <a
+          href="/"
+          class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
+        >
+          <span class="text-xl group-hover:scale-110 transition-transform">🏅</span>
+          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Leaderboard</span>
+        </a>
+        
+        <!-- Tutor Leader Homepage - only if user is lead or higher -->
+        <% if (user && ['developer', 'admin', 'lead'].includes(user.role)) { %>
+        <a
+          href="/leadHome"
+          class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
+        >
+          <span class="text-xl group-hover:scale-110 transition-transform">🏆</span>
+          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Tutor Leader Homepage</span>
+        </a>
+        <% } %>
+      </div>
+      
+      <!-- Logout (right) -->
+      <div>
+        <a href="/auth/logout" class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-red-600 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out">
+          <span>Logout</span>
+        </a>
+      </div>
     </div>
   </div>
 </nav>

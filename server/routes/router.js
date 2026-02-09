@@ -3,7 +3,10 @@ const route = express.Router();
 const Entry = require('../model/entry');
 const Session = require('../model/session'); // Import the Session schema
 const Tutor = require('../model/tutor'); // Import the Tutor schema
+const TutoringRequest = require('../model/tutoringRequest'); // Import the TutoringRequest schema
+const Teacher = require('../model/teacher'); // Import the Teacher schema
 const nodemailer = require('nodemailer');
+const { requireRole } = require('../middleware/roleAuth'); // Import role middleware
 
 // assigning variable to the JSON file
 const gradeSelection = require('../model/grades.json');
@@ -48,7 +51,6 @@ route.get('/', async (req, res) => {
     res.render('homepage', {
       tutors: formattedTutors,
       top3: top3,
-      user: req.session.user || null,
     });
   } catch (error) {
     console.error('Error rendering homepage:', error);
@@ -56,13 +58,13 @@ route.get('/', async (req, res) => {
   }
 });
 
-// route to render classes, grades
-route.get('/tutHome', (req, res) => {
+// route to render classes, grades (tutor resources)
+route.get('/tutHome', requireRole('tutor'), (req, res) => {
   res.render('tutHome');
 });
 
-// route to student home page
-route.get('/stuHome', async (req, res) => {
+// route to student home page (accessible to all authenticated users)
+route.get('/stuHome', requireRole('student'), async (req, res) => {
   res.render('stuHome');
 });
 
@@ -135,6 +137,8 @@ route.post('/api/tutoringRequest', async (req, res) => {
       preferredDate,
       preferredPeriod,
       additionalNotes,
+      tutorId,
+      tutorName,
     } = req.body;
 
     // Validate required fields
@@ -155,30 +159,36 @@ route.post('/api/tutoringRequest', async (req, res) => {
       });
     }
 
+    // Get tutor email if tutorId is provided
+    let tutorEmail = null;
+    if (tutorId) {
+      const tutor = await Tutor.findById(tutorId);
+      if (tutor) {
+        tutorEmail = tutor.email;
+      }
+    }
+
     // Create new tutoring request
-    // This would typically be stored in a TutoringRequest model
-    // For now, we'll create a placeholder session
-    const newSession = new Session({
-      tutorFirstName: 'To Be Assigned',
-      tutorLastName: '',
-      tutorID: '0',
-      sessionDate: preferredDate,
-      sessionPeriod: preferredPeriod,
-      sessionPlace: 'To Be Determined',
+    const newRequest = new TutoringRequest({
+      studentEmail: studentEmail,
+      studentFirstName: req.session.firstName || 'Student',
+      studentLastName: req.session.lastName || '',
+      studentID: req.session.studentID || '',
+      tutorId: tutorId || null,
+      tutorName: tutorName || null,
+      tutorEmail: tutorEmail,
       subject: subject,
       class: className,
-      teacher: 'Not Specified',
-      focusOfSession: topic,
-      workAccomplished: additionalNotes || 'Not yet completed',
-      tuteeFirstName: req.session.firstName || 'Student',
-      tuteeLastName: req.session.lastName || 'User',
-      tuteeID: req.session.studentID || '0',
-      tuteeGrade: req.session.grade || '9',
+      topic: topic,
+      preferredDate: new Date(preferredDate),
+      preferredPeriod: preferredPeriod,
+      additionalNotes: additionalNotes || '',
+      status: 'pending',
     });
 
-    await newSession.save();
+    await newRequest.save();
 
-    res.json({ success: true });
+    res.json({ success: true, requestId: newRequest._id });
   } catch (error) {
     console.error('Error creating tutoring request:', error);
     res.status(500).json({
@@ -188,30 +198,108 @@ route.post('/api/tutoringRequest', async (req, res) => {
   }
 });
 
+// Get tutoring requests for a specific tutor (by tutor ID number)
+route.get('/api/tutor/requests', async (req, res) => {
+  try {
+    const tutorID = req.query.tutorID;
+
+    if (!tutorID) {
+      return res.status(400).json({
+        success: false,
+        error: 'Tutor ID is required',
+      });
+    }
+
+    // First find the tutor by their ID number to get their MongoDB _id
+    const tutor = await Tutor.findOne({ tutorID: parseInt(tutorID) });
+
+    if (!tutor) {
+      return res.status(404).json({
+        success: false,
+        error: 'Tutor not found',
+      });
+    }
+
+    // Find all requests for this tutor
+    const requests = await TutoringRequest.find({
+      tutorId: tutor._id,
+      status: { $in: ['pending', 'accepted'] },
+    }).sort({ createdAt: -1 });
+
+    res.json({ success: true, requests });
+  } catch (error) {
+    console.error('Error fetching tutor requests:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch requests',
+    });
+  }
+});
+
+// Update tutoring request status (accept/decline)
+route.post('/api/tutor/requests/:requestId/respond', async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const { status, responseMessage } = req.body;
+
+    if (!['accepted', 'declined'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid status. Must be "accepted" or "declined"',
+      });
+    }
+
+    const request = await TutoringRequest.findByIdAndUpdate(
+      requestId,
+      {
+        status: status,
+        responseMessage: responseMessage || '',
+        respondedAt: new Date(),
+      },
+      { new: true }
+    );
+
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        error: 'Request not found',
+      });
+    }
+
+    res.json({ success: true, request });
+  } catch (error) {
+    console.error('Error updating request:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update request',
+    });
+  }
+});
+
 // route to tutor leader home page
-route.get('/leadHome', async (req, res) => {
+route.get('/leadHome', requireRole('lead'), async (req, res) => {
   res.render('leadHome');
 });
 
 // route to teacher home page
-route.get('/teachHome', async (req, res) => {
+route.get('/teachHome', requireRole('teacher'), async (req, res) => {
   res.render('teachHome');
 });
 
 // route to admin home page
-route.get('/adminHome', async (req, res) => {
+route.get('/adminHome', requireRole('admin'), async (req, res) => {
   res.render('adminHome');
 });
 
-// route to a simple notification test page
-route.get('/notifications', (req, res) => {
+// route to a simple notification test page (lead and above)
+route.get('/notifications', requireRole('lead'), (req, res) => {
   res.render('notifications', {
     userEmail: req.session.email || '',
   });
 });
 
-// route to expertise form page
-route.get('/expertiseForm', async (req, res) => {
+// route to expertise form page (tutor and above)
+route.get('/expertiseForm', requireRole('tutor'), async (req, res) => {
   res.render('expertiseForm', {
     grades: gradeSelection,
     options: newReturningOptions,
@@ -224,13 +312,13 @@ route.get('/expertiseForm', async (req, res) => {
 // delegate all authentication to the auth.js router
 route.use('/auth', require('./auth'));
 
-// Route to render the tutor attendance
-route.get('/tutorAttendance', async (req, res) => {
+// Route to render the tutor attendance (tutor and above)
+route.get('/tutorAttendance', requireRole('tutor'), async (req, res) => {
   res.render('tutorAttendance');
 });
 
-// Route to render the tutor form
-route.get('/tutorForm', async (req, res) => {
+// Route to render the tutor form (tutor and above)
+route.get('/tutorForm', requireRole('tutor'), async (req, res) => {
   res.render('tutorForm');
 });
 
@@ -333,7 +421,8 @@ route.post('/submitExpertiseForm', async (req, res) => {
   }
 });
 
-route.get('/tutorTable', async (req, res) => {
+// Route to view tutor database (teacher and above)
+route.get('/tutorTable', requireRole('teacher'), async (req, res) => {
   try {
     const tutors = await Tutor.find().sort({ date: -1 });
 
@@ -360,7 +449,8 @@ route.get('/tutorTable', async (req, res) => {
   }
 });
 
-route.get('/sessionTable', async (req, res) => {
+// Route to view session database (teacher and above)
+route.get('/sessionTable', requireRole('teacher'), async (req, res) => {
   try {
     const sessions = await Session.find().sort({ date: -1 });
 
@@ -389,8 +479,8 @@ route.get('/sessionTable', async (req, res) => {
   }
 });
 
-// Route to render the attendance
-route.get('/attendance', async (req, res) => {
+// Route to render the attendance (lead and above)
+route.get('/attendance', requireRole('lead'), async (req, res) => {
   try {
     const tutors = await Tutor.find().sort({ date: -1 });
 
