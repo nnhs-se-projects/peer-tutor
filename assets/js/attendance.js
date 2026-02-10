@@ -234,7 +234,10 @@ function updateSubmitState() {
   }
 
   const isLunchComplete = lunchVal => {
-    const lunchRows = rows.filter(row => row.getAttribute('data-lunch') === lunchVal);
+    // Only consider rows that are visible (available today and matching lunch period)
+    const lunchRows = rows.filter(
+      row => row.getAttribute('data-lunch') === lunchVal && row.style.display !== 'none'
+    );
     return lunchRows.length > 0 && lunchRows.every(row => row.dataset.attendanceStatus);
   };
 
@@ -261,7 +264,10 @@ function buildAttendancePayload() {
   if (!selectedLunch) return null;
 
   const rows = Array.from(document.querySelectorAll('.tutor-row')).filter(
-    row => row.getAttribute('data-lunch') === selectedLunch && row.dataset.attendanceStatus
+    row =>
+      row.getAttribute('data-lunch') === selectedLunch &&
+      row.style.display !== 'none' &&
+      row.dataset.attendanceStatus
   );
 
   if (rows.length === 0) return null;

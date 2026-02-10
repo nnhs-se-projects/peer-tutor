@@ -160,19 +160,21 @@
   
   .filter-controls {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     margin-bottom: 20px;
     background-color: #f0f8ff;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   }
-  
-  .date-display {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #1976d2;
+
+  .date-subtitle {
+    font-size: 1.15rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    text-align: center;
+    margin-bottom: 24px;
   }
   
   .filter-dropdown {
@@ -277,12 +279,12 @@
 <!-- Main Site -->
 <main class="container mx-auto px-4 py-8 flex-grow">
   <div class="container mx-auto px-4" style="max-width: 1400px;">
-    <h1 class="text-4xl font-bold mb-8 text-center text-white">
+    <h1 class="text-4xl font-bold mb-2 text-center text-white">
       Tutor Attendance Tracker
     </h1>
+    <p class="date-subtitle" id="currentDate"></p>
     
     <div class="filter-controls">
-      <div class="date-display" id="currentDate"></div>
       <div class="filter-section">
         <label for="lunchFilter" class="mr-2">Lunch Period:</label>
         <select id="lunchFilter" class="filter-dropdown">
@@ -360,49 +362,38 @@
 <script src="/js/attendance.js"></script>
 
 <script>
-  // Debug script to check why lunch filtering isn't working
   document.addEventListener('DOMContentLoaded', function() {
-    console.log('Debug script loaded');
-    
-    // Check if lunch filter element exists
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const todayName = dayNames[now.getDay()];
+
+    const dateEl = document.getElementById('currentDate');
+    if (dateEl) {
+      dateEl.innerHTML = '<span style="color: #FF8800; font-weight: 700;">' + todayName + '</span>, ' + now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+
     const lunchFilter = document.getElementById('lunchFilter');
-    console.log('Lunch filter element:', lunchFilter);
-    
-    // Function to filter rows by lunch period
-    function filterByLunchPeriod(selectedPeriod) {
+
+    // Filter rows by lunch period AND current day availability (client-side safety net)
+    function filterRows(selectedPeriod) {
       const rows = document.querySelectorAll('.tutor-row');
-      console.log('Filtering by lunch period:', selectedPeriod);
-      console.log('Found tutor rows:', rows.length);
-      
       rows.forEach(row => {
         const lunchPeriod = row.getAttribute('data-lunch');
-        console.log('Tutor row lunch period:', lunchPeriod);
-        
-        if (lunchPeriod === selectedPeriod) {
-          row.style.display = '';
-          console.log('Showing row with lunch period:', lunchPeriod);
-        } else {
-          row.style.display = 'none';
-          console.log('Hiding row with lunch period:', lunchPeriod);
-        }
+        const days = (row.getAttribute('data-days') || '').split(',').map(d => d.trim());
+        const matchesLunch = lunchPeriod === selectedPeriod;
+        const matchesDay = days.includes(todayName);
+
+        row.style.display = (matchesLunch && matchesDay) ? '' : 'none';
       });
     }
-    
+
     if (lunchFilter) {
-      // Add event listener for changes
       lunchFilter.addEventListener('change', function() {
-        console.log('Lunch filter changed to:', this.value);
-        filterByLunchPeriod(this.value);
+        filterRows(this.value);
       });
-      
-      // Apply initial filter on page load (default is period 4)
-      filterByLunchPeriod(lunchFilter.value);
-      
-      // Log all initial lunch periods
-      const rows = document.querySelectorAll('.tutor-row');
-      rows.forEach(row => {
-        console.log('Initial lunch period:', row.getAttribute('data-lunch'));
-      });
+
+      // Apply initial filter on page load
+      filterRows(lunchFilter.value);
     }
   });
 </script>

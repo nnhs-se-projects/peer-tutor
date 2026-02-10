@@ -484,8 +484,19 @@ route.get('/attendance', requireRole('lead'), async (req, res) => {
   try {
     const tutors = await Tutor.find().sort({ date: -1 });
 
+    // Determine the current day of the week (in Central Time)
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+    const todayName = dayNames[now.getDay()];
+
+    // Only include tutors who are available on today's day of the week
+    const filteredTutors = tutors.filter(tutor => {
+      const days = Array.isArray(tutor.daysAvailable) ? tutor.daysAvailable : [];
+      return days.includes(todayName);
+    });
+
     // Convert MongoDB objects to objects formatted for the EJS template
-    const tutorsFormatted = tutors.map(tutor => {
+    const tutorsFormatted = filteredTutors.map(tutor => {
       return {
         firstName: tutor.tutorFirstName,
         lastName: tutor.tutorLastName,
@@ -496,7 +507,7 @@ route.get('/attendance', requireRole('lead'), async (req, res) => {
       };
     });
 
-    res.render('attendance', { tutors: tutorsFormatted });
+    res.render('attendance', { tutors: tutorsFormatted, currentDay: todayName });
   } catch (error) {
     console.error('Error fetching tutors:', error);
     res.status(500).send('Error fetching tutors');
@@ -865,3 +876,4 @@ route.post('/api/notifications/absence/bulk', async (req, res) => {
 });
 
 module.exports = route;
+
