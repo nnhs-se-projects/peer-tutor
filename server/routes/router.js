@@ -498,8 +498,11 @@ route.get('/attendance', requireRole('lead'), async (req, res) => {
     // Convert MongoDB objects to objects formatted for the EJS template
     const tutorsFormatted = filteredTutors.map(tutor => {
       return {
-        firstName: tutor.tutorFirstName,
-        lastName: tutor.tutorLastName,
+        _id: tutor._id,
+        tutorFirstName: tutor.tutorFirstName,
+        tutorLastName: tutor.tutorLastName,
+        tutorID: tutor.tutorID,
+        email: tutor.email,
         date: tutor.date,
         attendance: tutor.attendance,
         daysAvailable: Array.isArray(tutor.daysAvailable) ? tutor.daysAvailable : [],
@@ -876,4 +879,3 @@ route.post('/api/notifications/absence/bulk', async (req, res) => {
 });
 
 module.exports = route;
-

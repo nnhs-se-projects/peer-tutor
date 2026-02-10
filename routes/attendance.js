@@ -22,6 +22,8 @@ router.get('/', async (req, res) => {
         _id: tutor._id,
         tutorFirstName: tutor.tutorFirstName || 'Unknown',
         tutorLastName: tutor.tutorLastName || 'Unknown',
+        tutorID: tutor.tutorID,
+        email: tutor.email,
         attendance: tutor.attendance || 0,
         daysAvailable: Array.isArray(tutor.daysAvailable) ? tutor.daysAvailable : [],
         lunchPeriod: tutor.lunchPeriod ? tutor.lunchPeriod.toString() : 'Not Set',

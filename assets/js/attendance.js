@@ -66,25 +66,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // Add event listeners to attendance buttons
-  document.querySelectorAll('.absent-button').forEach(button => {
+  // Add event listeners to attendance buttons (UI toggle only; DB update happens on submit)
+  document.querySelectorAll('.absent-button, .present-button, .makeup-button').forEach(button => {
     button.addEventListener('click', () => {
       disableOtherButtons(button);
-      updateAttendance(button.dataset.id, 1);
-    });
-  });
-
-  document.querySelectorAll('.present-button').forEach(button => {
-    button.addEventListener('click', () => {
-      disableOtherButtons(button);
-      updateAttendance(button.dataset.id, 0);
-    });
-  });
-
-  document.querySelectorAll('.makeup-button').forEach(button => {
-    button.addEventListener('click', () => {
-      disableOtherButtons(button);
-      updateAttendance(button.dataset.id, -1);
     });
   });
 
@@ -195,30 +180,42 @@ function disableOtherButtons(clickedButton) {
   updateSubmitState();
 }
 
-// Function to update attendance
-async function updateAttendance(tutorId, change) {
-  try {
-    const response = await fetch(`/updateAttendance/${tutorId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ change }),
-    });
+// Batch-update attendance for all tutors in the submitted payload.
+// Called only when the submit button is confirmed.
+async function updateAttendanceBatch(payload) {
+  if (!payload || !payload.tutors) return;
 
-    if (response.ok) {
-      const updatedData = await response.json();
-      // Update the "Days Missed" column in the table
-      if (document.getElementById(`daysMissed-${tutorId}`)) {
-        document.getElementById(`daysMissed-${tutorId}`).textContent = updatedData.attendance;
+  for (const tutor of payload.tutors) {
+    // Determine the change: absent = +1, makeup = -1, present = 0
+    let change = 0;
+    if (tutor.status === 'absent') change = 1;
+    else if (tutor.status === 'makeup') change = -1;
+
+    if (change === 0) continue; // present doesn't affect days missed
+
+    try {
+      const response = await fetch(`/updateAttendance/${tutor._id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ change }),
+      });
+
+      if (response.ok) {
+        const updatedData = await response.json();
+        // Update the "Days Missed" column in the table
+        const cell = document.getElementById(`daysMissed-${tutor._id}`);
+        if (cell) cell.textContent = updatedData.attendance;
+      } else {
+        console.error(`Failed to update attendance for ${tutor._id}`);
       }
-    } else {
-      console.error('Failed to update attendance');
+    } catch (error) {
+      console.error(`Error updating attendance for ${tutor._id}:`, error);
     }
-  } catch (error) {
-    console.error('Error updating attendance:', error);
   }
 }
+
+// Expose so the submit handler can call it
+window.updateAttendanceBatch = updateAttendanceBatch;
 
 // Disable submit until every tutor row has a selected attendance status
 function updateSubmitState() {
@@ -274,11 +271,13 @@ function buildAttendancePayload() {
 
   const tutors = rows.map(row => {
     const tutorId = row.getAttribute('data-tutor-id');
+    const mongoId = row.getAttribute('data-mongo-id') || '';
     const firstName = row.getAttribute('data-first-name') || '';
     const lastName = row.getAttribute('data-last-name') || '';
     const email = row.getAttribute('data-email') || '';
 
     return {
+      _id: mongoId,
       tutorId: tutorId ? Number(tutorId) : undefined,
       tutorFirstName: firstName,
       tutorLastName: lastName,

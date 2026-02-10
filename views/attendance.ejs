@@ -332,6 +332,7 @@
               data-lunch="<%= tutor.lunchPeriod %>"
               data-days="<%= tutor.daysAvailable ? tutor.daysAvailable.join(',') : '' %>"
               data-tutor-id="<%= tutor.tutorID %>"
+              data-mongo-id="<%= tutor._id %>"
               data-email="<%= tutor.email %>"
               data-first-name="<%= tutor.tutorFirstName || tutor.firstName || '' %>"
               data-last-name="<%= tutor.tutorLastName || tutor.lastName || '' %>"
@@ -449,14 +450,19 @@
         }
 
         if (ok) {
-          ok.addEventListener('click', function () {
+          ok.addEventListener('click', async function () {
             if (window.buildAttendancePayload) {
               const payload = window.buildAttendancePayload();
               if (!payload) {
                 console.warn('No attendance payload generated. Ensure a lunch is selected and all tutors are marked.');
               } else {
+                // Update each tutor's days-missed in the database
+                if (window.updateAttendanceBatch) {
+                  await window.updateAttendanceBatch(payload);
+                }
+                // Log the attendance submission record
                 if (window.sendAttendancePayload) {
-                  window.sendAttendancePayload(payload);
+                  await window.sendAttendancePayload(payload);
                 }
                 console.log('Attendance submission payload:', payload);
               }
