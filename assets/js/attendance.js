@@ -70,21 +70,21 @@ document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('.absent-button').forEach(button => {
     button.addEventListener('click', () => {
       disableOtherButtons(button);
-      updateAttendance(button.dataset.id, -1, 'daysMissed');
+      updateAttendance(button.dataset.id, 1);
     });
   });
 
   document.querySelectorAll('.present-button').forEach(button => {
     button.addEventListener('click', () => {
       disableOtherButtons(button);
-      updateAttendance(button.dataset.id, 0, null);
+      updateAttendance(button.dataset.id, 0);
     });
   });
 
   document.querySelectorAll('.makeup-button').forEach(button => {
     button.addEventListener('click', () => {
       disableOtherButtons(button);
-      updateAttendance(button.dataset.id, 1, null);
+      updateAttendance(button.dataset.id, -1);
     });
   });
 
@@ -196,26 +196,21 @@ function disableOtherButtons(clickedButton) {
 }
 
 // Function to update attendance
-async function updateAttendance(tutorId, change, columnToUpdate) {
+async function updateAttendance(tutorId, change) {
   try {
     const response = await fetch(`/updateAttendance/${tutorId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ change, columnToUpdate }),
+      body: JSON.stringify({ change }),
     });
 
     if (response.ok) {
       const updatedData = await response.json();
-      // Update the attendance value in the table
-      if (document.getElementById(`attendance-${tutorId}`)) {
-        document.getElementById(`attendance-${tutorId}`).textContent = updatedData.attendance;
-      }
-
-      // Update the "Days Missed" column if applicable
-      if (columnToUpdate === 'daysMissed' && document.getElementById(`daysMissed-${tutorId}`)) {
-        document.getElementById(`daysMissed-${tutorId}`).textContent = updatedData.daysMissed;
+      // Update the "Days Missed" column in the table
+      if (document.getElementById(`daysMissed-${tutorId}`)) {
+        document.getElementById(`daysMissed-${tutorId}`).textContent = updatedData.attendance;
       }
     } else {
       console.error('Failed to update attendance');
@@ -312,4 +307,3 @@ async function sendAttendancePayload(payload) {
 }
 
 window.sendAttendancePayload = sendAttendancePayload;
-

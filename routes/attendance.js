@@ -41,12 +41,18 @@ router.get('/', async (req, res) => {
 router.post('/updateAttendance', async (req, res) => {
   const { tutorId, change } = req.body;
   try {
-    // Use 'attendance' field to track days missed
+    // Use 'attendance' field to track days missed (positive = absences)
     const updatedTutor = await Tutor.findByIdAndUpdate(
       tutorId,
       { $inc: { attendance: change } },
       { new: true } // Return the updated document
     );
+
+    // Ensure attendance doesn't go below 0
+    if (updatedTutor.attendance < 0) {
+      updatedTutor.attendance = 0;
+      await updatedTutor.save();
+    }
 
     res.status(200).json({
       success: true,
@@ -98,11 +104,17 @@ router.post('/logSubmission', async (req, res) => {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 date: new Date(date).toLocaleDateString(),
-                tutors: absentTutors.map(t => ({
-                  email: t.email,
-                  name: `${t.tutorFirstName} ${t.tutorLastName}`,
-                  absenceCount: 1, // Could be enhanced to fetch actual count from Tutor model
-                })),
+                tutors: await Promise.all(
+                  absentTutors.map(async t => {
+                    // Look up actual absence count from the Tutor model
+                    const tutorRecord = await Tutor.findOne({ tutorID: t.tutorId });
+                    return {
+                      email: t.email,
+                      name: `${t.tutorFirstName} ${t.tutorLastName}`,
+                      absenceCount: tutorRecord ? tutorRecord.attendance || 0 : 1,
+                    };
+                  })
+                ),
               }),
             }
           );

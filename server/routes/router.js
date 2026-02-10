@@ -506,7 +506,7 @@ route.get('/attendance', requireRole('lead'), async (req, res) => {
 route.post('/updateAttendance/:id', async (req, res) => {
   try {
     const tutorId = req.params.id;
-    const { change, columnToUpdate } = req.body;
+    const { change } = req.body;
 
     // Find the tutor by ID
     const tutor = await Tutor.findById(tutorId);
@@ -514,20 +514,15 @@ route.post('/updateAttendance/:id', async (req, res) => {
       return res.status(404).json({ error: 'Tutor not found' });
     }
 
-    // Update attendance
+    // Update attendance (positive = absences, negative = makeups)
     tutor.attendance += change;
 
-    // Update "Days Missed" if the columnToUpdate is "daysMissed"
-    if (columnToUpdate === 'daysMissed') {
-      tutor.daysMissed = (tutor.daysMissed || 0) + 1;
-    }
+    // Ensure attendance doesn't go below 0
+    if (tutor.attendance < 0) tutor.attendance = 0;
 
-    await tutor.save(); // Save the updated tutor
+    await tutor.save();
 
-    res.json({
-      attendance: tutor.attendance,
-      daysMissed: tutor.daysMissed || 0,
-    }); // Send the updated data back to the client
+    res.json({ attendance: tutor.attendance });
   } catch (error) {
     console.error('Error updating attendance:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -716,6 +711,156 @@ route.post('/api/admin/users/:id/role', requireRole('admin'), async (req, res) =
   } catch (error) {
     console.error('Error updating user role:', error);
     res.status(500).json({ success: false, error: 'Failed to update role' });
+  }
+});
+
+// ==================== ABSENCE NOTIFICATION API ENDPOINTS ====================
+
+// API endpoint to get tutors with absences above a threshold
+route.get('/api/tutors/absences', async (req, res) => {
+  try {
+    const minAbsences = parseInt(req.query.min) || 1;
+
+    // attendance field stores positive absence count
+    const tutors = await Tutor.find({ attendance: { $gte: minAbsences } }).sort({ attendance: -1 });
+
+    const results = tutors.map(tutor => ({
+      name: `${tutor.tutorFirstName || 'Unknown'} ${tutor.tutorLastName || 'Tutor'}`.trim(),
+      email: tutor.email,
+      absenceCount: tutor.attendance || 0,
+    }));
+
+    res.json({ success: true, tutors: results });
+  } catch (error) {
+    console.error('Error fetching tutors with absences:', error);
+    res.status(500).json({ success: false, error: 'Failed to load absent tutors' });
+  }
+});
+
+// API endpoint to send absence notification email(s)
+route.post('/api/notifications/absence', async (req, res) => {
+  const { date, tutors: tutorList } = req.body;
+
+  if (!tutorList || !Array.isArray(tutorList) || tutorList.length === 0) {
+    return res.status(400).json({ success: false, error: 'No tutors provided' });
+  }
+
+  const senderEmail = process.env.EMAIL_SENDER;
+  const senderPassword = process.env.EMAIL_PASSWORD;
+
+  if (!senderEmail || !senderPassword) {
+    return res.status(500).json({
+      success: false,
+      error: 'Email credentials not configured. Set EMAIL_SENDER and EMAIL_PASSWORD.',
+    });
+  }
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: senderEmail, pass: senderPassword },
+  });
+
+  const sent = [];
+  const failed = [];
+
+  for (const tutor of tutorList) {
+    try {
+      const subject = `Peer Tutoring – Absence Notice (${tutor.absenceCount} missed session${tutor.absenceCount !== 1 ? 's' : ''})`;
+      const message = [
+        `Hi ${tutor.name},`,
+        '',
+        `Our records show you have ${tutor.absenceCount} unexcused absence${tutor.absenceCount !== 1 ? 's' : ''} as of ${date || new Date().toLocaleDateString()}.`,
+        '',
+        'Please reach out to your tutor lead or program coordinator if you believe this is an error, or to arrange a makeup session.',
+        '',
+        'Thank you,',
+        'Peer Tutoring Program',
+      ].join('\n');
+
+      await transporter.sendMail({
+        from: senderEmail,
+        to: tutor.email,
+        subject,
+        text: message,
+      });
+
+      sent.push({ email: tutor.email, name: tutor.name });
+    } catch (err) {
+      console.error(`Failed to email ${tutor.email}:`, err.message);
+      failed.push({ email: tutor.email, name: tutor.name, reason: err.message });
+    }
+  }
+
+  res.json({ success: true, results: { sent, failed } });
+});
+
+// API endpoint to send bulk absence notifications based on threshold
+route.post('/api/notifications/absence/bulk', async (req, res) => {
+  try {
+    const minAbsences = parseInt(req.body.minAbsences) || 1;
+
+    const tutors = await Tutor.find({ attendance: { $gte: minAbsences } });
+
+    if (tutors.length === 0) {
+      return res.json({ success: true, message: 'No tutors found above the absence threshold.' });
+    }
+
+    const senderEmail = process.env.EMAIL_SENDER;
+    const senderPassword = process.env.EMAIL_PASSWORD;
+
+    if (!senderEmail || !senderPassword) {
+      return res.status(500).json({
+        success: false,
+        error: 'Email credentials not configured. Set EMAIL_SENDER and EMAIL_PASSWORD.',
+      });
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: senderEmail, pass: senderPassword },
+    });
+
+    const dateStr = new Date().toLocaleDateString();
+    let sentCount = 0;
+    let failedCount = 0;
+
+    for (const tutor of tutors) {
+      try {
+        const name = `${tutor.tutorFirstName} ${tutor.tutorLastName}`.trim();
+        const absences = tutor.attendance || 0;
+        const subject = `Peer Tutoring – Absence Notice (${absences} missed session${absences !== 1 ? 's' : ''})`;
+        const message = [
+          `Hi ${name},`,
+          '',
+          `Our records show you have ${absences} unexcused absence${absences !== 1 ? 's' : ''} as of ${dateStr}.`,
+          '',
+          'Please reach out to your tutor lead or program coordinator if you believe this is an error, or to arrange a makeup session.',
+          '',
+          'Thank you,',
+          'Peer Tutoring Program',
+        ].join('\n');
+
+        await transporter.sendMail({
+          from: senderEmail,
+          to: tutor.email,
+          subject,
+          text: message,
+        });
+
+        sentCount++;
+      } catch (err) {
+        console.error(`Failed to email ${tutor.email}:`, err.message);
+        failedCount++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Sent ${sentCount} notification(s)${failedCount > 0 ? `, ${failedCount} failed` : ''}.`,
+    });
+  } catch (error) {
+    console.error('Error sending bulk absence notifications:', error);
+    res.status(500).json({ success: false, error: 'Failed to send bulk notifications' });
   }
 });
 
