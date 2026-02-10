@@ -82,11 +82,55 @@ router.post('/logSubmission', async (req, res) => {
       });
     }
 
+    // Build a timezone-safe date range for the calendar day.
+    // The client sends YYYY-MM-DD; appending T12:00:00 avoids the
+    // UTC-midnight rollback that shifts the date in Central Time.
+    const safeDateStr = date.includes('T') ? date : date + 'T12:00:00';
+    const parsedDate = new Date(safeDateStr);
+    const centralDateStr = parsedDate.toLocaleDateString('en-US', { timeZone: 'America/Chicago' });
+    const startOfDay = new Date(centralDateStr + ' 00:00:00 CST');
+    const endOfDay = new Date(centralDateStr + ' 23:59:59 CST');
+
+    // ---- Diff against the previously saved record ----
+    const existingRecord = await Attendance.findOne({
+      date: { $gte: startOfDay, $lte: endOfDay },
+      lunchPeriod: parseInt(lunchPeriod),
+    });
+
+    // Build a map of tutorId → old status from the existing record
+    const oldStatuses = {}; // keyed by tutorId (number)
+    if (existingRecord && Array.isArray(existingRecord.tutors)) {
+      existingRecord.tutors.forEach(t => {
+        oldStatuses[t.tutorId] = t.status;
+      });
+    }
+
+    // Helper: convert status to its days-missed weight
+    const weight = s => (s === 'absent' ? 1 : s === 'makeup' ? -1 : 0);
+
+    // Update each tutor's attendance (days missed) based on the diff
+    for (const t of tutors) {
+      const oldStatus = oldStatuses[t.tutorId] || 'present';
+      const newStatus = t.status;
+      const change = weight(newStatus) - weight(oldStatus);
+      if (change === 0) continue;
+
+      // Find the Tutor document by their numeric tutorID field
+      const tutorDoc = await Tutor.findOne({ tutorID: t.tutorId });
+      if (tutorDoc) {
+        tutorDoc.attendance = Math.max(0, (tutorDoc.attendance || 0) + change);
+        await tutorDoc.save();
+      }
+    }
+
     // Create or update attendance record for this date and lunch period
     const attendanceRecord = await Attendance.findOneAndUpdate(
-      { date: new Date(date), lunchPeriod: parseInt(lunchPeriod) },
       {
-        date: new Date(date),
+        date: { $gte: startOfDay, $lte: endOfDay },
+        lunchPeriod: parseInt(lunchPeriod),
+      },
+      {
+        date: startOfDay,
         lunchPeriod: parseInt(lunchPeriod),
         tutors: tutors,
       },
@@ -202,6 +246,17 @@ router.post('/updateTutorStatus', async (req, res) => {
       });
     }
 
+    // Fetch current record to find the old status for diffing
+    const currentRecord = await Attendance.findOne({
+      _id: attendanceId,
+      'tutors.tutorId': tutorId,
+    });
+    let oldStatus = 'present';
+    if (currentRecord && Array.isArray(currentRecord.tutors)) {
+      const tutorEntry = currentRecord.tutors.find(t => t.tutorId === tutorId);
+      if (tutorEntry) oldStatus = tutorEntry.status;
+    }
+
     // Find and update the specific tutor's status in the attendance record
     const updatedRecord = await Attendance.findOneAndUpdate(
       {
@@ -219,6 +274,17 @@ router.post('/updateTutorStatus', async (req, res) => {
         success: false,
         error: 'Attendance record or tutor not found',
       });
+    }
+
+    // Update the Tutor model's days-missed if the status actually changed
+    const weight = s => (s === 'absent' ? 1 : s === 'makeup' ? -1 : 0);
+    const change = weight(newStatus) - weight(oldStatus);
+    if (change !== 0) {
+      const tutorDoc = await Tutor.findOne({ tutorID: tutorId });
+      if (tutorDoc) {
+        tutorDoc.attendance = Math.max(0, (tutorDoc.attendance || 0) + change);
+        await tutorDoc.save();
+      }
     }
 
     console.log(`Updated tutor ${tutorId} status to ${newStatus} in attendance ${attendanceId}`);
@@ -256,8 +322,24 @@ router.post('/bulkUpdateStatus', async (req, res) => {
       }
     }
 
+    // Fetch the current attendance record so we know each tutor's old status
+    const currentRecord = await Attendance.findById(attendanceId);
+    if (!currentRecord) {
+      return res.status(404).json({ success: false, error: 'Attendance record not found' });
+    }
+
+    // Build a map of subdoc _id → { tutorId, status } from the existing record
+    const oldTutorMap = {};
+    if (Array.isArray(currentRecord.tutors)) {
+      currentRecord.tutors.forEach(t => {
+        oldTutorMap[t._id.toString()] = { tutorId: t.tutorId, status: t.status };
+      });
+    }
+
+    // Helper: convert status to its days-missed weight
+    const weight = s => (s === 'absent' ? 1 : s === 'makeup' ? -1 : 0);
+
     // Update each tutor's status using MongoDB _id for matching
-    // The frontend now sends the subdocument _id as tutorId
     let updatedCount = 0;
     for (const update of updates) {
       console.log(
@@ -279,6 +361,22 @@ router.post('/bulkUpdateStatus', async (req, res) => {
       if (result) {
         updatedCount++;
         console.log(`Updated tutor ${update.tutorId} to status ${update.newStatus}`);
+
+        // ---- Update the Tutor model's days-missed (attendance) field ----
+        const oldInfo = oldTutorMap[update.tutorId];
+        if (oldInfo) {
+          const change = weight(update.newStatus) - weight(oldInfo.status);
+          if (change !== 0) {
+            const tutorDoc = await Tutor.findOne({ tutorID: oldInfo.tutorId });
+            if (tutorDoc) {
+              tutorDoc.attendance = Math.max(0, (tutorDoc.attendance || 0) + change);
+              await tutorDoc.save();
+              console.log(
+                `Updated Tutor ${tutorDoc.tutorID} days missed by ${change} → ${tutorDoc.attendance}`
+              );
+            }
+          }
+        }
       } else {
         console.log(`Tutor ${update.tutorId} not found in attendance record ${attendanceId}`);
       }

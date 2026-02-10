@@ -76,11 +76,19 @@ document.addEventListener('DOMContentLoaded', function () {
   // Re-evaluate submit availability when lunch period selection changes
   const lunchFilter = document.getElementById('lunchFilter');
   if (lunchFilter) {
-    lunchFilter.addEventListener('change', updateSubmitState);
+    lunchFilter.addEventListener('change', () => {
+      updateSubmitState();
+      loadSavedAttendance(lunchFilter.value);
+    });
   }
 
   // Initialize submit button state based on whether every row has a selection
   updateSubmitState();
+
+  // Load any previously saved attendance for today + the currently selected lunch
+  if (lunchFilter) {
+    loadSavedAttendance(lunchFilter.value);
+  }
 
   // Animation for table rows on load
   const rows = document.querySelectorAll('#studentTable tbody tr');
@@ -180,38 +188,67 @@ function disableOtherButtons(clickedButton) {
   updateSubmitState();
 }
 
-// Batch-update attendance for all tutors in the submitted payload.
-// Called only when the submit button is confirmed.
-async function updateAttendanceBatch(payload) {
-  if (!payload || !payload.tutors) return;
+// Fetch previously saved attendance for today + lunchPeriod and pre-select buttons
+async function loadSavedAttendance(lunchPeriod) {
+  if (!lunchPeriod) return;
 
-  for (const tutor of payload.tutors) {
-    // Determine the change: absent = +1, makeup = -1, present = 0
-    let change = 0;
-    if (tutor.status === 'absent') change = 1;
-    else if (tutor.status === 'makeup') change = -1;
+  try {
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const dateStr = `${yyyy}-${mm}-${dd}`;
 
-    if (change === 0) continue; // present doesn't affect days missed
+    const res = await fetch(`/attendance/getAttendance?date=${dateStr}&lunchPeriod=${lunchPeriod}`);
+    if (!res.ok) return;
 
-    try {
-      const response = await fetch(`/updateAttendance/${tutor._id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ change }),
+    const json = await res.json();
+    if (!json.success || !json.data || !Array.isArray(json.data.tutors)) return;
+
+    // Build a map of tutorId → saved status
+    const savedStatuses = {};
+    json.data.tutors.forEach(t => {
+      savedStatuses[t.tutorId] = t.status; // 'present' | 'absent' | 'makeup'
+    });
+
+    // Walk every visible tutor row and pre-select the matching button
+    document.querySelectorAll('.tutor-row').forEach(row => {
+      const tutorId = Number(row.getAttribute('data-tutor-id'));
+      const savedStatus = savedStatuses[tutorId];
+      if (!savedStatus) return;
+
+      const buttons = row.querySelectorAll('.absent-button, .present-button, .makeup-button');
+      buttons.forEach(btn => {
+        if (btn.dataset.action === savedStatus) {
+          btn.classList.add('button-selected');
+          btn.classList.remove('button-disabled');
+        } else {
+          btn.classList.add('button-disabled');
+          btn.classList.remove('button-selected');
+        }
       });
+      row.dataset.attendanceStatus = savedStatus;
+    });
 
-      if (response.ok) {
-        const updatedData = await response.json();
-        // Update the "Days Missed" column in the table
-        const cell = document.getElementById(`daysMissed-${tutor._id}`);
-        if (cell) cell.textContent = updatedData.attendance;
-      } else {
-        console.error(`Failed to update attendance for ${tutor._id}`);
-      }
-    } catch (error) {
-      console.error(`Error updating attendance for ${tutor._id}:`, error);
-    }
+    updateSubmitState();
+  } catch (err) {
+    console.warn('Could not load saved attendance:', err);
   }
+}
+
+// Helper: convert a status string to its numeric weight for days missed
+function statusToWeight(status) {
+  if (status === 'absent') return 1;
+  if (status === 'makeup') return -1;
+  return 0; // 'present' or undefined
+}
+
+// Attendance diff logic is now handled server-side in logSubmission.
+// This function is kept as a no-op so existing submit handlers don't error.
+async function updateAttendanceBatch(payload) {
+  // Server-side logSubmission now handles diffing old vs new statuses
+  // and updating each Tutor's attendance field automatically.
+  return;
 }
 
 // Expose so the submit handler can call it
@@ -286,8 +323,14 @@ function buildAttendancePayload() {
     };
   });
 
+  // Send a stable YYYY-MM-DD date so logSubmission always matches the same record
+  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+
   return {
-    date: new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }),
+    date: `${yyyy}-${mm}-${dd}`,
     lunchPeriod: Number(selectedLunch),
     tutors,
   };
