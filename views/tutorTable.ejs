@@ -166,7 +166,14 @@
       Tutor Database Table
     </h1>
     
-    <div class="flex justify-end mb-4">
+    <div class="flex justify-between mb-4">
+      <div>
+        <% if (user && ['developer', 'admin'].includes(user.role)) { %>
+        <a href="/expertiseForm" class="export-btn" style="text-decoration: none; background-color: #2e7d32;">
+          <span class="export-icon">➕</span> Add Tutor
+        </a>
+        <% } %>
+      </div>
       <button id="exportBtn" class="export-btn">
         <span class="export-icon">📥</span> Export to Text File
       </button>
