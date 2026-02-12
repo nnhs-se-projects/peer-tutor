@@ -1,15 +1,22 @@
 /**
- * Import script: Google Sheets CSV → MongoDB
+ * Import script: Peer Tutor Google Sheets CSV → MongoDB
+ *
+ * Handles TWO CSV formats (auto-detected from headers):
+ *
+ * ── FORMAT 1: Attendance sheets ─────────────────────────────────────────
+ *   Filename:  "… 2026 Peer Tutors - S2 Period 4.csv"
+ *   Layout:    LAST | FIRST | ID | Grade | N/R | (blank) | M T W Th F | (blank) | date cols…
+ *   Creates:   Tutor docs + Attendance docs (grouped by date + period)
+ *
+ * ── FORMAT 2: Tutor Expertise sheets ────────────────────────────────────
+ *   Filename:  "… Peer Tutors - Tutor Expertise.csv"
+ *   Layout:    LAST | FIRST NAME | G | N/V | LUNCH | MATH | SCIENCE | ENGLISH |
+ *              HISTORY | WORLD LANGUAGE | ELECTIVE | DAYS
+ *   Creates:   Tutor docs (with classes populated) or updates existing tutors' classes
  *
  * Usage:
- *   1. Export each Google Sheet tab as a .csv file into scripts/data/
- *   2. Update the CSV_FILES paths and COLUMN_MAP mappings below
- *   3. Run:  node scripts/import-from-csv.js
- *
- * This script will:
- *   - Parse each CSV
- *   - Create Tutor, Session, Tutee, and Attendance documents
- *   - Link Session ObjectIds into Tutor.sessionHistory and Tutee.sessionHistory
+ *   1. Export each Google Sheet tab as .csv into  scripts/data/
+ *   2. Run:  node scripts/import-from-csv.js
  */
 
 require('dotenv').config();
@@ -20,30 +27,32 @@ const connectDB = require('../server/database/connection');
 
 // ── Models ──────────────────────────────────────────────────────────────────
 const Tutor = require('../server/model/tutor');
-const Session = require('../server/model/session');
-const Tutee = require('../server/model/tutee');
 const Attendance = require('../server/model/attendanceSchema');
 
-// ── CSV file paths (place your exported CSVs here) ──────────────────────────
+// ── Config ──────────────────────────────────────────────────────────────────
 const CSV_DIR = path.join(__dirname, 'data');
-const CSV_FILES = {
-  tutors: path.join(CSV_DIR, 'tutors.csv'),
-  sessions: path.join(CSV_DIR, 'sessions.csv'),
-  attendance: path.join(CSV_DIR, 'attendance.csv'),
+
+// Map short day abbreviations (used in both CSV formats) to full day names
+const DAY_HEADER_MAP = {
+  M: 'Monday',
+  T: 'Tuesday',
+  W: 'Wednesday',
+  Th: 'Thursday',
+  TH: 'Thursday',
+  F: 'Friday',
 };
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
+// ── CSV Parser ──────────────────────────────────────────────────────────────
 
 /**
- * Minimal CSV parser (handles quoted fields with commas).
- * For production-grade parsing, consider `npm install csv-parse`.
+ * Parse a CSV file, handling quoted fields that contain commas.
+ * Returns { headers: string[], rows: string[][] }
  */
 function parseCSV(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8');
-  const lines = content.split(/\r?\n/).filter(l => l.trim());
-  if (lines.length === 0) return [];
+  const lines = content.split(/\r?\n/);
 
-  const parseRow = line => {
+  const parseLine = line => {
     const fields = [];
     let current = '';
     let inQuotes = false;
@@ -57,306 +66,504 @@ function parseCSV(filePath) {
           inQuotes = !inQuotes;
         }
       } else if (ch === ',' && !inQuotes) {
-        fields.push(current.trim());
+        fields.push(current);
         current = '';
       } else {
         current += ch;
       }
     }
-    fields.push(current.trim());
+    fields.push(current);
     return fields;
   };
 
-  const headers = parseRow(lines[0]);
-  return lines.slice(1).map(line => {
-    const values = parseRow(line);
-    const obj = {};
-    headers.forEach((h, i) => {
-      obj[h] = values[i] || '';
-    });
-    return obj;
-  });
+  const allLines = lines.map(parseLine);
+  return { headers: allLines[0] || [], rows: allLines.slice(1) };
 }
 
-// ── Column Mappings ─────────────────────────────────────────────────────────
-// TODO: Update these mappings to match YOUR Google Sheet column headers.
-//       Left side  = your CSV column header (exactly as it appears)
-//       Right side = the Mongoose schema field name
-//
-// Example: if your sheet has a column called "First Name", map it:
-//   'First Name': 'tutorFirstName'
+// ── Filename parser ─────────────────────────────────────────────────────────
 
 /**
- * TUTOR column mapping
- * Your tutor schema fields:
- *   tutorFirstName, tutorLastName, tutorID, email, grade,
- *   returning, lunchPeriod, daysAvailable (array), classes (array),
- *   tutorLeader, attendance, role, isActive
+ * Extract the lunch period and year from the CSV filename.
+ *   "TEST VERSION 2026 Peer Tutors - S2 Period 4.csv"
+ *     → { lunchPeriod: 4, year: 2026 }
  */
-const TUTOR_MAP = {
-  // 'CSV Column Header': 'schemaField',
-  'First Name': 'tutorFirstName',
-  'Last Name': 'tutorLastName',
-  'Student ID': 'tutorID',
-  Email: 'email',
-  Grade: 'grade',
-  Returning: 'returning',
-  'Lunch Period': 'lunchPeriod',
-  'Days Available': 'daysAvailable', // e.g. "Monday, Wednesday, Friday"
-  Classes: 'classes', // e.g. "Algebra 1, Geometry"
-  'Tutor Leader': 'tutorLeader',
-  Attendance: 'attendance',
-};
+function parseFilename(filePath) {
+  const basename = path.basename(filePath, '.csv');
+
+  // Extract period number  (e.g. "Period 4", "Period4", "P4")
+  const periodMatch = basename.match(/Period\s*(\d+)/i);
+  const lunchPeriod = periodMatch ? Number(periodMatch[1]) : null;
+
+  // Extract year (4-digit number starting with 20)
+  const yearMatch = basename.match(/\b(20\d{2})\b/);
+  const year = yearMatch ? Number(yearMatch[1]) : new Date().getFullYear();
+
+  if (!lunchPeriod) {
+    console.warn(
+      `  ⚠ Could not detect lunch period from filename "${basename}". Defaulting to 0.`
+    );
+  }
+
+  return { lunchPeriod: lunchPeriod || 0, year };
+}
+
+// ── Column layout detection ─────────────────────────────────────────────────
 
 /**
- * SESSION column mapping
- * Your session schema fields:
- *   tutorFirstName, tutorLastName, tutorID, sessionDate, sessionPeriod,
- *   sessionPlace, subject, class, teacher, focusOfSession,
- *   workAccomplished, tuteeFirstName, tuteeLastName, tuteeID, tuteeGrade
- */
-const SESSION_MAP = {
-  'Tutor First Name': 'tutorFirstName',
-  'Tutor Last Name': 'tutorLastName',
-  'Tutor ID': 'tutorID',
-  Date: 'sessionDate',
-  Period: 'sessionPeriod',
-  Location: 'sessionPlace',
-  Subject: 'subject',
-  Class: 'class',
-  Teacher: 'teacher',
-  Focus: 'focusOfSession',
-  'Work Accomplished': 'workAccomplished',
-  'Tutee First Name': 'tuteeFirstName',
-  'Tutee Last Name': 'tuteeLastName',
-  'Tutee ID': 'tuteeID',
-  'Tutee Grade': 'tuteeGrade',
-};
-
-/**
- * ATTENDANCE column mapping
- * Your attendance schema fields:
- *   date, lunchPeriod, tutors[] (array of { tutorId, tutorFirstName, tutorLastName, email, status })
+ * Analyze the header row to identify:
+ *   • dayColumns  — indices of the M / T / W / Th / F availability columns
+ *   • dateColumns — indices of date columns (e.g. "1/20") with their parsed Date
  *
- * Attendance sheets are usually structured as one row per tutor per day:
- *   Date | Lunch Period | Tutor ID | First Name | Last Name | Email | Status
+ * Blank separator columns are ignored automatically.
  */
-const ATTENDANCE_MAP = {
-  Date: 'date',
-  'Lunch Period': 'lunchPeriod',
-  'Tutor ID': 'tutorId',
-  'First Name': 'tutorFirstName',
-  'Last Name': 'tutorLastName',
-  Email: 'email',
-  Status: 'status', // present, absent, or makeup
-};
+function analyzeHeaders(headers, year) {
+  const dayColumns = []; // { index, dayLetter, dayName }
+  const dateColumns = []; // { index, date: Date }
 
-// ── Transform helpers ───────────────────────────────────────────────────────
+  // Fixed columns: 0=LAST NAME, 1=FIRST NAME, 2=ID, 3=Y, 4=N/R
+  // Everything after index 4 is either a day column, a date column, or blank.
 
-function mapRow(row, mapping) {
-  const doc = {};
-  for (const [csvCol, schemaField] of Object.entries(mapping)) {
-    if (row[csvCol] !== undefined) {
-      doc[schemaField] = row[csvCol];
+  for (let i = 5; i < headers.length; i++) {
+    const h = headers[i].trim();
+    if (!h) continue; // blank separator column
+
+    // Day-of-week availability column?
+    if (DAY_HEADER_MAP[h]) {
+      dayColumns.push({ index: i, dayLetter: h, dayName: DAY_HEADER_MAP[h] });
+      continue;
+    }
+
+    // Date column like "1/20" or "2/3"?
+    const dateMatch = h.match(/^(\d{1,2})\/(\d{1,2})$/);
+    if (dateMatch) {
+      const month = Number(dateMatch[1]);
+      const day = Number(dateMatch[2]);
+      const date = new Date(year, month - 1, day); // month is 0-indexed in JS
+      if (!isNaN(date.getTime())) {
+        dateColumns.push({ index: i, date });
+      }
     }
   }
-  return doc;
+
+  return { dayColumns, dateColumns };
 }
 
-function toBoolean(val) {
-  if (typeof val === 'boolean') return val;
-  const s = String(val).toLowerCase().trim();
-  return s === 'true' || s === 'yes' || s === '1' || s === 'y';
+// ── Attendance status parser ────────────────────────────────────────────────
+
+/**
+ * Normalize a raw cell value into an attendance status string.
+ *
+ *   "P"                      → "present"
+ *   "A" / "    A"            → "absent"
+ *   "m/u/f" / "muf" / "MUF" → "makeup"   (may include a trailing date like "m/u/f 1/22")
+ *   "" / blank               → null       (tutor is not scheduled that day)
+ */
+function parseStatus(raw) {
+  const val = (raw || '').trim().toLowerCase();
+  if (!val) return null; // not scheduled that day — skip
+
+  if (val === 'p') return 'present';
+  if (val === 'a') return 'absent';
+  if (val.startsWith('m/u/f') || val.startsWith('muf') || val.startsWith('m/u')) {
+    return 'makeup';
+  }
+
+  // Unknown value — warn but treat as present
+  console.warn(`    ⚠ Unknown attendance value "${raw.trim()}" — treating as present`);
+  return 'present';
 }
 
-function toArray(val) {
-  if (Array.isArray(val)) return val;
-  if (!val) return [];
-  return String(val)
+// ── CSV Type Detection ──────────────────────────────────────────────────────
+
+/**
+ * Auto-detect the CSV type from its header row.
+ *   • "expertise" — has FIRST NAME, G, LUNCH, MATH columns
+ *   • "attendance" — has ID column + date columns like 1/20
+ */
+function detectCSVType(headers) {
+  const upper = headers.map(h => h.trim().toUpperCase());
+
+  // Expertise sheets have "FIRST NAME" and subject columns like "MATH"
+  if (upper.includes('FIRST NAME') && upper.includes('MATH')) {
+    return 'expertise';
+  }
+
+  // Attendance sheets have an "ID" column (position 2) and date-format columns
+  const hasDateCols = headers.some(h => /^\d{1,2}\/\d{1,2}$/.test(h.trim()));
+  if (hasDateCols) {
+    return 'attendance';
+  }
+
+  return 'unknown';
+}
+
+// ── Day string parser ───────────────────────────────────────────────────────
+
+/**
+ * Parse a comma-separated day string like "T, Th, F" into full day names.
+ *   "M, W, F" → ["Monday", "Wednesday", "Friday"]
+ *   "T,W,Th"  → ["Tuesday", "Wednesday", "Thursday"]
+ */
+function parseDaysString(raw) {
+  if (!raw) return [];
+  return raw
     .split(',')
-    .map(s => s.trim())
+    .map(d => d.trim())
+    .filter(Boolean)
+    .map(
+      abbr =>
+        DAY_HEADER_MAP[abbr] || DAY_HEADER_MAP[abbr.charAt(0).toUpperCase() + abbr.slice(1)] || abbr
+    )
     .filter(Boolean);
 }
 
-function toDate(val) {
-  if (!val) return null;
-  const d = new Date(val);
-  return isNaN(d.getTime()) ? null : d;
-}
+// ── Expertise CSV import ────────────────────────────────────────────────────
 
-// ── Import Functions ────────────────────────────────────────────────────────
+/**
+ * Import a "Tutor Expertise" CSV.
+ *
+ * Layout:
+ *   Col 0: (blank header) — LAST NAME
+ *   Col 1: FIRST NAME
+ *   Col 2: G  — grade
+ *   Col 3: N/V — N=new, R=returning, V=veteran (treated as returning)
+ *   Col 4: LUNCH — lunch period
+ *   Col 5: MATH
+ *   Col 6: SCIENCE
+ *   Col 7: ENGLISH
+ *   Col 8: HISTORY
+ *   Col 9: WORLD LANGUAGE
+ *   Col 10: ELECTIVE
+ *   Col 11: DAYS — e.g. "T, Th"
+ *
+ * Each subject column contains a comma-separated list of classes.
+ * All subject columns are merged into a single `classes` array on the Tutor doc.
+ *
+ * If a Tutor already exists (matched by first+last name), their `classes` and
+ * `daysAvailable` are updated. Otherwise a new Tutor is created (without an ID
+ * since this sheet doesn't have one — the attendance sheet import fills that in).
+ */
+async function importExpertise(filePath) {
+  console.log(`\n📂 Processing (Expertise): ${path.basename(filePath)}`);
 
-async function importTutors() {
-  if (!fs.existsSync(CSV_FILES.tutors)) {
-    console.log('⏭  No tutors.csv found – skipping tutor import.');
-    return;
-  }
+  const { headers, rows } = parseCSV(filePath);
 
-  const rows = parseCSV(CSV_FILES.tutors);
-  console.log(`📄 Parsed ${rows.length} tutor rows from CSV`);
+  // Build a column index map from headers so we're resilient to column reordering
+  const upper = headers.map(h => h.trim().toUpperCase());
+  const colIdx = {
+    lastName: 0, // first column is always last name (blank header)
+    firstName: upper.indexOf('FIRST NAME'),
+    grade: upper.indexOf('G'),
+    nv: upper.indexOf('N/V'),
+    lunch: upper.indexOf('LUNCH'),
+    math: upper.indexOf('MATH'),
+    science: upper.indexOf('SCIENCE'),
+    english: upper.indexOf('ENGLISH'),
+    history: upper.indexOf('HISTORY'),
+    worldLang: upper.indexOf('WORLD LANGUAGE'),
+    elective: upper.indexOf('ELECTIVE'),
+    days: upper.indexOf('DAYS'),
+  };
+
+  // Subject columns whose values get merged into the `classes` array
+  const subjectCols = ['math', 'science', 'english', 'history', 'worldLang', 'elective'];
 
   let created = 0;
+  let updated = 0;
   let skipped = 0;
+  let rowsProcessed = 0;
 
-  for (const row of rows) {
-    const data = mapRow(row, TUTOR_MAP);
+  for (const cells of rows) {
+    const lastName = (cells[colIdx.lastName] || '').trim();
+    const firstName = colIdx.firstName >= 0 ? (cells[colIdx.firstName] || '').trim() : '';
+    const gradeRaw = colIdx.grade >= 0 ? (cells[colIdx.grade] || '').trim() : '';
+    const nvRaw = colIdx.nv >= 0 ? (cells[colIdx.nv] || '').trim().toUpperCase() : '';
+    const lunchRaw = colIdx.lunch >= 0 ? (cells[colIdx.lunch] || '').trim() : '';
 
-    // Type conversions
-    data.tutorID = Number(data.tutorID);
-    data.grade = Number(data.grade);
-    data.lunchPeriod = Number(data.lunchPeriod);
-    data.attendance = Number(data.attendance) || 0;
-    data.returning = toBoolean(data.returning);
-    data.tutorLeader = toBoolean(data.tutorLeader);
-    data.daysAvailable = toArray(data.daysAvailable);
-    data.classes = toArray(data.classes);
-    data.sessionHistory = [];
+    // Skip empty / invalid rows
+    if (!lastName || !firstName) continue;
+    rowsProcessed++;
 
-    // Skip if tutor already exists (by tutorID)
-    const exists = await Tutor.findOne({ tutorID: data.tutorID });
-    if (exists) {
-      skipped++;
-      continue;
+    const grade = Number(gradeRaw) || 0;
+    const returning = nvRaw === 'R' || nvRaw === 'V'; // V (veteran) = returning
+    const lunchPeriod = Number(lunchRaw) || 0;
+
+    // ── Merge all subject columns into one classes array ─────────────
+    const classes = [];
+    for (const col of subjectCols) {
+      const idx = colIdx[col];
+      if (idx < 0) continue;
+      const raw = (cells[idx] || '').trim();
+      if (!raw) continue;
+      // Split on commas, clean up each entry
+      const items = raw
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+      classes.push(...items);
     }
 
-    await Tutor.create(data);
-    created++;
-  }
+    // ── Days available ──────────────────────────────────────────────────
+    const daysRaw = colIdx.days >= 0 ? (cells[colIdx.days] || '').trim() : '';
+    const daysAvailable = parseDaysString(daysRaw);
 
-  console.log(`✅ Tutors — created: ${created}, skipped (duplicates): ${skipped}`);
-}
-
-async function importSessions() {
-  if (!fs.existsSync(CSV_FILES.sessions)) {
-    console.log('⏭  No sessions.csv found – skipping session import.');
-    return;
-  }
-
-  const rows = parseCSV(CSV_FILES.sessions);
-  console.log(`📄 Parsed ${rows.length} session rows from CSV`);
-
-  let created = 0;
-  let errors = 0;
-
-  for (const row of rows) {
-    const data = mapRow(row, SESSION_MAP);
-
-    // Type conversions
-    data.sessionDate = toDate(data.sessionDate);
-    if (!data.sessionDate) {
-      console.warn(`  ⚠ Skipping session with invalid date: "${row['Date']}"`);
-      errors++;
-      continue;
-    }
-
-    // Create the session
-    const session = await Session.create(data);
-    created++;
-
-    // Link session to tutor's sessionHistory
-    const tutor = await Tutor.findOne({ tutorID: Number(data.tutorID) || data.tutorID });
-    if (tutor) {
-      tutor.sessionHistory.push(session._id);
-      await tutor.save();
-    }
-
-    // Link session to tutee (create tutee if needed)
-    if (data.tuteeID) {
-      let tutee = await Tutee.findOne({ tuteeID: Number(data.tuteeID) || data.tuteeID });
-      if (!tutee) {
-        tutee = await Tutee.create({
-          tuteeID: Number(data.tuteeID) || 0,
-          email: '', // Fill in if available in your sheet
-          tuteeLastName: data.tuteeLastName || '',
-          tuteeFirstName: data.tuteeFirstName || '',
-          grade: Number(data.tuteeGrade) || 0,
-          sessionHistory: [],
-        });
-      }
-      // Embed the session sub-document into tutee's sessionHistory
-      tutee.sessionHistory.push(session.toObject());
-      await tutee.save();
-    }
-  }
-
-  console.log(`✅ Sessions — created: ${created}, errors: ${errors}`);
-}
-
-async function importAttendance() {
-  if (!fs.existsSync(CSV_FILES.attendance)) {
-    console.log('⏭  No attendance.csv found – skipping attendance import.');
-    return;
-  }
-
-  const rows = parseCSV(CSV_FILES.attendance);
-  console.log(`📄 Parsed ${rows.length} attendance rows from CSV`);
-
-  // Group rows by (date + lunchPeriod) since each Attendance doc holds many tutors
-  const grouped = {};
-
-  for (const row of rows) {
-    const data = mapRow(row, ATTENDANCE_MAP);
-    const dateVal = toDate(data.date);
-    if (!dateVal) {
-      console.warn(`  ⚠ Skipping attendance row with invalid date: "${row['Date']}"`);
-      continue;
-    }
-
-    const lp = Number(data.lunchPeriod);
-    const key = `${dateVal.toISOString().split('T')[0]}_${lp}`;
-
-    if (!grouped[key]) {
-      grouped[key] = { date: dateVal, lunchPeriod: lp, tutors: [] };
-    }
-
-    grouped[key].tutors.push({
-      tutorId: Number(data.tutorId),
-      tutorFirstName: data.tutorFirstName,
-      tutorLastName: data.tutorLastName,
-      email: data.email,
-      status: (data.status || 'present').toLowerCase(),
+    // ── Find or create tutor ────────────────────────────────────────────
+    // Match by normalized first+last name (this CSV has no student ID)
+    const existing = await Tutor.findOne({
+      tutorFirstName: { $regex: new RegExp(`^${escapeRegex(firstName)}$`, 'i') },
+      tutorLastName: { $regex: new RegExp(`^${escapeRegex(lastName)}$`, 'i') },
     });
+
+    if (existing) {
+      // Update classes and days on the existing tutor
+      existing.classes = classes;
+      if (daysAvailable.length > 0) existing.daysAvailable = daysAvailable;
+      if (grade) existing.grade = grade;
+      await existing.save();
+      updated++;
+    } else {
+      // Create a new tutor (tutorID set to 0 as placeholder — attendance CSV fills it in)
+      await Tutor.create({
+        tutorFirstName: firstName,
+        tutorLastName: lastName,
+        tutorID: 0,
+        email: '',
+        grade,
+        returning,
+        lunchPeriod,
+        daysAvailable,
+        classes,
+        tutorLeader: false,
+        attendance: 0,
+        sessionHistory: [],
+      });
+      created++;
+    }
   }
 
-  let created = 0;
-  let skipped = 0;
+  console.log(`   Processed ${rowsProcessed} tutor rows`);
+  console.log(
+    `   ✅ Tutors — created: ${created}, updated (classes): ${updated}, skipped: ${skipped}`
+  );
+}
 
-  for (const record of Object.values(grouped)) {
-    // Skip if this date+period combo already exists
+/**
+ * Escape special regex characters in a string for safe use in RegExp constructor.
+ */
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// ── Per-file import logic (Attendance) ──────────────────────────────────────
+
+async function importAttendance(filePath) {
+  console.log(`\n📂 Processing (Attendance): ${path.basename(filePath)}`);
+
+  const { lunchPeriod, year } = parseFilename(filePath);
+  console.log(`   Lunch Period: ${lunchPeriod}  |  Year: ${year}`);
+
+  const { headers, rows } = parseCSV(filePath);
+  const { dayColumns, dateColumns } = analyzeHeaders(headers, year);
+
+  console.log(
+    `   Detected ${dayColumns.length} day-of-week columns, ${dateColumns.length} date columns`
+  );
+
+  if (dateColumns.length > 0) {
+    const first = dateColumns[0].date.toLocaleDateString();
+    const last = dateColumns[dateColumns.length - 1].date.toLocaleDateString();
+    console.log(`   Date range: ${first} → ${last}`);
+  }
+
+  // Attendance records grouped by date
+  // key = "YYYY-MM-DD" → { date, lunchPeriod, tutors: [] }
+  const attendanceByDate = {};
+
+  let tutorsCreated = 0;
+  let tutorsSkipped = 0;
+  let rowsProcessed = 0;
+
+  for (const cells of rows) {
+    const lastName = (cells[0] || '').trim();
+    const firstName = (cells[1] || '').trim();
+    const idRaw = (cells[2] || '').trim();
+    const gradeRaw = (cells[3] || '').trim();
+    const nrRaw = (cells[4] || '').trim().toUpperCase();
+
+    // Skip empty rows, summary rows, or rows without a valid numeric ID
+    if (!lastName || !firstName || !idRaw || !/^\d+$/.test(idRaw)) continue;
+
+    rowsProcessed++;
+    const tutorID = Number(idRaw);
+    const grade = Number(gradeRaw) || 0;
+    const returning = nrRaw === 'R'; // R = returning, N = new
+
+    // ── Days available (columns marked with "1") ────────────────────────
+    const daysAvailable = [];
+    for (const dc of dayColumns) {
+      const val = (cells[dc.index] || '').trim();
+      if (val === '1') {
+        daysAvailable.push(dc.dayName);
+      }
+    }
+
+    // ── Create Tutor if not already in DB ───────────────────────────────
+    // First check by tutorID, then by name (expertise import may have
+    // created the tutor without an ID)
+    let existingTutor = await Tutor.findOne({ tutorID });
+    if (!existingTutor) {
+      // Check if expertise import created this tutor with tutorID: 0
+      existingTutor = await Tutor.findOne({
+        tutorFirstName: { $regex: new RegExp(`^${escapeRegex(firstName)}$`, 'i') },
+        tutorLastName: { $regex: new RegExp(`^${escapeRegex(lastName)}$`, 'i') },
+      });
+    }
+
+    if (!existingTutor) {
+      await Tutor.create({
+        tutorFirstName: firstName,
+        tutorLastName: lastName,
+        tutorID,
+        email: '',
+        grade,
+        returning,
+        lunchPeriod,
+        daysAvailable,
+        classes: [],
+        tutorLeader: false,
+        attendance: 0,
+        sessionHistory: [],
+      });
+      tutorsCreated++;
+    } else {
+      // Update the tutorID if it was a placeholder 0 from expertise import
+      if (existingTutor.tutorID === 0 && tutorID > 0) {
+        existingTutor.tutorID = tutorID;
+        existingTutor.lunchPeriod = lunchPeriod;
+        await existingTutor.save();
+        console.log(`      ↳ Filled in tutorID ${tutorID} for ${firstName} ${lastName}`);
+      }
+      tutorsSkipped++;
+    }
+
+    // ── Collect attendance entries per date ─────────────────────────────
+    for (const dc of dateColumns) {
+      const raw = cells[dc.index];
+      const status = parseStatus(raw);
+      if (!status) continue; // not scheduled that day — skip
+
+      const key = dc.date.toISOString().split('T')[0];
+      if (!attendanceByDate[key]) {
+        attendanceByDate[key] = {
+          date: dc.date,
+          lunchPeriod,
+          tutors: [],
+        };
+      }
+
+      attendanceByDate[key].tutors.push({
+        tutorId: tutorID,
+        tutorFirstName: firstName,
+        tutorLastName: lastName,
+        email: '', // not in this CSV
+        status,
+      });
+    }
+  }
+
+  console.log(`   Processed ${rowsProcessed} tutor rows`);
+  console.log(
+    `   ✅ Tutors  — created: ${tutorsCreated}, skipped (already exist): ${tutorsSkipped}`
+  );
+
+  // ── Write Attendance documents ──────────────────────────────────────────
+  let attCreated = 0;
+  let attSkipped = 0;
+
+  const sortedDates = Object.keys(attendanceByDate).sort();
+  for (const key of sortedDates) {
+    const record = attendanceByDate[key];
+
+    // Skip if an attendance doc for this date + period already exists
     const exists = await Attendance.findOne({
       date: record.date,
       lunchPeriod: record.lunchPeriod,
     });
+
     if (exists) {
-      skipped++;
+      attSkipped++;
       continue;
     }
 
     await Attendance.create(record);
-    created++;
+    attCreated++;
   }
 
-  console.log(`✅ Attendance — created: ${created}, skipped (duplicates): ${skipped}`);
+  console.log(
+    `   ✅ Attendance — created: ${attCreated} docs (${sortedDates.length} dates), skipped (existing): ${attSkipped}`
+  );
 }
 
 // ── Main ────────────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log('🚀 Starting CSV → MongoDB import...\n');
+  console.log('🚀 Peer Tutor CSV → MongoDB Import\n');
 
-  // Ensure the data directory exists
+  // Ensure data directory exists
   if (!fs.existsSync(CSV_DIR)) {
     fs.mkdirSync(CSV_DIR, { recursive: true });
-    console.log(`📁 Created ${CSV_DIR} — place your CSV files there and re-run.\n`);
+    console.log(`📁 Created ${CSV_DIR}`);
+    console.log('   Place your exported Google Sheets CSVs there and re-run.\n');
     process.exit(0);
   }
 
+  // Find all CSV files in the data directory
+  const csvFiles = fs
+    .readdirSync(CSV_DIR)
+    .filter(f => f.toLowerCase().endsWith('.csv'))
+    .map(f => path.join(CSV_DIR, f));
+
+  if (csvFiles.length === 0) {
+    console.log('⚠  No CSV files found in scripts/data/');
+    console.log('   Export your Google Sheets as .csv and place them there.\n');
+    process.exit(0);
+  }
+
+  console.log(
+    `Found ${csvFiles.length} CSV file(s):\n${csvFiles.map(f => '  • ' + path.basename(f)).join('\n')}`
+  );
+
   await connectDB();
 
-  // Import order matters: tutors first, then sessions (which reference tutors)
-  await importTutors();
-  await importSessions();
-  await importAttendance();
+  // Classify each CSV by its header row
+  const expertiseFiles = [];
+  const attendanceFiles = [];
+  const unknownFiles = [];
+
+  for (const file of csvFiles) {
+    const { headers } = parseCSV(file);
+    const type = detectCSVType(headers);
+    if (type === 'expertise') expertiseFiles.push(file);
+    else if (type === 'attendance') attendanceFiles.push(file);
+    else unknownFiles.push(file);
+  }
+
+  if (unknownFiles.length > 0) {
+    console.warn(
+      `\n⚠  Could not detect type for:\n${unknownFiles.map(f => '  • ' + path.basename(f)).join('\n')}`
+    );
+  }
+
+  // Process expertise CSVs first so tutors exist before attendance links to them
+  console.log(`\n── Expertise files: ${expertiseFiles.length} ──`);
+  for (const file of expertiseFiles) {
+    await importExpertise(file);
+  }
+
+  console.log(`\n── Attendance files: ${attendanceFiles.length} ──`);
+  for (const file of attendanceFiles) {
+    await importAttendance(file);
+  }
 
   console.log('\n🏁 Import complete!');
   await mongoose.disconnect();
