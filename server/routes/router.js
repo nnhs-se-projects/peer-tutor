@@ -681,6 +681,41 @@ route.get('/adminAttendance', requireRole('admin'), (req, res) => {
   res.render('adminAttendance');
 });
 
+// Route to render admin tutor requests page
+route.get('/admin/tutorRequests', requireRole('admin'), async (req, res) => {
+  try {
+    const requests = await TutoringRequest.find().sort({ createdAt: -1 });
+
+    // Format the preferred date for display
+    const requestsFormatted = requests.map(r => {
+      const obj = r.toObject();
+      if (obj.preferredDate) {
+        const date = new Date(obj.preferredDate);
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        obj.preferredDateFormatted =
+          days[date.getUTCDay()] +
+          ', ' +
+          (date.getUTCMonth() + 1) +
+          '/' +
+          date.getUTCDate() +
+          '/' +
+          date.getUTCFullYear();
+      } else {
+        obj.preferredDateFormatted = 'N/A';
+      }
+      return obj;
+    });
+
+    res.render('adminTutorRequests', {
+      requests: requestsFormatted,
+      user: req.session,
+    });
+  } catch (error) {
+    console.error('Error loading admin tutor requests:', error);
+    res.status(500).send('Error loading tutor requests page');
+  }
+});
+
 // Route to render admin user management page (admin and above)
 route.get('/admin/users', requireRole('admin'), async (req, res) => {
   try {
@@ -879,3 +914,4 @@ route.post('/api/notifications/absence/bulk', async (req, res) => {
 });
 
 module.exports = route;
+
