@@ -124,3 +124,8 @@ The code for the env file is in the Trello under database
 * Need to remove habitsOfMind.json in server>model & entry.js
 * Ensure academic support teachers are as follows (Stephanie Moore, Angel Kalat, Christy Mathews)
 * Clean/organize files
+
+Questions:
+- Should we have question on the session form with a box for the tutor leader to type their code, confirming that the session occurred?
+- What is the desired format? Is a Google Sheet? Or is a table on the website sufficient?
+- Is this necessary? Why would someone want to log out?
