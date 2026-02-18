@@ -363,14 +363,61 @@ route.post('/submitTutorForm', async (req, res) => {
     const tutor = await Tutor.findOne({ tutorID: req.body.tutorID });
     if (!tutor) {
       console.log('Tutor not found');
-    } else {
-      console.log('Tutor found:', tutor);
+      return;
     }
+
+    console.log('Tutor found:', tutor);
 
     // add the session to the tutor's session history
     tutor.sessionHistory.push(savedSession._id);
     await tutor.save();
     console.log("Session added to tutor's session history");
+
+    // mark matching accepted tutoring request as completed
+    try {
+      const matchQuery = {
+        tutorId: tutor._id,
+        status: 'accepted',
+        subject: req.body.subject,
+        class: req.body.class,
+      };
+
+      if (req.body.tuteeID) {
+        matchQuery.studentID = String(req.body.tuteeID).trim();
+      } else {
+        matchQuery.studentFirstName = req.body.tuteeFirstName;
+        matchQuery.studentLastName = req.body.tuteeLastName;
+      }
+
+      // Match on the session date so repeat tutee/subject combos stay distinct
+      if (req.body.sessionDate) {
+        const sessionDate = new Date(req.body.sessionDate);
+        // Match any preferred date that falls on the same calendar day (UTC)
+        const startOfDay = new Date(
+          Date.UTC(
+            sessionDate.getUTCFullYear(),
+            sessionDate.getUTCMonth(),
+            sessionDate.getUTCDate()
+          )
+        );
+        const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+        matchQuery.preferredDate = { $gte: startOfDay, $lt: endOfDay };
+      }
+
+      const updatedRequest = await TutoringRequest.findOneAndUpdate(
+        matchQuery,
+        { status: 'completed' },
+        { new: true, sort: { createdAt: -1 } }
+      );
+
+      if (updatedRequest) {
+        console.log('Tutoring request marked completed:', updatedRequest._id.toString());
+      } else {
+        console.log('No accepted tutoring request matched to mark completed.');
+      }
+    } catch (updateError) {
+      console.error('Error marking tutoring request completed:', updateError);
+    }
   } catch (error) {
     console.error('Error saving session:', error);
     res.status(500).json({ success: false, error: 'Failed to save session' });

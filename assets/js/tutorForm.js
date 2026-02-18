@@ -265,31 +265,9 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Network error:', error);
         alert('There was a network error submitting the form.');
       }
-
-      // session table try
-      try {
-        const response = await fetch('/sessionTable', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(sessionData),
-        });
-
-        // Show an alert based on the response
-        if (response.ok) {
-          console.log('Success putting into session table');
-        } else {
-          const errorData = await response.json();
-          console.error('Error placing into session table:', errorData);
-          alert('There was an error placing into session table.');
-        }
-      } catch (error) {
-        console.error('Network error:', error);
-        alert('There was a network error placing into session table.');
-      }
     });
   } else {
     console.error('Submit button not found');
   }
 });
+
