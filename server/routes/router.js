@@ -300,12 +300,20 @@ route.get('/notifications', requireRole('lead'), (req, res) => {
 
 // route to expertise form page (tutor and above)
 route.get('/expertiseForm', requireRole('tutor'), async (req, res) => {
+  // Look up existing tutor record to autofill the form
+  let tutor = null;
+  if (req.session.email) {
+    tutor = await Tutor.findOne({ email: req.session.email });
+  }
+
   res.render('expertiseForm', {
     grades: gradeSelection,
     options: newReturningOptions,
     lunchPeriods,
     daysOfTheWeek,
     courseList,
+    tutor,
+    sessionEmail: req.session.email || '',
   });
 });
 
@@ -319,7 +327,13 @@ route.get('/tutorAttendance', requireRole('tutor'), async (req, res) => {
 
 // Route to render the tutor form (tutor and above)
 route.get('/tutorForm', requireRole('tutor'), async (req, res) => {
-  res.render('tutorForm');
+  // Look up existing tutor record to autofill identity fields
+  let tutor = null;
+  if (req.session.email) {
+    tutor = await Tutor.findOne({ email: req.session.email });
+  }
+
+  res.render('tutorForm', { tutor });
 });
 
 // Route to handle tutor form submission
