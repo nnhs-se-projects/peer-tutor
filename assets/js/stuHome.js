@@ -127,9 +127,18 @@ document.addEventListener('DOMContentLoaded', function () {
     tutoringRequestForm.addEventListener('submit', function (e) {
       e.preventDefault();
 
-      // Get selected tutor info from banner if present
+      // Require a tutor to be selected
+      const selectedTutorInput = document.getElementById('selectedTutorId');
+      const tutorRequiredMsg = document.getElementById('tutorRequiredMsg');
+      if (!selectedTutorInput || !selectedTutorInput.value) {
+        if (tutorRequiredMsg) tutorRequiredMsg.classList.remove('hidden');
+        return;
+      }
+      if (tutorRequiredMsg) tutorRequiredMsg.classList.add('hidden');
+
+      // Get selected tutor info from hidden input and banner
+      const tutorId = selectedTutorInput.value;
       const tutorBanner = document.getElementById('selectedTutorBanner');
-      const tutorId = tutorBanner?.dataset?.tutorId || null;
       const tutorName = tutorBanner?.dataset?.tutorName || null;
 
       const formData = {
@@ -162,9 +171,11 @@ document.addEventListener('DOMContentLoaded', function () {
             // Show success message
             alert('Your tutoring request has been submitted successfully!');
             tutoringRequestForm.reset();
-            // Clear selected tutor banner
+            // Clear selected tutor banner and hidden input
             const banner = document.getElementById('selectedTutorBanner');
             if (banner) banner.remove();
+            const hiddenInput = document.getElementById('selectedTutorId');
+            if (hiddenInput) hiddenInput.value = '';
           } else {
             alert('Error submitting request: ' + data.error);
           }
@@ -300,6 +311,14 @@ function requestTutor(tutorId, tutorName) {
   tutorBanner.dataset.tutorId = tutorId;
   tutorBanner.dataset.tutorName = tutorName;
 
+  // Populate the hidden input so the form knows a tutor is selected
+  const selectedTutorInput = document.getElementById('selectedTutorId');
+  if (selectedTutorInput) selectedTutorInput.value = tutorId;
+
+  // Hide the validation message if it was showing
+  const tutorRequiredMsg = document.getElementById('tutorRequiredMsg');
+  if (tutorRequiredMsg) tutorRequiredMsg.classList.add('hidden');
+
   // Scroll to request form
   document.querySelector('form#tutoringRequestForm').scrollIntoView({
     behavior: 'smooth',
@@ -315,4 +334,8 @@ function clearSelectedTutor() {
   if (banner) {
     banner.remove();
   }
+  // Clear the hidden input so the form requires a new selection
+  const selectedTutorInput = document.getElementById('selectedTutorId');
+  if (selectedTutorInput) selectedTutorInput.value = '';
 }
+
