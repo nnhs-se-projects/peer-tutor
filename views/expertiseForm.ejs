@@ -156,21 +156,21 @@
       <!-- Student Name -->
       <div class="orange-box">
         <label class="formQuestions font-medium">First Name</label>
-        <input type="text" class="font-medium" id="firstName" name="firstName" required />
+        <input type="text" class="font-medium" id="firstName" name="firstName" value="<%= tutor ? tutor.tutorFirstName : '' %>" required />
         <label class="formQuestions font-medium">Last Name</label>
-        <input type="text" class="font-medium" id="lastName" name="lastName" required />
+        <input type="text" class="font-medium" id="lastName" name="lastName" value="<%= tutor ? tutor.tutorLastName : '' %>" required />
       </div>
 
       <!-- Tutor ID -->
       <div class="orange-box">
         <label class="formQuestions font-medium">ID Number</label>
-        <input type="text" class="font-medium" id="tutorID" name="tutorID" required />
+        <input type="text" class="font-medium" id="tutorID" name="tutorID" value="<%= tutor ? tutor.tutorID : '' %>" required />
       </div>
 
       <!-- Student Email -->
       <div class="orange-box">
         <label class="formQuestions font-medium">Email</label>
-        <input type="email" class="font-medium" id="tutEmail" name="tutEmail" required />
+        <input type="email" class="font-medium" id="tutEmail" name="tutEmail" value="<%= tutor ? tutor.email : sessionEmail %>" required />
       </div>
 
       <!-- Student Grade -->
@@ -184,6 +184,7 @@
               class="habits mr-2"
               name="grade"
               value="<%= grade %>"
+              <%= (tutor && String(tutor.grade) === String(grade)) ? 'checked' : '' %>
             /><%= grade %>
           </label>
           <% } %>
@@ -201,6 +202,7 @@
               class="options mr-2"
               name="newReturning"
               value="<%= option %>"
+              <%= (tutor && ((tutor.returning && option === 'Returning') || (!tutor.returning && option === 'New'))) ? 'checked' : '' %>
             /><%= option %>
           </label>
           <% } %>
@@ -218,6 +220,7 @@
               class="lunchPeriod mr-2"
               name="lunchPeriod"
               value="<%= lunchPeriod %>"
+              <%= (tutor && String(tutor.lunchPeriod) === String(lunchPeriod)) ? 'checked' : '' %>
             /><%= lunchPeriod %>
           </label>
           <% } %>
@@ -235,6 +238,7 @@
               class="dayOfTheWeek mr-2"
               name="dayOfTheWeek"
               value="<%= dayOfTheWeek %>"
+              <%= (tutor && tutor.daysAvailable && tutor.daysAvailable.includes(dayOfTheWeek)) ? 'checked' : '' %>
             /><%= dayOfTheWeek %>
           </label>
           <% } %>
@@ -263,6 +267,7 @@
                   class="courseCheckbox mr-2"
                   name="courseList"
                   value="<%= course %>"
+                  <%= (tutor && tutor.classes && tutor.classes.includes(course)) ? 'checked' : '' %>
                 />
                 <%= course %>
               </label>
@@ -336,4 +341,7 @@
   document
     .getElementById("courseSearch")
     .addEventListener("input", filterCourseList);
+
+  // On page load, populate the Selected Classes list with any pre-checked courses
+  updateSelectedItems();
 </script>
