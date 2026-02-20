@@ -166,7 +166,7 @@
       Tutor Database Table
     </h1>
     
-    <div class="flex justify-between mb-4">
+    <div class="flex justify-between items-center mb-4" style="gap: 24px;">
       <div>
         <% if (user && ['developer', 'admin'].includes(user.role)) { %>
         <a href="/expertiseForm" class="export-btn" style="text-decoration: none; background-color: #2e7d32;">
@@ -184,23 +184,32 @@
         <thead>
           <tr>
             <% const headers = ['Tutor Name', 'Tutor Grade', 'Tutor ID', 'Email',
-            'Classes', 'Days', 'Lunch', 'Total Sessions', 'Absences', 'Actions']; %> <%
-            headers.forEach((header, index) => { %>
+            'Classes', 'Days', 'Lunch', 'Total Sessions', 'Absences', 'Actions']; %>
+            <% const noSort = [2, 3, 4, 5, 9]; %>
+            <% const noSearch = [6, 7, 8, 9]; %>
+            <% headers.forEach((header, index) => { %>
             <th>
               <div class="header-container">
                 <span class="header-text" id="headerText<%= index %>">
                   <%= header %>
                 </span>
+                <% if (!noSort.includes(index) || !noSearch.includes(index)) { %>
                 <div class="icons" style="display: flex; gap: 5px">
+                  <% if (!noSort.includes(index)) { %>
                   <span
                     class="sort-icon"
                     id="sortIcon<%= index %>"
                     data-index="<%= index %>"
                   >↑↓</span>
+                  <% } %>
+                  <% if (!noSearch.includes(index)) { %>
                   <span class="search-icon" data-index="<%= index %>"
                   >🔍</span>
+                  <% } %>
                 </div>
+                <% } %>
               </div>
+              <% if (!noSearch.includes(index)) { %>
               <input
                 type="text"
                 class="search-input"
@@ -209,6 +218,7 @@
                 data-index="<%= index %>"
                 style="display: none; width: 100%"
               />
+              <% } %>
             </th>
             <% }) %>
           </tr>
