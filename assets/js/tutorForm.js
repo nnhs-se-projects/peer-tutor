@@ -182,6 +182,72 @@ document.addEventListener('DOMContentLoaded', () => {
     console.error('Subject dropdown not found in the DOM');
   }
 
+  // Accepted request dropdown auto-fill
+  const acceptedRequestSelect = document.getElementById('acceptedRequestSelect');
+  if (acceptedRequestSelect) {
+    acceptedRequestSelect.addEventListener('change', function () {
+      const selected = this.options[this.selectedIndex];
+      const requestIdInput = document.getElementById('tutoringRequestId');
+
+      if (!this.value) {
+        // Cleared selection — reset the hidden field
+        if (requestIdInput) requestIdInput.value = '';
+        return;
+      }
+
+      // Store the request ID so it gets sent with the form
+      if (requestIdInput) requestIdInput.value = this.value;
+
+      // Auto-fill tutee info
+      const tuteeFirst = document.getElementById('tuteeFirstName');
+      const tuteeLast = document.getElementById('tuteeLastName');
+      const tuteeID = document.getElementById('tuteeID');
+      if (tuteeFirst) tuteeFirst.value = selected.dataset.studentFirst || '';
+      if (tuteeLast) tuteeLast.value = selected.dataset.studentLast || '';
+      if (tuteeID) tuteeID.value = selected.dataset.studentId || '';
+
+      // Auto-fill tutee grade radio button
+      const gradeVal = selected.dataset.grade || '';
+      if (gradeVal) {
+        const gradeRadio = document.querySelector(`input[name="grade"][value="${gradeVal}"]`);
+        if (gradeRadio) gradeRadio.checked = true;
+      }
+
+      // Auto-fill subject, then trigger class list update
+      const subjectEl = document.getElementById('subject');
+      const subjectVal = selected.dataset.subject || '';
+      if (subjectEl && subjectVal) {
+        subjectEl.value = subjectVal;
+        // Trigger the class/teacher dropdowns to populate
+        updateClasses();
+
+        // Wait briefly for the class dropdown to populate, then set the class value
+        setTimeout(() => {
+          const classEl = document.getElementById('class');
+          const classVal = selected.dataset.class || '';
+          if (classEl && classVal) {
+            classEl.value = classVal;
+          }
+        }, 200);
+      }
+
+      // Auto-fill session date
+      const dateEl = document.getElementById('sessionDate');
+      const dateVal = selected.dataset.date || '';
+      if (dateEl && dateVal) dateEl.value = dateVal;
+
+      // Auto-fill session period
+      const periodEl = document.getElementById('sessionPeriod');
+      const periodVal = selected.dataset.period || '';
+      if (periodEl && periodVal) periodEl.value = periodVal;
+
+      // Auto-fill work accomplished / topic
+      const workEl = document.getElementById('workaccomplished');
+      const topicVal = selected.dataset.topic || '';
+      if (workEl && topicVal) workEl.value = topicVal;
+    });
+  }
+
   const submitButton = document.querySelector('input.submit');
 
   if (submitButton) {
@@ -212,6 +278,32 @@ document.addEventListener('DOMContentLoaded', () => {
         teacher,
       });
 
+      // Validate required fields before submitting
+      if (
+        !tutorFirstName ||
+        !tutorLastName ||
+        !tutorID ||
+        !sessionDate ||
+        !sessionPeriod ||
+        !sessionPlace ||
+        !subject ||
+        !classValue ||
+        !teacher ||
+        !focusOfSession ||
+        !workAccomplished ||
+        !tuteeFirstName ||
+        !tuteeLastName ||
+        !tuteeID ||
+        !tuteeGrade
+      ) {
+        alert('Please fill in all required fields before submitting.');
+        return;
+      }
+
+      // Include linked tutoring request ID if one was selected
+      const tutoringRequestIdEl = document.getElementById('tutoringRequestId');
+      const tutoringRequestId = tutoringRequestIdEl ? tutoringRequestIdEl.value : '';
+
       const formData = {
         tutorFirstName,
         tutorLastName,
@@ -228,19 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tuteeLastName,
         tuteeID,
         tuteeGrade,
-      };
-
-      const sessionData = {
-        tuteeFirstName,
-        tuteeLastName,
-        tuteeID,
-        sessionDate,
-        tutorFirstName,
-        tutorLastName,
-        tutorID,
-        subject,
-        class: classValue,
-        workAccomplished,
+        tutoringRequestId,
       };
 
       try {
@@ -264,29 +344,6 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (error) {
         console.error('Network error:', error);
         alert('There was a network error submitting the form.');
-      }
-
-      // session table try
-      try {
-        const response = await fetch('/sessionTable', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(sessionData),
-        });
-
-        // Show an alert based on the response
-        if (response.ok) {
-          console.log('Success putting into session table');
-        } else {
-          const errorData = await response.json();
-          console.error('Error placing into session table:', errorData);
-          alert('There was an error placing into session table.');
-        }
-      } catch (error) {
-        console.error('Network error:', error);
-        alert('There was a network error placing into session table.');
       }
     });
   } else {

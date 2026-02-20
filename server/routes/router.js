@@ -131,6 +131,10 @@ route.get('/api/student/sessions', async (req, res) => {
 route.post('/api/tutoringRequest', async (req, res) => {
   try {
     const {
+      studentFirstName,
+      studentLastName,
+      studentID,
+      studentGrade,
       subject,
       class: className,
       topic,
@@ -142,7 +146,15 @@ route.post('/api/tutoringRequest', async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!subject || !className || !topic || !preferredDate || !preferredPeriod) {
+    if (
+      !subject ||
+      !className ||
+      !topic ||
+      !preferredDate ||
+      !preferredPeriod ||
+      !studentFirstName ||
+      !studentLastName
+    ) {
       return res.status(400).json({
         success: false,
         error: 'Missing required fields',
@@ -171,9 +183,10 @@ route.post('/api/tutoringRequest', async (req, res) => {
     // Create new tutoring request
     const newRequest = new TutoringRequest({
       studentEmail: studentEmail,
-      studentFirstName: req.session.firstName || 'Student',
-      studentLastName: req.session.lastName || '',
-      studentID: req.session.studentID || '',
+      studentFirstName: studentFirstName,
+      studentLastName: studentLastName,
+      studentID: studentID || '',
+      studentGrade: studentGrade || '',
       tutorId: tutorId || null,
       tutorName: tutorName || null,
       tutorEmail: tutorEmail,
@@ -329,11 +342,18 @@ route.get('/tutorAttendance', requireRole('tutor'), async (req, res) => {
 route.get('/tutorForm', requireRole('tutor'), async (req, res) => {
   // Look up existing tutor record to autofill identity fields
   let tutor = null;
+  let acceptedRequests = [];
   if (req.session.email) {
     tutor = await Tutor.findOne({ email: req.session.email });
+    if (tutor) {
+      acceptedRequests = await TutoringRequest.find({
+        tutorId: tutor._id,
+        status: 'accepted',
+      }).sort({ preferredDate: 1 });
+    }
   }
 
-  res.render('tutorForm', { tutor });
+  res.render('tutorForm', { tutor, acceptedRequests });
 });
 
 // Route to handle tutor form submission
@@ -358,19 +378,29 @@ route.post('/submitTutorForm', async (req, res) => {
       tuteeGrade: req.body.tuteeGrade,
     });
     const savedSession = await newSession.save();
-    res.json({ success: true });
     console.log('saved object ID: ', savedSession._id.toString());
     const tutor = await Tutor.findOne({ tutorID: req.body.tutorID });
     if (!tutor) {
       console.log('Tutor not found');
     } else {
       console.log('Tutor found:', tutor);
+      // add the session to the tutor's session history
+      tutor.sessionHistory.push(savedSession._id);
+      await tutor.save();
+      console.log("Session added to tutor's session history");
     }
 
-    // add the session to the tutor's session history
-    tutor.sessionHistory.push(savedSession._id);
-    await tutor.save();
-    console.log("Session added to tutor's session history");
+    // If this session was linked to a tutoring request, delete the request
+    if (req.body.tutoringRequestId) {
+      try {
+        await TutoringRequest.findByIdAndDelete(req.body.tutoringRequestId);
+        console.log('Deleted completed tutoring request:', req.body.tutoringRequestId);
+      } catch (deleteError) {
+        console.error('Error deleting tutoring request:', deleteError);
+      }
+    }
+
+    res.json({ success: true });
   } catch (error) {
     console.error('Error saving session:', error);
     res.status(500).json({ success: false, error: 'Failed to save session' });
@@ -893,4 +923,3 @@ route.post('/api/notifications/absence/bulk', async (req, res) => {
 });
 
 module.exports = route;
-
