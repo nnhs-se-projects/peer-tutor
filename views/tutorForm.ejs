@@ -124,26 +124,17 @@
         <div class="form-column">
           <h2 class="black-heading">Tutor</h2>
           <div class="orange-box">
-            <label class="formQuestions font-medium" for="tutorFirstName">Tutor First Name</label>
+            <label class="formQuestions font-medium" for="tutorName"
+              >Tutor Name (Last Name, First Name)</label
+            >
             <input
               type="text"
               class="font-medium"
-              id="tutorFirstName"
-              name="tutorFirstName"
+              id="tutorName"
+              name="tutorName"
+              placeholder="e.g. Smith, John"
               required
             />
-
-            <label class="formQuestions font-medium" for="tutorLastName">Tutor Last Name</label>
-            <input
-              type="text"
-              class="font-medium"
-              id="tutorLastName"
-              name="tutorLastName"
-              required
-            />
-
-            <label class="formQuestions font-medium" for="tutorID">Tutor ID</label>
-            <input type="text" class="font-medium" id="tutorID" name="tutorID" required />
 
             <label class="formQuestions font-medium" for="sessionDate">Date</label>
             <input type="date" class="font-medium" id="sessionDate" name="sessionDate" required />
@@ -158,24 +149,15 @@
               <option value="RAT">RAT</option>
             </select>
 
-            <label class="formQuestions font-medium" for="sessionPlace">Session Location</label>
-            <select class="font-medium" id="sessionPlace" name="sessionPlace" required>
-              <option value="">Select a Location</option>
-              <option value="Literacy Center">Literacy Center</option>
-              <option value="Community Center">Community Center</option>
-              <option value="Rent-A-Tutor">Rent-A-Tutor</option>
-              <option value="WIN">WIN</option>
-            </select>
-
-            <label class="formQuestions font-medium" for="subject">Subject</label>
+            <label class="formQuestions font-medium" for="department">Department</label>
             <select
               class="font-medium"
-              id="subject"
-              name="subject"
+              id="department"
+              name="department"
               onchange="updateClasses()"
               required
             >
-              <option value="">Select a Subject</option>
+              <option value="">Select a Department</option>
               <option value="Math">Math</option>
               <option value="English">English</option>
               <option value="CTE">CTE</option>
@@ -224,6 +206,21 @@
               name="workaccomplished"
               required
             />
+
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-top: 4px;
+                margin-bottom: 16px;
+              "
+            >
+              <input type="checkbox" id="isMakeup" name="isMakeup" style="width: auto; margin: 0" />
+              <label class="formQuestions font-medium" for="isMakeup" style="margin: 0"
+                >This is a makeup session</label
+              >
+            </div>
           </div>
         </div>
 
@@ -231,42 +228,17 @@
         <div class="form-column">
           <h2 class="black-heading">Tutee</h2>
           <div class="orange-box">
-            <label class="formQuestions font-medium" for="tuteeFirstName">Tutee First Name</label>
+            <label class="formQuestions font-medium" for="tuteeName"
+              >Tutee Name (Last Name, First Name)</label
+            >
             <input
               type="text"
               class="font-medium"
-              id="tuteeFirstName"
-              name="tuteeFirstName"
+              id="tuteeName"
+              name="tuteeName"
+              placeholder="e.g. Doe, Jane"
               required
             />
-
-            <label class="formQuestions font-medium" for="tuteeLastName">Tutee Last Name</label>
-            <input
-              type="text"
-              class="font-medium"
-              id="tuteeLastName"
-              name="tuteeLastName"
-              required
-            />
-
-            <label class="formQuestions font-medium" for="tuteeID">Tutee ID</label>
-            <input type="text" class="font-medium" id="tuteeID" name="tuteeID" required />
-
-            <label class="formQuestions font-medium">Tutee Grade</label>
-            <fieldset>
-              <label class="font-medium">
-                <input type="radio" class="mr-2" name="grade" value="9" /> 9
-              </label>
-              <label class="font-medium">
-                <input type="radio" class="mr-2" name="grade" value="10" /> 10
-              </label>
-              <label class="font-medium">
-                <input type="radio" class="mr-2" name="grade" value="11" /> 11
-              </label>
-              <label class="font-medium">
-                <input type="radio" class="mr-2" name="grade" value="12" /> 12
-              </label>
-            </fieldset>
           </div>
         </div>
       </div>
