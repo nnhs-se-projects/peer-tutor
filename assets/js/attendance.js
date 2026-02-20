@@ -67,9 +67,16 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // Add event listeners to attendance buttons (UI toggle only; DB update happens on submit)
-  document.querySelectorAll('.absent-button, .present-button, .makeup-button').forEach(button => {
+  document.querySelectorAll('.absent-button, .present-button').forEach(button => {
     button.addEventListener('click', () => {
       disableOtherButtons(button);
+    });
+  });
+
+  // Add event listeners to makeup table buttons
+  document.querySelectorAll('.makeup-row .makeup-button').forEach(button => {
+    button.addEventListener('click', () => {
+      toggleMakeupButton(button);
     });
   });
 
@@ -157,7 +164,7 @@ function disableOtherButtons(clickedButton) {
   if (!row) return;
 
   // Get all buttons in this row
-  const buttons = row.querySelectorAll('.absent-button, .present-button, .makeup-button');
+  const buttons = row.querySelectorAll('.absent-button, .present-button');
 
   // Check if the clicked button is already selected
   const isAlreadySelected = clickedButton.classList.contains('button-selected');
@@ -211,13 +218,28 @@ async function loadSavedAttendance(lunchPeriod) {
       savedStatuses[t.tutorId] = t.status; // 'present' | 'absent' | 'makeup'
     });
 
+    // Reset all tutor-row button states before applying saved data
+    // (prevents stale clicks from persisting after switching lunch periods)
+    document.querySelectorAll('.tutor-row').forEach(row => {
+      const buttons = row.querySelectorAll('.absent-button, .present-button');
+      buttons.forEach(btn => {
+        btn.classList.remove('button-selected', 'button-disabled');
+      });
+      delete row.dataset.attendanceStatus;
+    });
+    document.querySelectorAll('.makeup-row').forEach(row => {
+      const btn = row.querySelector('.makeup-button');
+      if (btn) btn.classList.remove('button-selected');
+      delete row.dataset.attendanceStatus;
+    });
+
     // Walk every visible tutor row and pre-select the matching button
     document.querySelectorAll('.tutor-row').forEach(row => {
       const tutorId = Number(row.getAttribute('data-tutor-id'));
       const savedStatus = savedStatuses[tutorId];
-      if (!savedStatus) return;
+      if (!savedStatus || savedStatus === 'makeup') return; // skip makeup entries for main table
 
-      const buttons = row.querySelectorAll('.absent-button, .present-button, .makeup-button');
+      const buttons = row.querySelectorAll('.absent-button, .present-button');
       buttons.forEach(btn => {
         if (btn.dataset.action === savedStatus) {
           btn.classList.add('button-selected');
@@ -230,29 +252,40 @@ async function loadSavedAttendance(lunchPeriod) {
       row.dataset.attendanceStatus = savedStatus;
     });
 
+    // Walk makeup rows and pre-select if previously saved as makeup
+    document.querySelectorAll('.makeup-row').forEach(row => {
+      const tutorId = Number(row.getAttribute('data-tutor-id'));
+      const savedStatus = savedStatuses[tutorId];
+      if (savedStatus !== 'makeup') return;
+
+      const btn = row.querySelector('.makeup-button');
+      if (btn) {
+        btn.classList.add('button-selected');
+        row.dataset.attendanceStatus = 'makeup';
+      }
+    });
+
     updateSubmitState();
   } catch (err) {
     console.warn('Could not load saved attendance:', err);
   }
 }
 
-// Helper: convert a status string to its numeric weight for days missed
-function statusToWeight(status) {
-  if (status === 'absent') return 1;
-  if (status === 'makeup') return -1;
-  return 0; // 'present' or undefined
-}
+// Toggle a makeup button in the makeup table (single button per row, optional)
+function toggleMakeupButton(clickedButton) {
+  const row = clickedButton.closest('tr');
+  if (!row) return;
 
-// Attendance diff logic is now handled server-side in logSubmission.
-// This function is kept as a no-op so existing submit handlers don't error.
-async function updateAttendanceBatch(payload) {
-  // Server-side logSubmission now handles diffing old vs new statuses
-  // and updating each Tutor's attendance field automatically.
-  return;
-}
+  const isAlreadySelected = clickedButton.classList.contains('button-selected');
 
-// Expose so the submit handler can call it
-window.updateAttendanceBatch = updateAttendanceBatch;
+  if (isAlreadySelected) {
+    clickedButton.classList.remove('button-selected');
+    delete row.dataset.attendanceStatus;
+  } else {
+    clickedButton.classList.add('button-selected');
+    row.dataset.attendanceStatus = 'makeup';
+  }
+}
 
 // Disable submit until every tutor row has a selected attendance status
 function updateSubmitState() {
@@ -297,16 +330,17 @@ function buildAttendancePayload() {
 
   if (!selectedLunch) return null;
 
-  const rows = Array.from(document.querySelectorAll('.tutor-row')).filter(
+  // Collect main table rows (required — all must have a status)
+  const mainRows = Array.from(document.querySelectorAll('.tutor-row')).filter(
     row =>
       row.getAttribute('data-lunch') === selectedLunch &&
       row.style.display !== 'none' &&
       row.dataset.attendanceStatus
   );
 
-  if (rows.length === 0) return null;
+  if (mainRows.length === 0) return null;
 
-  const tutors = rows.map(row => {
+  const tutors = mainRows.map(row => {
     const tutorId = row.getAttribute('data-tutor-id');
     const mongoId = row.getAttribute('data-mongo-id') || '';
     const firstName = row.getAttribute('data-first-name') || '';
@@ -321,6 +355,31 @@ function buildAttendancePayload() {
       email,
       status: row.dataset.attendanceStatus,
     };
+  });
+
+  // Collect selected makeup rows (optional — only include those with makeup selected)
+  const makeupRows = Array.from(document.querySelectorAll('.makeup-row')).filter(
+    row =>
+      row.getAttribute('data-lunch') === selectedLunch &&
+      row.style.display !== 'none' &&
+      row.dataset.attendanceStatus === 'makeup'
+  );
+
+  makeupRows.forEach(row => {
+    const tutorId = row.getAttribute('data-tutor-id');
+    const mongoId = row.getAttribute('data-mongo-id') || '';
+    const firstName = row.getAttribute('data-first-name') || '';
+    const lastName = row.getAttribute('data-last-name') || '';
+    const email = row.getAttribute('data-email') || '';
+
+    tutors.push({
+      _id: mongoId,
+      tutorId: tutorId ? Number(tutorId) : undefined,
+      tutorFirstName: firstName,
+      tutorLastName: lastName,
+      email,
+      status: 'makeup',
+    });
   });
 
   // Send a stable YYYY-MM-DD date so logSubmission always matches the same record
@@ -340,18 +399,26 @@ function buildAttendancePayload() {
 window.buildAttendancePayload = buildAttendancePayload;
 
 async function sendAttendancePayload(payload) {
-  if (!payload) return;
+  if (!payload) return { success: false, error: 'No payload' };
   try {
-    await fetch('/attendance/logSubmission', {
+    const res = await fetch('/attendance/logSubmission', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
     });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      console.error('Server returned error:', res.status, body);
+      return { success: false, error: body.error || `Server error (${res.status})` };
+    }
+    return { success: true };
   } catch (err) {
     console.error('Failed to send attendance payload', err);
+    return { success: false, error: 'Network error' };
   }
 }
 
 window.sendAttendancePayload = sendAttendancePayload;
+
