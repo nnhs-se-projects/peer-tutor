@@ -6,18 +6,16 @@ const Attendance = require('../server/model/attendanceSchema'); // Import Attend
 // Route to render the attendance page
 router.get('/', async (req, res) => {
   try {
+    // Determine the current day of the week (in Central Time)
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+    const todayName = dayNames[now.getDay()];
+
     // Find all tutors and sort by last name
     const tutors = await Tutor.find().sort({ tutorLastName: 1 });
 
     // Convert MongoDB objects to objects formatted for the EJS template
     const tutorsFormatted = tutors.map(tutor => {
-      console.log(
-        'Tutor lunch period type:',
-        typeof tutor.lunchPeriod,
-        'Value:',
-        tutor.lunchPeriod
-      );
-
       return {
         _id: tutor._id,
         tutorFirstName: tutor.tutorFirstName || 'Unknown',
@@ -30,9 +28,39 @@ router.get('/', async (req, res) => {
       };
     });
 
-    console.log('Total tutors formatted:', tutorsFormatted.length);
+    // ---- Build the makeup-eligible tutor list ----
+    // Criteria: attendance > 0, NOT scheduled to tutor today, same lunch period filtering done client-side
+    // Tutors who already made up today still appear so the form can be resubmitted;
+    // loadSavedAttendance on the client will auto-select their M button.
+    const makeupTutors = tutors.filter(tutor => {
+      // Must have absences to make up
+      if ((tutor.attendance || 0) <= 0) return false;
+      // Must NOT be scheduled to tutor today (can only make up on off-days)
+      const days = Array.isArray(tutor.daysAvailable) ? tutor.daysAvailable : [];
+      if (days.includes(todayName)) return false;
+      return true;
+    });
 
-    res.render('attendance', { tutors: tutorsFormatted });
+    const makeupTutorsFormatted = makeupTutors.map(tutor => {
+      return {
+        _id: tutor._id,
+        tutorFirstName: tutor.tutorFirstName || 'Unknown',
+        tutorLastName: tutor.tutorLastName || 'Unknown',
+        tutorID: tutor.tutorID,
+        email: tutor.email,
+        attendance: tutor.attendance || 0,
+        lunchPeriod: tutor.lunchPeriod ? tutor.lunchPeriod.toString() : 'Not Set',
+      };
+    });
+
+    console.log('Total tutors formatted:', tutorsFormatted.length);
+    console.log('Makeup-eligible tutors:', makeupTutorsFormatted.length);
+
+    res.render('attendance', {
+      tutors: tutorsFormatted,
+      makeupTutors: makeupTutorsFormatted,
+      currentDay: todayName,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).send('Error retrieving tutors');
@@ -49,6 +77,10 @@ router.post('/updateAttendance', async (req, res) => {
       { $inc: { attendance: change } },
       { new: true } // Return the updated document
     );
+
+    if (!updatedTutor) {
+      return res.status(404).json({ success: false, error: 'Tutor not found' });
+    }
 
     // Ensure attendance doesn't go below 0
     if (updatedTutor.attendance < 0) {
@@ -107,6 +139,25 @@ router.post('/logSubmission', async (req, res) => {
 
     // Helper: convert status to its days-missed weight
     const weight = s => (s === 'absent' ? 1 : s === 'makeup' ? -1 : 0);
+
+    // Build a set of tutorIds in the new payload for quick lookup
+    const newTutorIds = new Set(tutors.map(t => t.tutorId));
+
+    // ---- Handle tutors REMOVED from the payload (were in old record, not in new) ----
+    // Treat removed tutors as reverting to 'present' so their weight is undone.
+    for (const [oldTutorId, oldStatus] of Object.entries(oldStatuses)) {
+      const id = Number(oldTutorId);
+      if (!newTutorIds.has(id)) {
+        const change = weight('present') - weight(oldStatus);
+        if (change === 0) continue;
+
+        const tutorDoc = await Tutor.findOne({ tutorID: id });
+        if (tutorDoc) {
+          tutorDoc.attendance = Math.max(0, (tutorDoc.attendance || 0) + change);
+          await tutorDoc.save();
+        }
+      }
+    }
 
     // Update each tutor's attendance (days missed) based on the diff
     for (const t of tutors) {
@@ -399,3 +450,4 @@ router.post('/bulkUpdateStatus', async (req, res) => {
 });
 
 module.exports = router;
+
