@@ -350,3 +350,4 @@ document.addEventListener('DOMContentLoaded', () => {
     console.error('Submit button not found');
   }
 });
+

@@ -342,3 +342,4 @@ function clearSelectedTutor() {
   const selectedTutorInput = document.getElementById('selectedTutorId');
   if (selectedTutorInput) selectedTutorInput.value = '';
 }
+
