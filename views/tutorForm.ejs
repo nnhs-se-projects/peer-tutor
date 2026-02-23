@@ -119,6 +119,32 @@
   <div class="container mx-auto px-4 max-w-12xl">
     <h1 class="text-4xl font-bold mb-8 text-center text-white">Tutor Session Form</h1>
     <form>
+      <% if (acceptedRequests && acceptedRequests.length > 0) { %>
+      <div class="orange-box mb-6" style="max-width: 700px; margin-left: auto; margin-right: auto;">
+        <label class="formQuestions font-medium" for="acceptedRequestSelect">Fill from Accepted Request</label>
+        <select class="font-medium" id="acceptedRequestSelect">
+          <option value="">-- Select an accepted request (optional) --</option>
+          <% acceptedRequests.forEach(function(request) { %>
+            <option
+              value="<%= request._id %>"
+              data-student-first="<%= request.studentFirstName %>"
+              data-student-last="<%= request.studentLastName %>"
+              data-student-id="<%= request.studentID || '' %>"
+              data-grade="<%= request.studentGrade || '' %>"
+              data-subject="<%= request.subject %>"
+              data-class="<%= request.class %>"
+              data-period="<%= request.preferredPeriod %>"
+              data-date="<%= request.preferredDate ? new Date(request.preferredDate).toISOString().split('T')[0] : '' %>"
+              data-topic="<%= request.topic %>"
+            >
+              <%= request.studentFirstName %> <%= request.studentLastName %> — <%= request.subject %> (<%= request.class %>) — <%= request.preferredDate ? new Date(request.preferredDate).toLocaleDateString() : 'No date' %>
+            </option>
+          <% }); %>
+        </select>
+        <input type="hidden" id="tutoringRequestId" name="tutoringRequestId" value="" />
+      </div>
+      <% } %>
+
       <div class="form-columns">
         <!-- Left Column (Tutor Information and Session Details) -->
         <div class="form-column">

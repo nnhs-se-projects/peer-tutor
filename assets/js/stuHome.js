@@ -142,6 +142,10 @@ document.addEventListener('DOMContentLoaded', function () {
       const tutorName = tutorBanner?.dataset?.tutorName || null;
 
       const formData = {
+        studentFirstName: document.getElementById('studentFirstName').value,
+        studentLastName: document.getElementById('studentLastName').value,
+        studentID: document.getElementById('studentID').value,
+        studentGrade: document.getElementById('studentGrade').value,
         subject: document.getElementById('requestSubject').value,
         class: document.getElementById('requestClass').value,
         topic: document.getElementById('requestTopic').value,
