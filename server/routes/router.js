@@ -193,7 +193,7 @@ route.post('/api/tutoringRequest', async (req, res) => {
       subject: subject,
       class: className,
       topic: topic,
-      preferredDate: new Date(preferredDate),
+      preferredDate: new Date(preferredDate + 'T12:00:00Z'),
       preferredPeriod: preferredPeriod,
       additionalNotes: additionalNotes || '',
       status: 'pending',
