@@ -540,68 +540,11 @@ route.get('/sessionTable', requireRole('teacher'), async (req, res) => {
 });
 
 // Route to render the attendance (lead and above)
-route.get('/attendance', requireRole('lead'), async (req, res) => {
-  try {
-    const tutors = await Tutor.find().sort({ date: -1 });
+// DISABLED: This route is now handled by routes/attendance.js mounted at /attendance
+// route.get('/attendance', requireRole('lead'), async (req, res) => { ... });
 
-    // Determine the current day of the week (in Central Time)
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
-    const todayName = dayNames[now.getDay()];
-
-    // Only include tutors who are available on today's day of the week
-    const filteredTutors = tutors.filter(tutor => {
-      const days = Array.isArray(tutor.daysAvailable) ? tutor.daysAvailable : [];
-      return days.includes(todayName);
-    });
-
-    // Convert MongoDB objects to objects formatted for the EJS template
-    const tutorsFormatted = filteredTutors.map(tutor => {
-      return {
-        _id: tutor._id,
-        tutorFirstName: tutor.tutorFirstName,
-        tutorLastName: tutor.tutorLastName,
-        tutorID: tutor.tutorID,
-        email: tutor.email,
-        date: tutor.date,
-        attendance: tutor.attendance,
-        daysAvailable: Array.isArray(tutor.daysAvailable) ? tutor.daysAvailable : [],
-        lunchPeriod: tutor.lunchPeriod,
-      };
-    });
-
-    res.render('attendance', { tutors: tutorsFormatted, currentDay: todayName });
-  } catch (error) {
-    console.error('Error fetching tutors:', error);
-    res.status(500).send('Error fetching tutors');
-  }
-});
-
-route.post('/updateAttendance/:id', async (req, res) => {
-  try {
-    const tutorId = req.params.id;
-    const { change } = req.body;
-
-    // Find the tutor by ID
-    const tutor = await Tutor.findById(tutorId);
-    if (!tutor) {
-      return res.status(404).json({ error: 'Tutor not found' });
-    }
-
-    // Update attendance (positive = absences, negative = makeups)
-    tutor.attendance += change;
-
-    // Ensure attendance doesn't go below 0
-    if (tutor.attendance < 0) tutor.attendance = 0;
-
-    await tutor.save();
-
-    res.json({ attendance: tutor.attendance });
-  } catch (error) {
-    console.error('Error updating attendance:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+// REMOVED: POST /updateAttendance/:id — attendance counter updates are now
+// handled by logSubmission's diff logic in routes/attendance.js.
 
 // Import external route files
 route.use('/attendance', require('../../routes/attendance'));

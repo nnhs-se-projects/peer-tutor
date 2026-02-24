@@ -124,13 +124,51 @@
   }
   
   .makeup-button {
-    background-color: #2196f3;
-    color: white;
+    background-color: #cccccc;
+    color: #666666;
+  }
+
+  .makeup-button.button-selected {
+    background-color: #2196f3 !important;
+    color: white !important;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.4) !important;
+    opacity: 1 !important;
+  }
+
+  .makeup-button:hover,
+  .makeup-button:focus,
+  .makeup-button:active {
+    background-color: #cccccc !important;
+    color: #666666 !important;
+    border-color: #cccccc !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  .makeup-button.button-selected:hover,
+  .makeup-button.button-selected:focus,
+  .makeup-button.button-selected:active {
+    background-color: #1976d2 !important;
+    color: white !important;
+    border-color: #1976d2 !important;
   }
   
-  .absent-button:hover, .present-button:hover, .makeup-button:hover {
+  .absent-button:hover, .present-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .makeup-section-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: white;
+    margin-top: 40px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .makeup-table thead th {
+    background-color: #1565c0;
   }
 
   .button-disabled {
@@ -148,14 +186,6 @@
 
   .button-selected {
     box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.3) !important;
-  }
-  
-  /* Ensure makeup button keeps blue color on hover/focus/active */
-  .makeup-button:hover,
-  .makeup-button:focus,
-  .makeup-button:active {
-    background-color: #2196f3 !important;
-    color: white !important;
   }
   
   .filter-controls {
@@ -345,7 +375,6 @@
               <td style="min-width: 280px;">
                 <button class="absent-button" data-id="<%= tutor._id %>" data-action="absent">A</button>
                 <button class="present-button" data-id="<%= tutor._id %>" data-action="present">P</button>
-                <button class="makeup-button" data-id="<%= tutor._id %>" data-action="makeup">M</button>
               </td>
             </tr>
             <% }) %>
@@ -357,6 +386,53 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Makeup Attendance Section -->
+    <h2 class="makeup-section-title">Makeup Attendance</h2>
+    <div class="blue-box">
+      <table id="makeupTable" class="bordered-table makeup-table">
+        <thead>
+          <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Days Missed</th>
+            <th style="min-width: 120px;">Makeup</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (typeof makeupTutors !== 'undefined' && makeupTutors && makeupTutors.length > 0) { %>
+            <% makeupTutors.forEach(tutor => { %>
+            <tr
+              data-lunch="<%= tutor.lunchPeriod %>"
+              data-tutor-id="<%= tutor.tutorID %>"
+              data-mongo-id="<%= tutor._id %>"
+              data-email="<%= tutor.email %>"
+              data-first-name="<%= tutor.tutorFirstName || '' %>"
+              data-last-name="<%= tutor.tutorLastName || '' %>"
+              class="makeup-row"
+            >
+              <td><%= tutor.tutorFirstName || 'Unknown' %></td>
+              <td><%= tutor.tutorLastName || 'Unknown' %></td>
+              <td><%= tutor.attendance || 0 %></td>
+              <td style="min-width: 120px;">
+                <button class="makeup-button" data-id="<%= tutor._id %>" data-action="makeup">M</button>
+              </td>
+            </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="4" class="text-center py-4">No tutors need makeup today</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Submit button -->
+    <div class="submit-attendance-container">
+      <button id="attendanceSubmitBtn" class="submit-attendance-button">Submit</button>
+    </div>
+
   </div>
 </main>
 
@@ -375,10 +451,9 @@
 
     const lunchFilter = document.getElementById('lunchFilter');
 
-    // Filter rows by lunch period AND current day availability (client-side safety net)
+    // Filter main rows by lunch period AND current day availability
     function filterRows(selectedPeriod) {
-      const rows = document.querySelectorAll('.tutor-row');
-      rows.forEach(row => {
+      document.querySelectorAll('.tutor-row').forEach(row => {
         const lunchPeriod = row.getAttribute('data-lunch');
         const days = (row.getAttribute('data-days') || '').split(',').map(d => d.trim());
         const matchesLunch = lunchPeriod === selectedPeriod;
@@ -386,6 +461,29 @@
 
         row.style.display = (matchesLunch && matchesDay) ? '' : 'none';
       });
+
+      // Filter makeup rows by lunch period only (day filtering already done server-side)
+      let visibleMakeupCount = 0;
+      document.querySelectorAll('.makeup-row').forEach(row => {
+        const lunchPeriod = row.getAttribute('data-lunch');
+        const visible = (lunchPeriod === selectedPeriod);
+        row.style.display = visible ? '' : 'none';
+        if (visible) visibleMakeupCount++;
+      });
+
+      // Show or hide the "no eligible tutors" placeholder
+      let noMakeupRow = document.getElementById('noMakeupRow');
+      if (visibleMakeupCount === 0) {
+        if (!noMakeupRow) {
+          noMakeupRow = document.createElement('tr');
+          noMakeupRow.id = 'noMakeupRow';
+          noMakeupRow.innerHTML = '<td colspan="4" class="text-center py-4">No tutors need makeup for this lunch period</td>';
+          document.querySelector('#makeupTable tbody').appendChild(noMakeupRow);
+        }
+        noMakeupRow.style.display = '';
+      } else if (noMakeupRow) {
+        noMakeupRow.style.display = 'none';
+      }
     }
 
     if (lunchFilter) {
@@ -398,12 +496,6 @@
     }
   });
 </script>
-
-  <div class="container mx-auto px-4" style="max-width: 1400px;">
-    <div class="submit-attendance-container">
-      <button id="attendanceSubmitBtn" class="submit-attendance-button">Submit</button>
-    </div>
-  </div>
 
     <!-- Confirmation modal markup -->
     <div id="attendanceConfirmModal" class="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true">
@@ -455,17 +547,20 @@
               const payload = window.buildAttendancePayload();
               if (!payload) {
                 console.warn('No attendance payload generated. Ensure a lunch is selected and all tutors are marked.');
-              } else {
-                // Update each tutor's days-missed in the database
-                if (window.updateAttendanceBatch) {
-                  await window.updateAttendanceBatch(payload);
-                }
-                // Log the attendance submission record
-                if (window.sendAttendancePayload) {
-                  await window.sendAttendancePayload(payload);
-                }
-                console.log('Attendance submission payload:', payload);
+                hideModal();
+                return;
               }
+
+              // Log the attendance submission record (server handles diff)
+              if (window.sendAttendancePayload) {
+                const result = await window.sendAttendancePayload(payload);
+                if (!result || !result.success) {
+                  hideModal();
+                  alert('Failed to save attendance: ' + (result ? result.error : 'Unknown error'));
+                  return;
+                }
+              }
+              console.log('Attendance submission payload:', payload);
             }
             hideModal();
             window.location.href = '/leadHome?fromAttendance=true';
