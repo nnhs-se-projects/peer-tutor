@@ -390,13 +390,15 @@ route.post('/submitTutorForm', async (req, res) => {
       console.log("Session added to tutor's session history");
     }
 
-    // If this session was linked to a tutoring request, delete the request
+    // If this session was linked to a tutoring request, mark it as completed
     if (req.body.tutoringRequestId) {
       try {
-        await TutoringRequest.findByIdAndDelete(req.body.tutoringRequestId);
-        console.log('Deleted completed tutoring request:', req.body.tutoringRequestId);
-      } catch (deleteError) {
-        console.error('Error deleting tutoring request:', deleteError);
+        await TutoringRequest.findByIdAndUpdate(req.body.tutoringRequestId, {
+          status: 'completed',
+        });
+        console.log('Marked tutoring request as completed:', req.body.tutoringRequestId);
+      } catch (updateError) {
+        console.error('Error updating tutoring request status:', updateError);
       }
     }
 
