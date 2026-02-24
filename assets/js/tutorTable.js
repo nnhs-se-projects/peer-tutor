@@ -131,7 +131,7 @@ let currentSort = { columnIndex: null, isDescending: false };
 function sortTable(column) {
   const table = document.getElementById('tutorTable');
   let rows = Array.from(table.getElementsByTagName('tr')).slice(1);
-  const isNumeric = column === 2 || column === 6 || column === 7 || column === 8;
+  const isNumeric = column === 6 || column === 2;
 
   const reverse = currentSort.columnIndex === column ? !currentSort.isDescending : false;
   rows.sort((rowA, rowB) => {

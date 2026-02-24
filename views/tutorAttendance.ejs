@@ -192,9 +192,9 @@
             <thead>
               <tr>
                 <th>Date</th>
-                <th>Department</th>
+                <th>Subject</th>
                 <th>Student</th>
-                <th>Period</th>
+                <th>Duration</th>
               </tr>
             </thead>
             <tbody>
@@ -238,9 +238,9 @@
       data.sessions.forEach(session => {
         const row = sessionTableBody.insertRow();
         row.insertCell(0).textContent = new Date(session.date).toLocaleDateString();
-        row.insertCell(1).textContent = session.department;
+        row.insertCell(1).textContent = session.subject;
         row.insertCell(2).textContent = session.student;
-        row.insertCell(3).textContent = session.period;
+        row.insertCell(3).textContent = session.duration;
       });
     } catch (error) {
       alert('Error: ' + error.message);
