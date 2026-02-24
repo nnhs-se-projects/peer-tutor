@@ -361,27 +361,29 @@ route.post('/submitTutorForm', async (req, res) => {
   try {
     console.log(req.body);
     const newSession = new Session({
-      tutorFirstName: req.body.tutorFirstName,
-      tutorLastName: req.body.tutorLastName,
-      tutorID: req.body.tutorID,
       sessionDate: req.body.sessionDate,
+      tuteeName: req.body.tuteeName,
+      tutorName: req.body.tutorName,
       sessionPeriod: req.body.sessionPeriod,
-      sessionPlace: req.body.sessionPlace,
-      subject: req.body.subject,
-      class: req.body.class,
       teacher: req.body.teacher,
+      department: req.body.department,
+      class: req.body.class,
       focusOfSession: req.body.focusOfSession,
       workAccomplished: req.body.workAccomplished,
-      tuteeFirstName: req.body.tuteeFirstName,
-      tuteeLastName: req.body.tuteeLastName,
-      tuteeID: req.body.tuteeID,
-      tuteeGrade: req.body.tuteeGrade,
+      isMakeup: req.body.isMakeup || false,
     });
     const savedSession = await newSession.save();
     console.log('saved object ID: ', savedSession._id.toString());
-    const tutor = await Tutor.findOne({ tutorID: req.body.tutorID });
+
+    // add the session to the tutor's session history
+    // Match tutor by name since tutorID is no longer on the Session schema
+    const [lastName, firstName] = req.body.tutorName.split(',').map(s => s.trim());
+    const tutor = await Tutor.findOne({
+      tutorFirstName: { $regex: new RegExp(`^${firstName}$`, 'i') },
+      tutorLastName: { $regex: new RegExp(`^${lastName}$`, 'i') },
+    });
     if (!tutor) {
-      console.log('Tutor not found');
+      console.log('Tutor not found for session history linking');
     } else {
       console.log('Tutor found:', tutor);
       // add the session to the tutor's session history
@@ -485,6 +487,7 @@ route.get('/tutorTable', requireRole('teacher'), async (req, res) => {
         daysAvailable: Array.isArray(tutor.daysAvailable) ? tutor.daysAvailable : [],
         lunchPeriod: tutor.lunchPeriod,
         totalSessions: tutor.sessionHistory.length,
+        absences: tutor.attendance || 0,
       };
     });
 
@@ -498,9 +501,10 @@ route.get('/tutorTable', requireRole('teacher'), async (req, res) => {
 // Route to view session database (teacher and above)
 route.get('/sessionTable', requireRole('teacher'), async (req, res) => {
   try {
-    const sessions = await Session.find().sort({ date: -1 });
+    const sessions = await Session.find().sort({ sessionDate: -1 });
 
     // Convert MongoDB objects to objects formatted for the EJS template
+    // Fallbacks handle old records that still use the previous field names
     const sessionsFormatted = sessions.map(session => {
       return {
         date: session.sessionDate
@@ -508,13 +512,23 @@ route.get('/sessionTable', requireRole('teacher'), async (req, res) => {
               timeZone: 'America/Chicago',
             })
           : null,
-        tuteeName: `${session.tuteeFirstName} ${session.tuteeLastName}`,
-        tuteeID: session.tuteeID,
-        tutorName: `${session.tutorFirstName} ${session.tutorLastName}`,
-        subject: session.subject,
-        class: session.class,
+        tuteeName:
+          session.tuteeName ||
+          (session.tuteeLastName && session.tuteeFirstName
+            ? `${session.tuteeLastName}, ${session.tuteeFirstName}`
+            : ''),
+        tutorName:
+          session.tutorName ||
+          (session.tutorLastName && session.tutorFirstName
+            ? `${session.tutorLastName}, ${session.tutorFirstName}`
+            : ''),
+        sessionPeriod: session.sessionPeriod,
         teacher: session.teacher || 'Not Specified',
+        department: session.department || session.subject || '',
+        class: session.class,
+        focusOfSession: session.focusOfSession || '',
         assignment: session.workAccomplished,
+        isMakeup: session.isMakeup ? 'Yes' : 'No',
       };
     });
 
@@ -607,8 +621,9 @@ route.get('/api/tutor-attendance/:id', async (req, res) => {
       return res.status(404).json({ error: 'Tutor not found' });
     }
 
-    // Get tutor's sessions
-    const sessions = await Session.find({ tutorID: tutorID.toString() }).sort({ sessionDate: -1 });
+    // Get tutor's sessions via populated sessionHistory
+    const populatedTutor = await Tutor.findOne({ tutorID: tutorID }).populate('sessionHistory');
+    const sessions = populatedTutor ? populatedTutor.sessionHistory : [];
 
     const response = {
       name: `${tutorData.tutorFirstName} ${tutorData.tutorLastName}`,
@@ -616,9 +631,13 @@ route.get('/api/tutor-attendance/:id', async (req, res) => {
       sessionCount: sessions.length,
       sessions: sessions.map(session => ({
         date: session.sessionDate,
-        subject: session.subject,
-        student: `${session.tuteeFirstName} ${session.tuteeLastName}`,
-        duration: session.sessionPeriod,
+        department: session.department || session.subject || '',
+        student:
+          session.tuteeName ||
+          (session.tuteeLastName && session.tuteeFirstName
+            ? `${session.tuteeLastName}, ${session.tuteeFirstName}`
+            : ''),
+        period: session.sessionPeriod,
       })),
     };
 

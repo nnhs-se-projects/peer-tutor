@@ -158,7 +158,7 @@
 
 <!-- Main Site -->
 <main class="container mx-auto px-4 py-8 flex-grow">  
-  <div class="container mx-auto px-4" style="max-width: 1400px;">
+  <div class="container mx-auto px-4" style="max-width: 98vw;">
     <h1 class="text-4xl font-bold mb-8 text-center text-white">
       Session Database Table
     </h1>
@@ -173,16 +173,25 @@
       <table id="sessionTable" class="bordered-table">
         <thead>
           <tr>
-            <% const headers = ['Date', 'Tutee Name', 'Tutee ID', 'Tutor Name', 'Subject', 'Class', 'Teacher', 'Assignment']; %>
+            <% const headers = ['Timestamp', 'Tutee Name', 'Tutor Name', 'Session Period', 'Specific Teacher', 'Department', 'Specific Class', 'Focus of Session', 'Assignment', 'Makeup']; %>
+            <% const noSort = [1, 2, 5, 6, 7, 8, 9]; %>
+            <% const noSearch = [7, 8, 9]; %>
             <% headers.forEach((header, index) => { %>
             <th>
               <div class="header-container">
                 <span class="header-text" id="headerText<%= index %>"><%= header %></span>
+                <% if (!noSort.includes(index) || !noSearch.includes(index)) { %>
                 <div class="icons" style="display: flex; gap: 5px">
+                  <% if (!noSort.includes(index)) { %>
                   <span class="sort-icon" id="sortIcon<%= index %>" data-index="<%= index %>">↑↓</span>
+                  <% } %>
+                  <% if (!noSearch.includes(index)) { %>
                   <span class="search-icon" data-index="<%= index %>">🔍</span>
+                  <% } %>
                 </div>
+                <% } %>
               </div>
+              <% if (!noSearch.includes(index)) { %>
               <input
                 type="text"
                 class="search-input"
@@ -191,6 +200,7 @@
                 data-index="<%= index %>"
                 style="display: none; width: 100%"
               />
+              <% } %>
             </th>
             <% }) %>
           </tr>
@@ -200,12 +210,14 @@
           <tr>
             <td><%= session.date %></td>
             <td><%= session.tuteeName %></td>
-            <td><%= session.tuteeID %></td>
             <td><%= session.tutorName %></td>
-            <td><%= session.subject %></td>
-            <td><%= session.class %></td>
+            <td><%= session.sessionPeriod %></td>
             <td><%= session.teacher %></td>
+            <td><%= session.department %></td>
+            <td><%= session.class %></td>
+            <td><%= session.focusOfSession %></td>
             <td><%= session.assignment %></td>
+            <td><%= session.isMakeup %></td>
           </tr>
           <% }) %>
         </tbody>
