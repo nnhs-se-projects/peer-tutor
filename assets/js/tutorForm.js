@@ -86,7 +86,7 @@ function initializeForm() {
   });
 
   // Make sure the dropdown options match our loaded data
-  const subjectDropdown = document.getElementById('department');
+  const subjectDropdown = document.getElementById('subject');
   if (subjectDropdown) {
     const availableOptions = Array.from(subjectDropdown.options)
       .map(opt => opt.value)
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', loadDepartmentData);
 
 // Function to update the class options based on the selected subject
 function updateClasses() {
-  const subject = document.getElementById('department').value;
+  const subject = document.getElementById('subject').value;
   const classDropdown = document.getElementById('class');
   const teacherDropdown = document.getElementById('teacher');
 
@@ -174,10 +174,10 @@ function updateTeachers(subject) {
 
 document.addEventListener('DOMContentLoaded', () => {
   // Add event listener to the subject dropdown
-  const subjectDropdown = document.getElementById('department');
+  const subjectDropdown = document.getElementById('subject');
   if (subjectDropdown) {
     subjectDropdown.addEventListener('change', updateClasses);
-    console.log('Added change event listener to department dropdown');
+    console.log('Added change event listener to subject dropdown');
   } else {
     console.error('Subject dropdown not found in the DOM');
   }
@@ -255,19 +255,25 @@ document.addEventListener('DOMContentLoaded', () => {
       event.preventDefault(); // Prevent the default form submission
 
       // Get the values entered by the user
-      const tutorName = document.querySelector('#tutorName').value;
+      const tutorFirstName = document.querySelector('#tutorFirstName').value;
+      const tutorLastName = document.querySelector('#tutorLastName').value;
+      const tutorID = document.querySelector('#tutorID').value;
       const sessionDate = document.querySelector('#sessionDate').value;
       const sessionPeriod = document.querySelector('#sessionPeriod').value;
-      const department = document.querySelector('#department').value;
+      const sessionPlace = document.querySelector('#sessionPlace').value;
+      const subject = document.querySelector('#subject').value;
       const classValue = document.querySelector('#class').value;
       const teacher = document.querySelector('#teacher').value;
       const focusOfSession = document.querySelector('#FocusOfSession').value;
       const workAccomplished = document.querySelector('#workaccomplished').value;
-      const isMakeup = document.querySelector('#isMakeup').checked;
-      const tuteeName = document.querySelector('#tuteeName').value;
+      const tuteeFirstName = document.querySelector('#tuteeFirstName').value;
+      const tuteeLastName = document.querySelector('#tuteeLastName').value;
+      const tuteeID = document.querySelector('#tuteeID').value;
+      const gradeButtons = document.querySelectorAll('input[name="grade"]:checked');
+      const tuteeGrade = gradeButtons.length > 0 ? gradeButtons[0].value : null;
 
       console.log('Form values:', {
-        department,
+        subject,
         class: classValue,
         teacher,
       });
@@ -299,29 +305,22 @@ document.addEventListener('DOMContentLoaded', () => {
       const tutoringRequestId = tutoringRequestIdEl ? tutoringRequestIdEl.value : '';
 
       const formData = {
+        tutorFirstName,
+        tutorLastName,
+        tutorID,
         sessionDate,
-        tuteeName,
-        tutorName,
         sessionPeriod,
-        teacher,
-        department,
+        sessionPlace,
+        subject,
         class: classValue,
+        teacher,
         focusOfSession,
         workAccomplished,
-        isMakeup,
-      };
-
-      const sessionData = {
-        sessionDate,
-        tuteeName,
-        tutorName,
-        sessionPeriod,
-        teacher,
-        department,
-        class: classValue,
-        focusOfSession,
-        workAccomplished,
-        isMakeup,
+        tuteeFirstName,
+        tuteeLastName,
+        tuteeID,
+        tuteeGrade,
+        tutoringRequestId,
       };
 
       try {
