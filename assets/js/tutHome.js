@@ -43,7 +43,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let html = '<div class="space-y-4">';
         data.requests.forEach(request => {
-          const date = new Date(request.preferredDate).toLocaleDateString();
+          const d = new Date(request.preferredDate);
+          const date = d.getUTCMonth() + 1 + '/' + d.getUTCDate() + '/' + d.getUTCFullYear();
           const statusClass =
             request.status === 'pending'
               ? 'bg-yellow-100 text-yellow-800'
@@ -131,3 +132,4 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   };
 });
+

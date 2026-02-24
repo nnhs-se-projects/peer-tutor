@@ -119,32 +119,80 @@
   <div class="container mx-auto px-4 max-w-12xl">
     <h1 class="text-4xl font-bold mb-8 text-center text-white">Tutor Session Form</h1>
     <form>
+      <% if (acceptedRequests && acceptedRequests.length > 0) { %>
+      <div class="orange-box mb-6" style="max-width: 700px; margin-left: auto; margin-right: auto;">
+        <label class="formQuestions font-medium" for="acceptedRequestSelect">Fill from Accepted Request</label>
+        <select class="font-medium" id="acceptedRequestSelect">
+          <option value="">-- Select an accepted request (optional) --</option>
+          <% acceptedRequests.forEach(function(request) { %>
+            <option
+              value="<%= request._id %>"
+              data-student-first="<%= request.studentFirstName %>"
+              data-student-last="<%= request.studentLastName %>"
+              data-student-id="<%= request.studentID || '' %>"
+              data-grade="<%= request.studentGrade || '' %>"
+              data-subject="<%= request.subject %>"
+              data-class="<%= request.class %>"
+              data-period="<%= request.preferredPeriod %>"
+              data-date="<%= request.preferredDate ? new Date(request.preferredDate).toISOString().split('T')[0] : '' %>"
+              data-topic="<%= request.topic %>"
+            >
+              <%= request.studentFirstName %> <%= request.studentLastName %> — <%= request.subject %> (<%= request.class %>) — <%= request.preferredDate ? new Date(request.preferredDate).toLocaleDateString() : 'No date' %>
+            </option>
+          <% }); %>
+        </select>
+        <input type="hidden" id="tutoringRequestId" name="tutoringRequestId" value="" />
+      </div>
+      <% } %>
+
       <div class="form-columns">
         <!-- Left Column (Tutor Information and Session Details) -->
         <div class="form-column">
           <h2 class="black-heading">Tutor</h2>
           <div class="orange-box">
-            <label class="formQuestions font-medium" for="tutorName"
-              >Tutor Name (Last Name, First Name)</label
-            >
+            <label class="formQuestions font-medium" for="tutorFirstName">Tutor First Name</label>
             <input
               type="text"
               class="font-medium"
-              id="tutorName"
-              name="tutorName"
-              placeholder="e.g. Smith, John"
+              id="tutorFirstName"
+              name="tutorFirstName"
+              value="<%= tutor ? tutor.tutorFirstName : '' %>"
               required
             />
 
+            <label class="formQuestions font-medium" for="tutorLastName">Tutor Last Name</label>
+            <input
+              type="text"
+              class="font-medium"
+              id="tutorLastName"
+              name="tutorLastName"
+              value="<%= tutor ? tutor.tutorLastName : '' %>"
+              required
+            />
+
+            <label class="formQuestions font-medium" for="tutorID">Tutor ID</label>
+            <input type="text" class="font-medium" id="tutorID" name="tutorID" value="<%= tutor ? tutor.tutorID : '' %>" required />
+
             <label class="formQuestions font-medium" for="sessionDate">Date</label>
             <input type="date" class="font-medium" id="sessionDate" name="sessionDate" required />
+            <script>
+              // Autofill today's date in Central Time
+              (function() {
+                const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+                const yyyy = now.getFullYear();
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                const dd = String(now.getDate()).padStart(2, '0');
+                document.getElementById('sessionDate').value = yyyy + '-' + mm + '-' + dd;
+              })();
+            </script>
 
             <label class="formQuestions font-medium" for="sessionPeriod">Session Period</label>
+            <% const tutorPeriod = tutor ? String(tutor.lunchPeriod) + 'th' : ''; %>
             <select class="font-medium" id="sessionPeriod" name="sessionPeriod" required>
               <option value="">Select a Period</option>
-              <option value="4th">4th</option>
-              <option value="5th">5th</option>
-              <option value="6th">6th</option>
+              <option value="4th" <%= tutorPeriod === '4th' ? 'selected' : '' %>>4th</option>
+              <option value="5th" <%= tutorPeriod === '5th' ? 'selected' : '' %>>5th</option>
+              <option value="6th" <%= tutorPeriod === '6th' ? 'selected' : '' %>>6th</option>
               <option value="WIN">WIN</option>
               <option value="RAT">RAT</option>
             </select>

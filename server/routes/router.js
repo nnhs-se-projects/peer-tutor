@@ -131,6 +131,10 @@ route.get('/api/student/sessions', async (req, res) => {
 route.post('/api/tutoringRequest', async (req, res) => {
   try {
     const {
+      studentFirstName,
+      studentLastName,
+      studentID,
+      studentGrade,
       subject,
       class: className,
       topic,
@@ -142,7 +146,15 @@ route.post('/api/tutoringRequest', async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!subject || !className || !topic || !preferredDate || !preferredPeriod) {
+    if (
+      !subject ||
+      !className ||
+      !topic ||
+      !preferredDate ||
+      !preferredPeriod ||
+      !studentFirstName ||
+      !studentLastName
+    ) {
       return res.status(400).json({
         success: false,
         error: 'Missing required fields',
@@ -171,16 +183,17 @@ route.post('/api/tutoringRequest', async (req, res) => {
     // Create new tutoring request
     const newRequest = new TutoringRequest({
       studentEmail: studentEmail,
-      studentFirstName: req.session.firstName || 'Student',
-      studentLastName: req.session.lastName || '',
-      studentID: req.session.studentID || '',
+      studentFirstName: studentFirstName,
+      studentLastName: studentLastName,
+      studentID: studentID || '',
+      studentGrade: studentGrade || '',
       tutorId: tutorId || null,
       tutorName: tutorName || null,
       tutorEmail: tutorEmail,
       subject: subject,
       class: className,
       topic: topic,
-      preferredDate: new Date(preferredDate),
+      preferredDate: new Date(preferredDate + 'T12:00:00Z'),
       preferredPeriod: preferredPeriod,
       additionalNotes: additionalNotes || '',
       status: 'pending',
@@ -300,12 +313,20 @@ route.get('/notifications', requireRole('lead'), (req, res) => {
 
 // route to expertise form page (tutor and above)
 route.get('/expertiseForm', requireRole('tutor'), async (req, res) => {
+  // Look up existing tutor record to autofill the form
+  let tutor = null;
+  if (req.session.email) {
+    tutor = await Tutor.findOne({ email: req.session.email });
+  }
+
   res.render('expertiseForm', {
     grades: gradeSelection,
     options: newReturningOptions,
     lunchPeriods,
     daysOfTheWeek,
     courseList,
+    tutor,
+    sessionEmail: req.session.email || '',
   });
 });
 
@@ -319,7 +340,20 @@ route.get('/tutorAttendance', requireRole('tutor'), async (req, res) => {
 
 // Route to render the tutor form (tutor and above)
 route.get('/tutorForm', requireRole('tutor'), async (req, res) => {
-  res.render('tutorForm');
+  // Look up existing tutor record to autofill identity fields
+  let tutor = null;
+  let acceptedRequests = [];
+  if (req.session.email) {
+    tutor = await Tutor.findOne({ email: req.session.email });
+    if (tutor) {
+      acceptedRequests = await TutoringRequest.find({
+        tutorId: tutor._id,
+        status: 'accepted',
+      }).sort({ preferredDate: 1 });
+    }
+  }
+
+  res.render('tutorForm', { tutor, acceptedRequests });
 });
 
 // Route to handle tutor form submission
@@ -339,7 +373,6 @@ route.post('/submitTutorForm', async (req, res) => {
       isMakeup: req.body.isMakeup || false,
     });
     const savedSession = await newSession.save();
-    res.json({ success: true });
     console.log('saved object ID: ', savedSession._id.toString());
 
     // add the session to the tutor's session history
@@ -352,10 +385,24 @@ route.post('/submitTutorForm', async (req, res) => {
     if (!tutor) {
       console.log('Tutor not found for session history linking');
     } else {
+      console.log('Tutor found:', tutor);
+      // add the session to the tutor's session history
       tutor.sessionHistory.push(savedSession._id);
       await tutor.save();
       console.log("Session added to tutor's session history");
     }
+
+    // If this session was linked to a tutoring request, delete the request
+    if (req.body.tutoringRequestId) {
+      try {
+        await TutoringRequest.findByIdAndDelete(req.body.tutoringRequestId);
+        console.log('Deleted completed tutoring request:', req.body.tutoringRequestId);
+      } catch (deleteError) {
+        console.error('Error deleting tutoring request:', deleteError);
+      }
+    }
+
+    res.json({ success: true });
   } catch (error) {
     console.error('Error saving session:', error);
     res.status(500).json({ success: false, error: 'Failed to save session' });
@@ -697,6 +744,41 @@ route.get('/adminAttendance', requireRole('admin'), (req, res) => {
   res.render('adminAttendance');
 });
 
+// Route to render admin tutor requests page
+route.get('/admin/tutorRequests', requireRole('admin'), async (req, res) => {
+  try {
+    const requests = await TutoringRequest.find().sort({ createdAt: -1 });
+
+    // Format the preferred date for display
+    const requestsFormatted = requests.map(r => {
+      const obj = r.toObject();
+      if (obj.preferredDate) {
+        const date = new Date(obj.preferredDate);
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        obj.preferredDateFormatted =
+          days[date.getUTCDay()] +
+          ', ' +
+          (date.getUTCMonth() + 1) +
+          '/' +
+          date.getUTCDate() +
+          '/' +
+          date.getUTCFullYear();
+      } else {
+        obj.preferredDateFormatted = 'N/A';
+      }
+      return obj;
+    });
+
+    res.render('adminTutorRequests', {
+      requests: requestsFormatted,
+      user: req.session,
+    });
+  } catch (error) {
+    console.error('Error loading admin tutor requests:', error);
+    res.status(500).send('Error loading tutor requests page');
+  }
+});
+
 // Route to render admin user management page (admin and above)
 route.get('/admin/users', requireRole('admin'), async (req, res) => {
   try {
@@ -895,3 +977,4 @@ route.post('/api/notifications/absence/bulk', async (req, res) => {
 });
 
 module.exports = route;
+

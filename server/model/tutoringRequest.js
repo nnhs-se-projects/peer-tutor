@@ -26,6 +26,10 @@ const tutoringRequestSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    studentGrade: {
+      type: String,
+      trim: true,
+    },
 
     // Requested tutor information (optional - student may not have selected a specific tutor)
     tutorId: {
