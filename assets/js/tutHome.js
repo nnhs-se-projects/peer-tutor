@@ -1,33 +1,14 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const tutorIdInput = document.getElementById('tutorIdInput');
-  const loadRequestsBtn = document.getElementById('loadRequestsBtn');
   const requestsContainer = document.getElementById('requestsContainer');
 
-  // Load tutor ID from localStorage if previously entered
-  const savedTutorId = localStorage.getItem('tutorId');
-  if (savedTutorId && tutorIdInput) {
-    tutorIdInput.value = savedTutorId;
-    loadRequests(savedTutorId);
-  }
+  // Automatically load requests for the logged-in tutor
+  loadRequests();
 
-  if (loadRequestsBtn) {
-    loadRequestsBtn.addEventListener('click', function () {
-      const tutorId = tutorIdInput.value.trim();
-      if (!tutorId) {
-        alert('Please enter your Tutor ID');
-        return;
-      }
-      // Save tutor ID to localStorage
-      localStorage.setItem('tutorId', tutorId);
-      loadRequests(tutorId);
-    });
-  }
-
-  function loadRequests(tutorId) {
+  function loadRequests() {
     requestsContainer.innerHTML =
       '<p class="text-center py-4 text-gray-500">Loading requests...</p>';
 
-    fetch(`/api/tutor/requests?tutorID=${tutorId}`)
+    fetch('/api/tutor/requests')
       .then(response => response.json())
       .then(data => {
         if (!data.success) {
@@ -118,10 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (data.success) {
           alert(`Request ${status} successfully!`);
           // Reload requests
-          const tutorId = localStorage.getItem('tutorId');
-          if (tutorId) {
-            loadRequests(tutorId);
-          }
+          loadRequests();
         } else {
           alert('Error: ' + data.error);
         }
