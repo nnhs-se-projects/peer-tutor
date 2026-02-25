@@ -211,25 +211,25 @@ route.post('/api/tutoringRequest', async (req, res) => {
   }
 });
 
-// Get tutoring requests for a specific tutor (by tutor ID number)
+// Get tutoring requests for the logged-in tutor (by session email)
 route.get('/api/tutor/requests', async (req, res) => {
   try {
-    const tutorID = req.query.tutorID;
+    const email = req.session.email;
 
-    if (!tutorID) {
-      return res.status(400).json({
+    if (!email) {
+      return res.status(401).json({
         success: false,
-        error: 'Tutor ID is required',
+        error: 'You must be logged in to view requests',
       });
     }
 
-    // First find the tutor by their ID number to get their MongoDB _id
-    const tutor = await Tutor.findOne({ tutorID: parseInt(tutorID) });
+    // Find the tutor by their email address
+    const tutor = await Tutor.findOne({ email: email });
 
     if (!tutor) {
       return res.status(404).json({
         success: false,
-        error: 'Tutor not found',
+        error: 'Tutor profile not found for your account',
       });
     }
 
