@@ -1,4 +1,4 @@
-<%- include('include/_header') %> <%- include('include/_subPageNavBar') %>
+<%- include('include/_header') %> <%- include('include/_adminNavBar') %>
 
 <style>
   .blue-box {
@@ -12,7 +12,7 @@
     margin-bottom: 30px;
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
-  
+
   .bordered-table {
     width: 100%;
     border-collapse: separate;
@@ -22,9 +22,9 @@
     border: 2px solid #000;
     background-color: white;
   }
-  
+
   .bordered-table thead th {
-    background-color: #1976d2;
+    background-color: #e67e22;
     color: white;
     padding: 16px;
     text-align: left;
@@ -35,27 +35,28 @@
     transition: background-color 0.2s;
     border-right: 1px solid #000;
     border-bottom: 2px solid #000;
+    white-space: nowrap;
   }
-  
+
   .bordered-table thead th:last-child {
     border-right: none;
   }
-  
+
   .bordered-table tbody tr {
     transition: all 0.2s;
     background-color: white;
   }
-  
+
   .bordered-table tbody tr:nth-child(odd) {
-    background-color: #f0f4fa;
+    background-color: #fef5ec;
   }
-  
+
   .bordered-table tbody tr:hover {
-    background-color: #e0ecf9;
+    background-color: #fde8d0;
     transform: translateY(-2px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
-  
+
   .bordered-table td {
     padding: 14px 16px;
     border-bottom: 1px solid #000;
@@ -64,29 +65,29 @@
     background-color: inherit;
     font-weight: 500;
   }
-  
+
   .bordered-table td:last-child {
     border-right: none;
   }
-  
+
   .header-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
-  
+
   .sort-icon, .search-icon {
     cursor: pointer;
     transition: all 0.2s;
     padding: 4px;
     border-radius: 4px;
   }
-  
+
   .sort-icon:hover, .search-icon:hover {
     background-color: rgba(255, 255, 255, 0.2);
     transform: scale(1.2);
   }
-  
+
   .search-input {
     margin-top: 8px;
     padding: 8px;
@@ -95,15 +96,44 @@
     font-size: 14px;
     transition: all 0.3s;
   }
-  
+
   .search-input:focus {
-    border-color: #ff8800;
-    box-shadow: 0 0 0 3px rgba(255, 136, 0, 0.2);
+    border-color: #e67e22;
+    box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.2);
     outline: none;
   }
-  
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  .status-pending {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+
+  .status-accepted {
+    background-color: #d1fae5;
+    color: #065f46;
+  }
+
+  .status-declined {
+    background-color: #fee2e2;
+    color: #991b1b;
+  }
+
+  .status-completed {
+    background-color: #dbeafe;
+    color: #1e40af;
+  }
+
   .export-btn {
-    background-color: #1976d2;
+    background-color: #e67e22;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -117,33 +147,49 @@
     gap: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   }
-  
+
   .export-btn:hover {
-    background-color: #0d47a1;
+    background-color: #d35400;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   }
-  
+
   .export-btn:active {
     transform: translateY(0);
   }
-  
-  .export-icon {
-    font-size: 18px;
+
+  .filter-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid #e67e22;
+    background-color: transparent;
+    color: #e67e22;
   }
-  
+
+  .filter-btn.active {
+    background-color: #e67e22;
+    color: white;
+  }
+
+  .filter-btn:hover {
+    background-color: #e67e22;
+    color: white;
+  }
+
   @media (max-width: 768px) {
     .blue-box {
       padding: 16px;
       border-radius: 12px;
     }
-    
+
     .bordered-table td, .bordered-table th {
       padding: 12px;
     }
   }
-  
-  /* Animation keyframes */
+
   @keyframes fadeIn {
     from {
       opacity: 0;
@@ -156,42 +202,41 @@
   }
 </style>
 
-<!-- Main Site -->
-<main class="container mx-auto px-4 py-8 flex-grow">  
-  <div class="container mx-auto px-4" style="max-width: 98vw;">
+<main class="container mx-auto px-4 py-8 flex-grow">
+  <div class="container mx-auto px-4" style="max-width: 1400px;">
     <h1 class="text-4xl font-bold mb-8 text-center text-white">
-      Session Database Table
+      📩 Tutor Requests
     </h1>
-    
+
+    <!-- Filter Buttons -->
+    <div class="flex flex-wrap gap-3 mb-4 justify-center">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="pending">Pending</button>
+      <button class="filter-btn" data-filter="accepted">Accepted</button>
+      <button class="filter-btn" data-filter="declined">Declined</button>
+      <button class="filter-btn" data-filter="completed">Completed</button>
+    </div>
+
     <div class="flex justify-end mb-4">
       <button id="exportBtn" class="export-btn">
-        <span class="export-icon">📥</span> Export to Text File
+        <span>📥</span> Export to Text File
       </button>
     </div>
-    
+
     <div class="blue-box">
-      <table id="sessionTable" class="bordered-table">
+      <table id="requestsTable" class="bordered-table">
         <thead>
           <tr>
-            <% const headers = ['Timestamp', 'Tutee Name', 'Tutor Name', 'Session Period', 'Specific Teacher', 'Department', 'Specific Class', 'Focus of Session', 'Assignment', 'Makeup']; %>
-            <% const noSort = [1, 2, 5, 6, 7, 8, 9]; %>
-            <% const noSearch = [7, 8, 9]; %>
+            <% const headers = ['Tutor Name', 'Tutee Name', 'Subject', 'Class', 'Day (Preferred Date)', 'Status', 'Notes']; %>
             <% headers.forEach((header, index) => { %>
             <th>
               <div class="header-container">
                 <span class="header-text" id="headerText<%= index %>"><%= header %></span>
-                <% if (!noSort.includes(index) || !noSearch.includes(index)) { %>
                 <div class="icons" style="display: flex; gap: 5px">
-                  <% if (!noSort.includes(index)) { %>
                   <span class="sort-icon" id="sortIcon<%= index %>" data-index="<%= index %>">↑↓</span>
-                  <% } %>
-                  <% if (!noSearch.includes(index)) { %>
                   <span class="search-icon" data-index="<%= index %>">🔍</span>
-                  <% } %>
                 </div>
-                <% } %>
               </div>
-              <% if (!noSearch.includes(index)) { %>
               <input
                 type="text"
                 class="search-input"
@@ -200,33 +245,36 @@
                 data-index="<%= index %>"
                 style="display: none; width: 100%"
               />
-              <% } %>
             </th>
             <% }) %>
           </tr>
         </thead>
         <tbody>
-          <% sessions.forEach(session => { %>
-          <tr>
-            <td><%= session.date %></td>
-            <td><%= session.tuteeName %></td>
-            <td><%= session.tutorName %></td>
-            <td><%= session.sessionPeriod %></td>
-            <td><%= session.teacher %></td>
-            <td><%= session.department %></td>
-            <td><%= session.class %></td>
-            <td><%= session.focusOfSession %></td>
-            <td><%= session.assignment %></td>
-            <td><%= session.isMakeup %></td>
-          </tr>
-          <% }) %>
+          <% if (requests && requests.length > 0) { %>
+            <% requests.forEach(request => { %>
+            <tr data-status="<%= request.status %>">
+              <td><%= request.tutorName || 'Unassigned' %></td>
+              <td><%= request.studentFirstName %> <%= request.studentLastName %></td>
+              <td><%= request.subject %></td>
+              <td><%= request.class %></td>
+              <td><%= request.preferredDateFormatted %></td>
+              <td>
+                <span class="status-badge status-<%= request.status %>"><%= request.status %></span>
+              </td>
+              <td><%= request.additionalNotes || '—' %></td>
+            </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="7" class="text-center text-gray-500 italic py-8">No tutoring requests found.</td>
+            </tr>
+          <% } %>
         </tbody>
       </table>
     </div>
   </div>
 </main>
 
-<script src="/js/sessionTable.js"></script>
+<script src="/js/adminTutorRequests.js"></script>
 
-<%- include('include/_footer') %>
-<%- include('include/_end') %>
+<%- include('include/_footer') %> <%- include('include/_end') %>

@@ -131,6 +131,10 @@ route.get('/api/student/sessions', async (req, res) => {
 route.post('/api/tutoringRequest', async (req, res) => {
   try {
     const {
+      studentFirstName,
+      studentLastName,
+      studentID,
+      studentGrade,
       subject,
       class: className,
       topic,
@@ -142,7 +146,15 @@ route.post('/api/tutoringRequest', async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!subject || !className || !topic || !preferredDate || !preferredPeriod) {
+    if (
+      !subject ||
+      !className ||
+      !topic ||
+      !preferredDate ||
+      !preferredPeriod ||
+      !studentFirstName ||
+      !studentLastName
+    ) {
       return res.status(400).json({
         success: false,
         error: 'Missing required fields',
@@ -171,16 +183,17 @@ route.post('/api/tutoringRequest', async (req, res) => {
     // Create new tutoring request
     const newRequest = new TutoringRequest({
       studentEmail: studentEmail,
-      studentFirstName: req.session.firstName || 'Student',
-      studentLastName: req.session.lastName || '',
-      studentID: req.session.studentID || '',
+      studentFirstName: studentFirstName,
+      studentLastName: studentLastName,
+      studentID: studentID || '',
+      studentGrade: studentGrade || '',
       tutorId: tutorId || null,
       tutorName: tutorName || null,
       tutorEmail: tutorEmail,
       subject: subject,
       class: className,
       topic: topic,
-      preferredDate: new Date(preferredDate),
+      preferredDate: new Date(preferredDate + 'T12:00:00Z'),
       preferredPeriod: preferredPeriod,
       additionalNotes: additionalNotes || '',
       status: 'pending',
@@ -329,11 +342,18 @@ route.get('/tutorAttendance', requireRole('tutor'), async (req, res) => {
 route.get('/tutorForm', requireRole('tutor'), async (req, res) => {
   // Look up existing tutor record to autofill identity fields
   let tutor = null;
+  let acceptedRequests = [];
   if (req.session.email) {
     tutor = await Tutor.findOne({ email: req.session.email });
+    if (tutor) {
+      acceptedRequests = await TutoringRequest.find({
+        tutorId: tutor._id,
+        status: 'accepted',
+      }).sort({ preferredDate: 1 });
+    }
   }
 
-  res.render('tutorForm', { tutor });
+  res.render('tutorForm', { tutor, acceptedRequests });
 });
 
 // Route to handle tutor form submission
@@ -341,36 +361,50 @@ route.post('/submitTutorForm', async (req, res) => {
   try {
     console.log(req.body);
     const newSession = new Session({
-      tutorFirstName: req.body.tutorFirstName,
-      tutorLastName: req.body.tutorLastName,
-      tutorID: req.body.tutorID,
       sessionDate: req.body.sessionDate,
+      tuteeName: req.body.tuteeName,
+      tutorName: req.body.tutorName,
       sessionPeriod: req.body.sessionPeriod,
-      sessionPlace: req.body.sessionPlace,
-      subject: req.body.subject,
-      class: req.body.class,
       teacher: req.body.teacher,
+      department: req.body.department,
+      class: req.body.class,
       focusOfSession: req.body.focusOfSession,
       workAccomplished: req.body.workAccomplished,
-      tuteeFirstName: req.body.tuteeFirstName,
-      tuteeLastName: req.body.tuteeLastName,
-      tuteeID: req.body.tuteeID,
-      tuteeGrade: req.body.tuteeGrade,
+      isMakeup: req.body.isMakeup || false,
     });
     const savedSession = await newSession.save();
-    res.json({ success: true });
     console.log('saved object ID: ', savedSession._id.toString());
-    const tutor = await Tutor.findOne({ tutorID: req.body.tutorID });
-    if (!tutor) {
-      console.log('Tutor not found');
-    } else {
-      console.log('Tutor found:', tutor);
-    }
 
     // add the session to the tutor's session history
-    tutor.sessionHistory.push(savedSession._id);
-    await tutor.save();
-    console.log("Session added to tutor's session history");
+    // Match tutor by name since tutorID is no longer on the Session schema
+    const [lastName, firstName] = req.body.tutorName.split(',').map(s => s.trim());
+    const tutor = await Tutor.findOne({
+      tutorFirstName: { $regex: new RegExp(`^${firstName}$`, 'i') },
+      tutorLastName: { $regex: new RegExp(`^${lastName}$`, 'i') },
+    });
+    if (!tutor) {
+      console.log('Tutor not found for session history linking');
+    } else {
+      console.log('Tutor found:', tutor);
+      // add the session to the tutor's session history
+      tutor.sessionHistory.push(savedSession._id);
+      await tutor.save();
+      console.log("Session added to tutor's session history");
+    }
+
+    // If this session was linked to a tutoring request, mark it as completed
+    if (req.body.tutoringRequestId) {
+      try {
+        await TutoringRequest.findByIdAndUpdate(req.body.tutoringRequestId, {
+          status: 'completed',
+        });
+        console.log('Marked tutoring request as completed:', req.body.tutoringRequestId);
+      } catch (updateError) {
+        console.error('Error updating tutoring request status:', updateError);
+      }
+    }
+
+    res.json({ success: true });
   } catch (error) {
     console.error('Error saving session:', error);
     res.status(500).json({ success: false, error: 'Failed to save session' });
@@ -453,6 +487,7 @@ route.get('/tutorTable', requireRole('teacher'), async (req, res) => {
         daysAvailable: Array.isArray(tutor.daysAvailable) ? tutor.daysAvailable : [],
         lunchPeriod: tutor.lunchPeriod,
         totalSessions: tutor.sessionHistory.length,
+        absences: tutor.attendance || 0,
       };
     });
 
@@ -466,9 +501,10 @@ route.get('/tutorTable', requireRole('teacher'), async (req, res) => {
 // Route to view session database (teacher and above)
 route.get('/sessionTable', requireRole('teacher'), async (req, res) => {
   try {
-    const sessions = await Session.find().sort({ date: -1 });
+    const sessions = await Session.find().sort({ sessionDate: -1 });
 
     // Convert MongoDB objects to objects formatted for the EJS template
+    // Fallbacks handle old records that still use the previous field names
     const sessionsFormatted = sessions.map(session => {
       return {
         date: session.sessionDate
@@ -476,13 +512,23 @@ route.get('/sessionTable', requireRole('teacher'), async (req, res) => {
               timeZone: 'America/Chicago',
             })
           : null,
-        tuteeName: `${session.tuteeFirstName} ${session.tuteeLastName}`,
-        tuteeID: session.tuteeID,
-        tutorName: `${session.tutorFirstName} ${session.tutorLastName}`,
-        subject: session.subject,
-        class: session.class,
+        tuteeName:
+          session.tuteeName ||
+          (session.tuteeLastName && session.tuteeFirstName
+            ? `${session.tuteeLastName}, ${session.tuteeFirstName}`
+            : ''),
+        tutorName:
+          session.tutorName ||
+          (session.tutorLastName && session.tutorFirstName
+            ? `${session.tutorLastName}, ${session.tutorFirstName}`
+            : ''),
+        sessionPeriod: session.sessionPeriod,
         teacher: session.teacher || 'Not Specified',
+        department: session.department || session.subject || '',
+        class: session.class,
+        focusOfSession: session.focusOfSession || '',
         assignment: session.workAccomplished,
+        isMakeup: session.isMakeup ? 'Yes' : 'No',
       };
     });
 
@@ -518,8 +564,9 @@ route.get('/api/tutor-attendance/:id', async (req, res) => {
       return res.status(404).json({ error: 'Tutor not found' });
     }
 
-    // Get tutor's sessions
-    const sessions = await Session.find({ tutorID: tutorID.toString() }).sort({ sessionDate: -1 });
+    // Get tutor's sessions via populated sessionHistory
+    const populatedTutor = await Tutor.findOne({ tutorID: tutorID }).populate('sessionHistory');
+    const sessions = populatedTutor ? populatedTutor.sessionHistory : [];
 
     const response = {
       name: `${tutorData.tutorFirstName} ${tutorData.tutorLastName}`,
@@ -527,9 +574,13 @@ route.get('/api/tutor-attendance/:id', async (req, res) => {
       sessionCount: sessions.length,
       sessions: sessions.map(session => ({
         date: session.sessionDate,
-        subject: session.subject,
-        student: `${session.tuteeFirstName} ${session.tuteeLastName}`,
-        duration: session.sessionPeriod,
+        department: session.department || session.subject || '',
+        student:
+          session.tuteeName ||
+          (session.tuteeLastName && session.tuteeFirstName
+            ? `${session.tuteeLastName}, ${session.tuteeFirstName}`
+            : ''),
+        period: session.sessionPeriod,
       })),
     };
 
@@ -636,6 +687,41 @@ route.post('/api/notifications/send', async (req, res) => {
 
 route.get('/adminAttendance', requireRole('admin'), (req, res) => {
   res.render('adminAttendance');
+});
+
+// Route to render admin tutor requests page
+route.get('/admin/tutorRequests', requireRole('admin'), async (req, res) => {
+  try {
+    const requests = await TutoringRequest.find().sort({ createdAt: -1 });
+
+    // Format the preferred date for display
+    const requestsFormatted = requests.map(r => {
+      const obj = r.toObject();
+      if (obj.preferredDate) {
+        const date = new Date(obj.preferredDate);
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        obj.preferredDateFormatted =
+          days[date.getUTCDay()] +
+          ', ' +
+          (date.getUTCMonth() + 1) +
+          '/' +
+          date.getUTCDate() +
+          '/' +
+          date.getUTCFullYear();
+      } else {
+        obj.preferredDateFormatted = 'N/A';
+      }
+      return obj;
+    });
+
+    res.render('adminTutorRequests', {
+      requests: requestsFormatted,
+      user: req.session,
+    });
+  } catch (error) {
+    console.error('Error loading admin tutor requests:', error);
+    res.status(500).send('Error loading tutor requests page');
+  }
 });
 
 // Route to render admin user management page (admin and above)

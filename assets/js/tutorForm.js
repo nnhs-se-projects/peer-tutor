@@ -86,7 +86,7 @@ function initializeForm() {
   });
 
   // Make sure the dropdown options match our loaded data
-  const subjectDropdown = document.getElementById('subject');
+  const subjectDropdown = document.getElementById('department');
   if (subjectDropdown) {
     const availableOptions = Array.from(subjectDropdown.options)
       .map(opt => opt.value)
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', loadDepartmentData);
 
 // Function to update the class options based on the selected subject
 function updateClasses() {
-  const subject = document.getElementById('subject').value;
+  const subject = document.getElementById('department').value;
   const classDropdown = document.getElementById('class');
   const teacherDropdown = document.getElementById('teacher');
 
@@ -174,12 +174,78 @@ function updateTeachers(subject) {
 
 document.addEventListener('DOMContentLoaded', () => {
   // Add event listener to the subject dropdown
-  const subjectDropdown = document.getElementById('subject');
+  const subjectDropdown = document.getElementById('department');
   if (subjectDropdown) {
     subjectDropdown.addEventListener('change', updateClasses);
-    console.log('Added change event listener to subject dropdown');
+    console.log('Added change event listener to department dropdown');
   } else {
     console.error('Subject dropdown not found in the DOM');
+  }
+
+  // Accepted request dropdown auto-fill
+  const acceptedRequestSelect = document.getElementById('acceptedRequestSelect');
+  if (acceptedRequestSelect) {
+    acceptedRequestSelect.addEventListener('change', function () {
+      const selected = this.options[this.selectedIndex];
+      const requestIdInput = document.getElementById('tutoringRequestId');
+
+      if (!this.value) {
+        // Cleared selection — reset the hidden field
+        if (requestIdInput) requestIdInput.value = '';
+        return;
+      }
+
+      // Store the request ID so it gets sent with the form
+      if (requestIdInput) requestIdInput.value = this.value;
+
+      // Auto-fill tutee info
+      const tuteeFirst = document.getElementById('tuteeFirstName');
+      const tuteeLast = document.getElementById('tuteeLastName');
+      const tuteeID = document.getElementById('tuteeID');
+      if (tuteeFirst) tuteeFirst.value = selected.dataset.studentFirst || '';
+      if (tuteeLast) tuteeLast.value = selected.dataset.studentLast || '';
+      if (tuteeID) tuteeID.value = selected.dataset.studentId || '';
+
+      // Auto-fill tutee grade radio button
+      const gradeVal = selected.dataset.grade || '';
+      if (gradeVal) {
+        const gradeRadio = document.querySelector(`input[name="grade"][value="${gradeVal}"]`);
+        if (gradeRadio) gradeRadio.checked = true;
+      }
+
+      // Auto-fill subject, then trigger class list update
+      const subjectEl = document.getElementById('subject');
+      const subjectVal = selected.dataset.subject || '';
+      if (subjectEl && subjectVal) {
+        subjectEl.value = subjectVal;
+        // Trigger the class/teacher dropdowns to populate
+        updateClasses();
+
+        // Wait briefly for the class dropdown to populate, then set the class value
+        setTimeout(() => {
+          const classEl = document.getElementById('class');
+          const classVal = selected.dataset.class || '';
+          if (classEl && classVal) {
+            classEl.value = classVal;
+          }
+        }, 200);
+      }
+
+      // Auto-fill session date
+      const dateEl = document.getElementById('sessionDate');
+      const dateVal = selected.dataset.date || '';
+      if (dateEl && dateVal) dateEl.value = dateVal;
+
+      // Auto-fill session period
+      const periodEl = document.getElementById('sessionPeriod');
+      const periodVal = selected.dataset.period || '';
+      if (periodEl && periodVal) periodEl.value = periodVal;
+
+      // Auto-fill work accomplished / topic
+      const workEl = document.getElementById('workaccomplished');
+      const topicVal = selected.dataset.topic || '';
+      if (workEl && topicVal) workEl.value = topicVal;
+    });
   }
 
   const submitButton = document.querySelector('input.submit');
@@ -189,58 +255,73 @@ document.addEventListener('DOMContentLoaded', () => {
       event.preventDefault(); // Prevent the default form submission
 
       // Get the values entered by the user
-      const tutorFirstName = document.querySelector('#tutorFirstName').value;
-      const tutorLastName = document.querySelector('#tutorLastName').value;
-      const tutorID = document.querySelector('#tutorID').value;
+      const tutorName = document.querySelector('#tutorName').value;
       const sessionDate = document.querySelector('#sessionDate').value;
       const sessionPeriod = document.querySelector('#sessionPeriod').value;
-      const sessionPlace = document.querySelector('#sessionPlace').value;
-      const subject = document.querySelector('#subject').value;
+      const department = document.querySelector('#department').value;
       const classValue = document.querySelector('#class').value;
       const teacher = document.querySelector('#teacher').value;
       const focusOfSession = document.querySelector('#FocusOfSession').value;
       const workAccomplished = document.querySelector('#workaccomplished').value;
-      const tuteeFirstName = document.querySelector('#tuteeFirstName').value;
-      const tuteeLastName = document.querySelector('#tuteeLastName').value;
-      const tuteeID = document.querySelector('#tuteeID').value;
-      const gradeButtons = document.querySelectorAll('input[name="grade"]:checked');
-      const tuteeGrade = gradeButtons.length > 0 ? gradeButtons[0].value : null;
+      const isMakeup = document.querySelector('#isMakeup').checked;
+      const tuteeName = document.querySelector('#tuteeName').value;
 
       console.log('Form values:', {
-        subject,
+        department,
         class: classValue,
         teacher,
       });
 
+      // Validate required fields before submitting
+      if (
+        !tutorFirstName ||
+        !tutorLastName ||
+        !tutorID ||
+        !sessionDate ||
+        !sessionPeriod ||
+        !sessionPlace ||
+        !subject ||
+        !classValue ||
+        !teacher ||
+        !focusOfSession ||
+        !workAccomplished ||
+        !tuteeFirstName ||
+        !tuteeLastName ||
+        !tuteeID ||
+        !tuteeGrade
+      ) {
+        alert('Please fill in all required fields before submitting.');
+        return;
+      }
+
+      // Include linked tutoring request ID if one was selected
+      const tutoringRequestIdEl = document.getElementById('tutoringRequestId');
+      const tutoringRequestId = tutoringRequestIdEl ? tutoringRequestIdEl.value : '';
+
       const formData = {
-        tutorFirstName,
-        tutorLastName,
-        tutorID,
         sessionDate,
+        tuteeName,
+        tutorName,
         sessionPeriod,
-        sessionPlace,
-        subject,
-        class: classValue,
         teacher,
+        department,
+        class: classValue,
         focusOfSession,
         workAccomplished,
-        tuteeFirstName,
-        tuteeLastName,
-        tuteeID,
-        tuteeGrade,
+        isMakeup,
       };
 
       const sessionData = {
-        tuteeFirstName,
-        tuteeLastName,
-        tuteeID,
         sessionDate,
-        tutorFirstName,
-        tutorLastName,
-        tutorID,
-        subject,
+        tuteeName,
+        tutorName,
+        sessionPeriod,
+        teacher,
+        department,
         class: classValue,
+        focusOfSession,
         workAccomplished,
+        isMakeup,
       };
 
       try {
@@ -265,31 +346,9 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Network error:', error);
         alert('There was a network error submitting the form.');
       }
-
-      // session table try
-      try {
-        const response = await fetch('/sessionTable', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(sessionData),
-        });
-
-        // Show an alert based on the response
-        if (response.ok) {
-          console.log('Success putting into session table');
-        } else {
-          const errorData = await response.json();
-          console.error('Error placing into session table:', errorData);
-          alert('There was an error placing into session table.');
-        }
-      } catch (error) {
-        console.error('Network error:', error);
-        alert('There was a network error placing into session table.');
-      }
     });
   } else {
     console.error('Submit button not found');
   }
 });
+
