@@ -7,6 +7,11 @@ const TutoringRequest = require('../model/tutoringRequest'); // Import the Tutor
 const Teacher = require('../model/teacher'); // Import the Teacher schema
 const nodemailer = require('nodemailer');
 const { requireRole } = require('../middleware/roleAuth'); // Import role middleware
+const {
+  sendRequestAcceptedEmail,
+  sendRequestDeclinedEmail,
+  sendNewRequestEmail,
+} = require('../utils/emailService');
 
 // assigning variable to the JSON file
 const gradeSelection = require('../model/grades.json');
@@ -201,6 +206,13 @@ route.post('/api/tutoringRequest', async (req, res) => {
 
     await newRequest.save();
 
+    // Notify the tutor about the new request
+    try {
+      await sendNewRequestEmail(newRequest);
+    } catch (emailError) {
+      console.error('Email notification to tutor failed:', emailError);
+    }
+
     res.json({ success: true, requestId: newRequest._id });
   } catch (error) {
     console.error('Error creating tutoring request:', error);
@@ -277,6 +289,18 @@ route.post('/api/tutor/requests/:requestId/respond', async (req, res) => {
         success: false,
         error: 'Request not found',
       });
+    }
+
+    // Send email notification to the tutee
+    try {
+      if (status === 'accepted') {
+        await sendRequestAcceptedEmail(request);
+      } else if (status === 'declined') {
+        await sendRequestDeclinedEmail(request);
+      }
+    } catch (emailError) {
+      console.error('Email notification failed:', emailError);
+      // Don't fail the whole request just because the email didn't send
     }
 
     res.json({ success: true, request });
