@@ -1,6 +1,6 @@
+/* eslint-disable no-console */
 const express = require('express');
 const route = express.Router();
-const Entry = require('../model/entry');
 const Session = require('../model/session'); // Import the Session schema
 const Tutor = require('../model/tutor'); // Import the Tutor schema
 const TutoringRequest = require('../model/tutoringRequest'); // Import the TutoringRequest schema
@@ -413,6 +413,7 @@ route.post('/submitTutorForm', async (req, res) => {
       // add the session to the tutor's session history
       tutor.sessionHistory.push(savedSession._id);
       await tutor.save();
+      // eslint-disable-next-line quotes
       console.log("Session added to tutor's session history");
     }
 

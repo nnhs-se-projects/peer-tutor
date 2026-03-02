@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Email service utility for sending automated notifications.
  * Uses nodemailer with Gmail SMTP.
@@ -51,16 +52,6 @@ function formatDate(date) {
  * @param {Object} request – The TutoringRequest document (after update)
  */
 async function sendRequestAcceptedEmail(request) {
-  console.log('sendRequestAcceptedEmail called with:', {
-    studentEmail: request.studentEmail,
-    studentFirstName: request.studentFirstName,
-    tutorName: request.tutorName,
-    subject: request.subject,
-    class: request.class,
-    preferredDate: request.preferredDate,
-    preferredPeriod: request.preferredPeriod,
-  });
-
   const transporter = getTransporter();
   if (!transporter) return;
 
@@ -105,12 +96,6 @@ async function sendRequestAcceptedEmail(request) {
  * @param {Object} request – The TutoringRequest document (after update)
  */
 async function sendRequestDeclinedEmail(request) {
-  console.log('sendRequestDeclinedEmail called with:', {
-    studentEmail: request.studentEmail,
-    studentFirstName: request.studentFirstName,
-    responseMessage: request.responseMessage,
-  });
-
   const transporter = getTransporter();
   if (!transporter) return;
 
