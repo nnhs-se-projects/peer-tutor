@@ -73,7 +73,7 @@
                     class="role-select px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     data-id="<%= tutor._id %>"
                     data-original="<%= tutor.role || 'tutor' %>"
-                    <%= tutor.role === 'developer' ? 'disabled' : '' %>
+                    <%= tutor.role === 'developer' && !isSuperDeveloper ? 'disabled' : '' %>
                   >
                     <option value="student" <%= (tutor.role || 'tutor') === 'student' ? 'selected' : '' %>>Student</option>
                     <option value="tutor" <%= (tutor.role || 'tutor') === 'tutor' ? 'selected' : '' %>>Tutor</option>

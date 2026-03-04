@@ -3,6 +3,18 @@
  * Checks if the user has the required role to access a route
  */
 
+// Super developers can change the roles of other developers
+const SUPER_DEVELOPER_EMAILS = ['eqin@stu.naperville203.org', 'jxwu@stu.naperville203.org'];
+
+/**
+ * Check if an email belongs to a super developer
+ * @param {string} email
+ * @returns {boolean}
+ */
+const isSuperDeveloper = email => {
+  return SUPER_DEVELOPER_EMAILS.includes((email || '').toLowerCase());
+};
+
 // Define role hierarchy - higher roles inherit permissions from lower roles
 const ROLE_HIERARCHY = {
   developer: ['developer', 'admin', 'teacher', 'lead', 'tutor', 'student'],
@@ -85,5 +97,7 @@ module.exports = {
   requireRole,
   requireExactRole,
   getRolePermissions,
+  isSuperDeveloper,
   ROLE_HIERARCHY,
+  SUPER_DEVELOPER_EMAILS,
 };

@@ -49,12 +49,15 @@ route.get('/', async (req, res) => {
     // Sort tutors by totalSessions in descending order
     formattedTutors.sort((a, b) => b.totalSessions - a.totalSessions);
 
-    // Get top 3 tutors from the already sorted array
+    // Get top 3 tutors for the podium
     const top3 = formattedTutors.slice(0, 3);
+
+    // Get top 15 tutors for the leaderboard table
+    const top15 = formattedTutors.slice(0, 15);
 
     // the res parameter references the HTTP response object
     res.render('homepage', {
-      tutors: formattedTutors,
+      tutors: top15,
       top3: top3,
     });
   } catch (error) {
@@ -759,6 +762,7 @@ route.get('/admin/users', requireRole('admin'), async (req, res) => {
       tutors,
       teachers,
       user: req.session,
+      isSuperDeveloper: require('../middleware/roleAuth').isSuperDeveloper(req.session.email),
     });
   } catch (error) {
     console.error('Error loading admin users page:', error);
@@ -777,11 +781,25 @@ route.post('/api/admin/users/:id/role', requireRole('admin'), async (req, res) =
       return res.status(400).json({ success: false, error: 'Invalid role' });
     }
 
+    const { isSuperDeveloper } = require('../middleware/roleAuth');
+    const callerIsSuperDev = isSuperDeveloper(req.session.email);
+
     // Only developers can assign the developer role
     if (role === 'developer' && req.session.role !== 'developer') {
       return res
         .status(403)
         .json({ success: false, error: 'Only developers can assign the developer role' });
+    }
+
+    // Only super developers can change the role of another developer
+    const targetTutor = await Tutor.findById(id);
+    if (!targetTutor) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    if (targetTutor.role === 'developer' && !callerIsSuperDev) {
+      return res
+        .status(403)
+        .json({ success: false, error: "Only super developers can change a developer's role" });
     }
 
     const tutor = await Tutor.findByIdAndUpdate(id, { role }, { new: true });
