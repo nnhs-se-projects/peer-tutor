@@ -45,49 +45,113 @@
       
       <!-- Navigation links (center) -->
       <div class="flex items-center space-x-6">
-        <!-- Tutor Homepage - only if user is tutor, lead, or developer -->
-        <% if (user && ['developer', 'lead', 'tutor'].includes(user.role)) { %>
-        <a
-          href="/tutHome"
-          class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
-        >
-          <span class="text-xl group-hover:scale-110 transition-transform">📚</span>
-          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Tutor Homepage</span>
-        </a>
-        <% } %>
-        
-        <!-- Tutor Leader Homepage - only if user is lead or developer -->
-        <% if (user && ['developer', 'lead'].includes(user.role)) { %>
-        <a
-          href="/leadHome"
-          class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
-        >
-          <span class="text-xl group-hover:scale-110 transition-transform">🏆</span>
-          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Tutor Leader Homepage</span>
-        </a>
-        <% } %>
-        
-        <!-- Teacher Homepage - only if user is teacher -->
-        <% if (user && ['developer', 'teacher'].includes(user.role)) { %>
-        <a
-          href="/teachHome"
-          class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
-        >
-          <span class="text-xl group-hover:scale-110 transition-transform">🍎</span>
-          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Teacher Homepage</span>
-        </a>
-        <% } %>
-        
-        <!-- Admin Homepage - only if user is admin or higher -->
+        <!-- Admin Home - admin, developer -->
         <% if (user && ['developer', 'admin'].includes(user.role)) { %>
         <a
           href="/adminHome"
           class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
         >
           <span class="text-xl group-hover:scale-110 transition-transform">⭐</span>
-          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Admin Homepage</span>
+          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Admin Home</span>
         </a>
         <% } %>
+        
+        <!-- User Roles - admin, developer -->
+        <% if (user && ['developer', 'admin'].includes(user.role)) { %>
+        <a
+          href="/admin/users"
+          class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
+        >
+          <span class="text-xl group-hover:scale-110 transition-transform">👥</span>
+          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">User Roles</span>
+        </a>
+        <% } %>
+        
+        <!-- Tutor Requests - admin, developer -->
+        <% if (user && ['developer', 'admin'].includes(user.role)) { %>
+        <a
+          href="/admin/tutorRequests"
+          class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
+        >
+          <span class="text-xl group-hover:scale-110 transition-transform">📩</span>
+          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Tutor Requests</span>
+        </a>
+        <% } %>
+        
+        <!-- Admin Attendance - admin, developer -->
+        <% if (user && ['developer', 'admin'].includes(user.role)) { %>
+        <a
+          href="/adminAttendance"
+          class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
+        >
+          <span class="text-xl group-hover:scale-110 transition-transform">📊</span>
+          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Attendance</span>
+        </a>
+        <% } %>
+        
+        <!-- Teacher Homepage - teacher, admin, developer -->
+        <% if (user && ['developer', 'admin', 'teacher'].includes(user.role)) { %>
+        <a
+          href="/teachHome"
+          class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
+        >
+          <span class="text-xl group-hover:scale-110 transition-transform">🍎</span>
+          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Teacher Home</span>
+        </a>
+        <% } %>
+        
+        <!-- Tutor Table - teacher, admin, developer -->
+        <% if (user && ['developer', 'admin', 'teacher'].includes(user.role)) { %>
+        <a
+          href="/tutorTable"
+          class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
+        >
+          <span class="text-xl group-hover:scale-110 transition-transform">📋</span>
+          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Tutor Table</span>
+        </a>
+        <% } %>
+        
+        <!-- Session Table - teacher, admin, developer -->
+        <% if (user && ['developer', 'admin', 'teacher'].includes(user.role)) { %>
+        <a
+          href="/sessionTable"
+          class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
+        >
+          <span class="text-xl group-hover:scale-110 transition-transform">🗂️</span>
+          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Session Table</span>
+        </a>
+        <% } %>
+        
+        <!-- Tutor Leader Homepage - lead, admin, developer -->
+        <% if (user && ['developer', 'admin', 'lead'].includes(user.role)) { %>
+        <a
+          href="/leadHome"
+          class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
+        >
+          <span class="text-xl group-hover:scale-110 transition-transform">🏆</span>
+          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Lead Home</span>
+        </a>
+        <% } %>
+        
+        <!-- Tutor Homepage - tutor, lead, admin, developer -->
+        <% if (user && ['developer', 'admin', 'lead', 'tutor'].includes(user.role)) { %>
+        <a
+          href="/tutHome"
+          class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
+        >
+          <span class="text-xl group-hover:scale-110 transition-transform">📚</span>
+          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Tutor Home</span>
+        </a>
+        <% } %>
+        
+        <!-- Student Homepage - all roles -->
+        <a
+          href="/stuHome"
+          class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-white/90 hover:text-orange-500 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out group"
+        >
+          <span class="text-xl group-hover:scale-110 transition-transform">✏️</span>
+          <span class="relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-orange-500 after:transition-all">Student Home</span>
+        </a>
       </div>
       
       <!-- Logout (right) -->

@@ -100,11 +100,17 @@
     <div class="geometric-overlay"></div>
     <div class="w-full px-4 sm:px-6 lg:px-8 relative z-10">
       <div class="flex justify-center items-center py-6">
+        <% if (typeof user !== 'undefined' && user && user.role === 'student') { %>
+          <div class="logo-container">
+            <img src="/img/peer-tutoring-logo.png" alt="Peer Tutor Logo" class="peer-tutor-logo h-40 w-auto object-contain">
+          </div>
+        <% } else { %>
         <a href="/">
           <div class="logo-container">
             <img src="/img/peer-tutoring-logo.png" alt="Peer Tutor Logo" class="peer-tutor-logo h-40 w-auto object-contain transform hover:scale-105 transition-all duration-200">
           </div>
         </a>
+        <% } %>
       </div>
     </div>
   </body>
