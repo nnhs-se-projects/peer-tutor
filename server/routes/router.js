@@ -59,6 +59,7 @@ route.get('/', async (req, res) => {
     res.render('homepage', {
       tutors: top15,
       top3: top3,
+      currentPage: 'homepage',
     });
   } catch (error) {
     console.error('Error rendering homepage:', error);
@@ -68,12 +69,12 @@ route.get('/', async (req, res) => {
 
 // route to render classes, grades (tutor resources)
 route.get('/tutHome', requireRole('tutor'), (req, res) => {
-  res.render('tutHome');
+  res.render('tutHome', { currentPage: 'tutHome' });
 });
 
 // route to student home page (accessible to all authenticated users)
 route.get('/stuHome', requireRole('student'), async (req, res) => {
-  res.render('stuHome');
+  res.render('stuHome', { currentPage: 'stuHome' });
 });
 
 // API endpoints for student functionality
@@ -318,23 +319,24 @@ route.post('/api/tutor/requests/:requestId/respond', async (req, res) => {
 
 // route to tutor leader home page
 route.get('/leadHome', requireRole('lead'), async (req, res) => {
-  res.render('leadHome');
+  res.render('leadHome', { currentPage: 'leadHome' });
 });
 
 // route to teacher home page
 route.get('/teachHome', requireRole('teacher'), async (req, res) => {
-  res.render('teachHome');
+  res.render('teachHome', { currentPage: 'teachHome' });
 });
 
 // route to admin home page
 route.get('/adminHome', requireRole('admin'), async (req, res) => {
-  res.render('adminHome');
+  res.render('adminHome', { currentPage: 'adminHome' });
 });
 
 // route to a simple notification test page (lead and above)
 route.get('/notifications', requireRole('lead'), (req, res) => {
   res.render('notifications', {
     userEmail: req.session.email || '',
+    currentPage: 'notifications',
   });
 });
 
@@ -354,6 +356,7 @@ route.get('/expertiseForm', requireRole('tutor'), async (req, res) => {
     courseList,
     tutor,
     sessionEmail: req.session.email || '',
+    currentPage: 'expertiseForm',
   });
 });
 
@@ -362,7 +365,7 @@ route.use('/auth', require('./auth'));
 
 // Route to render the tutor attendance (tutor and above)
 route.get('/tutorAttendance', requireRole('tutor'), async (req, res) => {
-  res.render('tutorAttendance');
+  res.render('tutorAttendance', { currentPage: 'tutorAttendance' });
 });
 
 // Route to render the tutor form (tutor and above)
@@ -380,7 +383,7 @@ route.get('/tutorForm', requireRole('tutor'), async (req, res) => {
     }
   }
 
-  res.render('tutorForm', { tutor, acceptedRequests });
+  res.render('tutorForm', { tutor, acceptedRequests, currentPage: 'tutorForm' });
 });
 
 // Route to handle tutor form submission
@@ -519,7 +522,7 @@ route.get('/tutorTable', requireRole('teacher'), async (req, res) => {
       };
     });
 
-    res.render('tutorTable', { tutors: tutorsFormatted });
+    res.render('tutorTable', { tutors: tutorsFormatted, currentPage: 'tutorTable' });
   } catch (error) {
     console.error('Error fetching tutors:', error);
     res.status(500).send('Error fetching tutors');
@@ -560,7 +563,7 @@ route.get('/sessionTable', requireRole('teacher'), async (req, res) => {
       };
     });
 
-    res.render('sessionTable', { sessions: sessionsFormatted });
+    res.render('sessionTable', { sessions: sessionsFormatted, currentPage: 'sessionTable' });
   } catch (error) {
     console.error('Error fetching sessions:', error);
     res.status(500).send('Error fetching sessions');
@@ -714,7 +717,7 @@ route.post('/api/notifications/send', async (req, res) => {
 });
 
 route.get('/adminAttendance', requireRole('admin'), (req, res) => {
-  res.render('adminAttendance');
+  res.render('adminAttendance', { currentPage: 'adminAttendance' });
 });
 
 // Route to render admin tutor requests page
@@ -745,6 +748,7 @@ route.get('/admin/tutorRequests', requireRole('admin'), async (req, res) => {
     res.render('adminTutorRequests', {
       requests: requestsFormatted,
       user: req.session,
+      currentPage: 'adminTutorRequests',
     });
   } catch (error) {
     console.error('Error loading admin tutor requests:', error);
@@ -762,6 +766,7 @@ route.get('/admin/users', requireRole('admin'), async (req, res) => {
       tutors,
       teachers,
       user: req.session,
+      currentPage: 'adminUsers',
       isSuperDeveloper: require('../middleware/roleAuth').isSuperDeveloper(req.session.email),
     });
   } catch (error) {

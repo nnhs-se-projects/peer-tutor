@@ -60,6 +60,7 @@ router.get('/', async (req, res) => {
       tutors: tutorsFormatted,
       makeupTutors: makeupTutorsFormatted,
       currentDay: todayName,
+      currentPage: 'attendance',
     });
   } catch (error) {
     console.error(error);

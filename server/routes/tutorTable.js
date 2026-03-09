@@ -37,7 +37,9 @@ router.get('/', (req, res) => {
   res.render('tutorTable', {
     tutors: tutorData,
     title: 'Tutor Database Table',
+    currentPage: 'tutorTable',
   });
 });
 
 module.exports = router;
+
