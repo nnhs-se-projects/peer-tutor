@@ -255,7 +255,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show an alert based on the response and redirect to the homepage
         if (response.ok) {
           alert('Form successfully submitted!');
-          window.location = '/'; // Redirect to the homepage
         } else {
           const errorData = await response.json();
           console.error('Error submitting form:', errorData);
@@ -288,8 +287,12 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Network error:', error);
         alert('There was a network error placing into session table.');
       }
+
+      // Redirect only after both POSTs have completed
+      window.location = '/';
     });
   } else {
     console.error('Submit button not found');
   }
 });
+

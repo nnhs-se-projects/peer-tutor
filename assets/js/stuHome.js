@@ -1,65 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-  // Subject-class mapping
-  const classOptions = {
-    Math: [
-      'Algebra I',
-      'Geometry',
-      'Algebra II',
-      'Pre-Calculus',
-      'Calculus AB',
-      'Calculus BC',
-      'Statistics',
-    ],
-    Science: ['Biology', 'Chemistry', 'Physics', 'Environmental Science', 'Anatomy'],
-    English: [
-      'English 9',
-      'English 10',
-      'English 11',
-      'English 12',
-      'AP Literature',
-      'AP Language',
-    ],
-    History: ['World History', 'U.S. History', 'Government', 'Economics', 'Human Geography'],
-    'Foreign Language': [
-      'Spanish I',
-      'Spanish II',
-      'Spanish III',
-      'French I',
-      'French II',
-      'Latin I',
-      'Latin II',
-    ],
-    Other: ['Computer Science', 'Business', 'Psychology', 'Art History'],
-  };
-
-  // Populate class dropdown based on subject selection
-  function populateClassDropdown(subjectId, classId) {
-    const subjectSelect = document.getElementById(subjectId);
-    const classSelect = document.getElementById(classId);
-
-    subjectSelect.addEventListener('change', function () {
-      const selectedSubject = this.value;
-
-      // Clear current options
-      classSelect.innerHTML = '<option value="">Select a class</option>';
-
-      // If no subject is selected, return
-      if (!selectedSubject) return;
-
-      // Add class options based on selected subject
-      classOptions[selectedSubject].forEach(className => {
-        const option = document.createElement('option');
-        option.value = className;
-        option.textContent = className;
-        classSelect.appendChild(option);
-      });
-    });
-  }
-
-  // Initialize class dropdowns
-  populateClassDropdown('subject', 'class');
-  populateClassDropdown('requestSubject', 'requestClass');
-
   // Fetch and display tutors based on selection
   const searchTutorsBtn = document.getElementById('searchTutors');
   if (searchTutorsBtn) {
@@ -95,6 +34,9 @@ document.addEventListener('DOMContentLoaded', function () {
           // Display tutors
           let html = '<div class="mt-4 space-y-4">';
           tutors.forEach(tutor => {
+            const safeName = `${tutor.tutorFirstName} ${tutor.tutorLastName}`
+              .replace(/'/g, "\\'")
+              .replace(/"/g, '&quot;');
             html += `
               <div class="border rounded-lg p-4 hover:bg-gray-50">
                 <div class="font-bold">${tutor.tutorFirstName} ${tutor.tutorLastName}</div>
@@ -103,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="text-sm text-gray-600">Available: ${tutor.daysAvailable.join(', ')}</div>
                 <button 
                   class="mt-2 bg-orange-500 text-white px-3 py-1 rounded-lg hover:bg-orange-600 text-sm"
-                  onclick="requestTutor('${tutor._id}', '${tutor.tutorFirstName} ${tutor.tutorLastName}')"
+                  onclick="requestTutor('${tutor._id}', '${safeName}')"
                 >
                   Request Session
                 </button>

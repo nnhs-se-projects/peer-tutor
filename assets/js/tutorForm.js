@@ -274,21 +274,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Validate required fields before submitting
       if (
-        !tutorFirstName ||
-        !tutorLastName ||
-        !tutorID ||
+        !tutorName ||
         !sessionDate ||
         !sessionPeriod ||
-        !sessionPlace ||
-        !subject ||
+        !department ||
         !classValue ||
         !teacher ||
         !focusOfSession ||
         !workAccomplished ||
-        !tuteeFirstName ||
-        !tuteeLastName ||
-        !tuteeID ||
-        !tuteeGrade
+        !tuteeName
       ) {
         alert('Please fill in all required fields before submitting.');
         return;
@@ -299,19 +293,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const tutoringRequestId = tutoringRequestIdEl ? tutoringRequestIdEl.value : '';
 
       const formData = {
-        sessionDate,
-        tuteeName,
-        tutorName,
-        sessionPeriod,
-        teacher,
-        department,
-        class: classValue,
-        focusOfSession,
-        workAccomplished,
-        isMakeup,
-      };
-
-      const sessionData = {
         sessionDate,
         tuteeName,
         tutorName,

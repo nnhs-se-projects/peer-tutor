@@ -13,10 +13,19 @@ submitButton.addEventListener('click', async event => {
   const tutorLastName = document.querySelector('input#lastName').value;
   const tutorID = document.querySelector('input#tutorID').value;
   const email = document.querySelector('input#tutEmail').value;
-  const grade = document.querySelector("input[name='grade']:checked").value;
-  const returning =
-    document.querySelector("input[name='newReturning']:checked").value === 'Returning';
-  const lunchPeriod = document.querySelector("input[name='lunchPeriod']:checked").value;
+
+  const gradeEl = document.querySelector("input[name='grade']:checked");
+  const returningEl = document.querySelector("input[name='newReturning']:checked");
+  const lunchPeriodEl = document.querySelector("input[name='lunchPeriod']:checked");
+
+  if (!gradeEl || !returningEl || !lunchPeriodEl) {
+    alert('Please select your grade, new/returning status, and lunch period.');
+    return;
+  }
+
+  const grade = gradeEl.value;
+  const returning = returningEl.value === 'Returning';
+  const lunchPeriod = lunchPeriodEl.value;
   const daysAvailable = Array.from(
     document.querySelectorAll("input[name='dayOfTheWeek']:checked")
   ).map(input => input.value);
@@ -65,3 +74,4 @@ submitButton.addEventListener('click', async event => {
     alert('There was a network error submitting the form.');
   }
 });
+

@@ -578,7 +578,7 @@ route.get('/sessionTable', requireRole('teacher'), async (req, res) => {
 // handled by logSubmission's diff logic in routes/attendance.js.
 
 // Import external route files
-route.use('/attendance', require('../../routes/attendance'));
+// NOTE: Attendance routes are mounted in server.js at /attendance — do NOT mount again here.
 
 // The homepage route can be handled in the main router
 // Removing duplicate route for /homepage

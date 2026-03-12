@@ -52,7 +52,8 @@ let currentSort = { columnIndex: null, isDescending: false };
 
 function sortTable(column) {
   const table = document.getElementById('leaderboardTable');
-  let rows = Array.from(table.getElementsByTagName('tr')).slice(1);
+  const tbody = table.querySelector('tbody') || table;
+  let rows = Array.from(tbody.getElementsByTagName('tr'));
   const isNumeric = column === 0 || column === 3;
 
   const reverse = currentSort.columnIndex === column ? !currentSort.isDescending : false;
@@ -67,7 +68,7 @@ function sortTable(column) {
     }
   });
 
-  rows.forEach(row => table.appendChild(row));
+  rows.forEach(row => tbody.appendChild(row));
 
   currentSort = { columnIndex: column, isDescending: reverse };
   updateSortIcons(column, reverse);
@@ -130,3 +131,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+

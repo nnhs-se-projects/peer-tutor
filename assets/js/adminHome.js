@@ -31,8 +31,8 @@ document.addEventListener('DOMContentLoaded', function () {
               <div class="font-bold">${session.subject} - ${session.class}</div>
               <div class="text-sm text-gray-600">Date: ${sessionDate}</div>
               <div class="text-sm text-gray-600">Tutor: ${session.tutorFirstName} ${session.tutorLastName}</div>
-              <div class="text-sm text-gray-600">Focus: ${session.FocusOfSession || ''}</div>
-              <div class="text-sm text-gray-600">Work Accomplished: ${session.workaccomplished || ''}</div>
+              <div class="text-sm text-gray-600">Focus: ${session.focusOfSession || ''}</div>
+              <div class="text-sm text-gray-600">Work Accomplished: ${session.workAccomplished || ''}</div>
             </div>
           `;
         });
@@ -47,3 +47,4 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   loadSessionHistory();
 });
+
