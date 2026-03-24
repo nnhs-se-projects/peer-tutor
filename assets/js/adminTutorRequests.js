@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!table) return;
 
   const tbody = table.querySelector('tbody');
-  const headers = table.querySelectorAll('thead th');
 
   // ── Column Sorting ──
   const sortStates = {}; // index -> 'asc' | 'desc'
@@ -86,30 +85,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── Export to Text File ──
+  // ── Export Buttons ──
   const exportBtn = document.getElementById('exportBtn');
   if (exportBtn) {
     exportBtn.addEventListener('click', () => {
-      const rows = Array.from(tbody.querySelectorAll('tr')).filter(r => r.style.display !== 'none');
+      if (!window.TableExport) return;
 
-      const headerTexts = Array.from(headers).map(
-        th => th.querySelector('.header-text')?.textContent?.trim() || ''
-      );
-
-      let text = headerTexts.join('\t') + '\n';
-      rows.forEach(row => {
-        const cells = Array.from(row.cells).map(c => c.textContent.trim());
-        text += cells.join('\t') + '\n';
+      window.TableExport.exportTableToTextFile({
+        tableId: 'requestsTable',
+        fileName: 'tutor_requests.txt',
       });
+    });
+  }
 
-      const blob = new Blob([text], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'tutor_requests.txt';
-      a.click();
-      URL.revokeObjectURL(url);
+  const exportSpreadsheetBtn = document.getElementById('exportSpreadsheetBtn');
+  if (exportSpreadsheetBtn) {
+    exportSpreadsheetBtn.addEventListener('click', async () => {
+      if (!window.TableExport) return;
+
+      try {
+        await window.TableExport.exportTableToSpreadsheet({
+          tableId: 'requestsTable',
+          fileName: 'tutor_requests_export.xlsx',
+          sheetName: 'Tutor Requests',
+        });
+      } catch (error) {
+        console.error('Spreadsheet export failed:', error);
+        alert('Unable to export spreadsheet right now. Please try again.');
+      }
     });
   }
 });
-

@@ -178,6 +178,9 @@
       <button id="exportBtn" class="export-btn">
         <span class="export-icon">📥</span> Export to Text File
       </button>
+      <button id="exportSpreadsheetBtn" class="export-btn" style="background-color: #2e7d32;">
+        <span class="export-icon">📊</span> Export to Spreadsheet
+      </button>
     </div>
     
     <div class="blue-box">
@@ -254,6 +257,8 @@
   </div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="/js/tableExport.js"></script>
 <script src="/js/tutorTable.js"></script>
 
 <%- include('include/_footer') %>
