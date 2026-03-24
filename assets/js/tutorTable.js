@@ -174,9 +174,15 @@ function updateSortIcons(column, isDescending) {
 function exportTableToTextFile() {
   if (!window.TableExport) return;
 
+  const fileName = window.TableExport.buildTimestampedFileName({
+    baseName: 'tutors-export',
+    extension: 'txt',
+  });
+
   window.TableExport.exportTableToTextFile({
     tableId: 'tutorTable',
-    fileName: 'tutors_export.txt',
+    fileName,
+    includeHiddenRows: true,
   });
 }
 
@@ -184,10 +190,16 @@ async function exportTableToSpreadsheet() {
   if (!window.TableExport) return;
 
   try {
+    const fileName = window.TableExport.buildTimestampedFileName({
+      baseName: 'tutors-export',
+      extension: 'xlsx',
+    });
+
     await window.TableExport.exportTableToSpreadsheet({
       tableId: 'tutorTable',
-      fileName: 'tutors_export.xlsx',
+      fileName,
       sheetName: 'Tutors',
+      includeHiddenRows: true,
     });
   } catch (error) {
     console.error('Spreadsheet export failed:', error);

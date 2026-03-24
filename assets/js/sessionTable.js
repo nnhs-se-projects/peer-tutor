@@ -187,9 +187,15 @@ function updateSortIcons(column, isDescending) {
 function exportTableToTextFile() {
   if (!window.TableExport) return;
 
+  const fileName = window.TableExport.buildTimestampedFileName({
+    baseName: 'sessions-export',
+    extension: 'txt',
+  });
+
   window.TableExport.exportTableToTextFile({
     tableId: 'sessionTable',
-    fileName: 'sessions_export.txt',
+    fileName,
+    includeHiddenRows: true,
   });
 }
 
@@ -197,13 +203,18 @@ async function exportTableToSpreadsheet() {
   if (!window.TableExport) return;
 
   try {
+    const fileName = window.TableExport.buildTimestampedFileName({
+      baseName: 'sessions-export',
+      extension: 'xlsx',
+    });
+
     await window.TableExport.exportTableToSpreadsheet({
       tableId: 'sessionTable',
-      fileName: 'sessions_export.xlsx',
+      fileName,
       sheetName: 'Sessions',
+      includeHiddenRows: true,
     });
-  } catch (error) {
-    console.error('Spreadsheet export failed:', error);
+  } catch {
     alert('Unable to export spreadsheet right now. Please try again.');
   }
 }

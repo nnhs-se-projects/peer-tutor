@@ -438,24 +438,20 @@ function getAttendanceStatusForMakeupRow(row) {
 }
 
 function buildAttendanceExportData() {
-  const mainRows = Array.from(document.querySelectorAll('.tutor-row'))
-    .filter(row => row.style.display !== 'none')
-    .map(row => [
-      (row.cells[0]?.textContent || '').trim(),
-      (row.cells[1]?.textContent || '').trim(),
-      (row.cells[2]?.textContent || '').trim(),
-      (row.cells[3]?.textContent || '').trim(),
-      getAttendanceStatusForTutorRow(row),
-    ]);
+  const mainRows = Array.from(document.querySelectorAll('.tutor-row')).map(row => [
+    (row.cells[0]?.textContent || '').trim(),
+    (row.cells[1]?.textContent || '').trim(),
+    (row.cells[2]?.textContent || '').trim(),
+    (row.cells[3]?.textContent || '').trim(),
+    getAttendanceStatusForTutorRow(row),
+  ]);
 
-  const makeupRows = Array.from(document.querySelectorAll('.makeup-row'))
-    .filter(row => row.style.display !== 'none')
-    .map(row => [
-      (row.cells[0]?.textContent || '').trim(),
-      (row.cells[1]?.textContent || '').trim(),
-      (row.cells[2]?.textContent || '').trim(),
-      getAttendanceStatusForMakeupRow(row),
-    ]);
+  const makeupRows = Array.from(document.querySelectorAll('.makeup-row')).map(row => [
+    (row.cells[0]?.textContent || '').trim(),
+    (row.cells[1]?.textContent || '').trim(),
+    (row.cells[2]?.textContent || '').trim(),
+    getAttendanceStatusForMakeupRow(row),
+  ]);
 
   return {
     mainHeaders: ['First Name', 'Last Name', 'Days Missed', 'Days Available', 'Attendance'],
@@ -463,6 +459,14 @@ function buildAttendanceExportData() {
     makeupHeaders: ['First Name', 'Last Name', 'Days Missed', 'Makeup'],
     makeupRows,
   };
+}
+
+function getChicagoDateForExport() {
+  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 function exportAttendanceToTextFile() {
@@ -480,7 +484,14 @@ function exportAttendanceToTextFile() {
   const blob = new Blob([content], { type: 'text/plain' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.download = 'attendance_export.txt';
+  if (window.TableExport) {
+    link.download = window.TableExport.buildTimestampedFileName({
+      baseName: 'attendance-export',
+      extension: 'txt',
+    });
+  } else {
+    link.download = `attendance_export_${getChicagoDateForExport()}.txt`;
+  }
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -494,7 +505,10 @@ async function exportAttendanceToSpreadsheet() {
 
   try {
     await window.TableExport.exportTablesToSpreadsheet({
-      fileName: 'attendance_export.xlsx',
+      fileName: window.TableExport.buildTimestampedFileName({
+        baseName: 'attendance-export',
+        extension: 'xlsx',
+      }),
       sheets: [
         {
           sheetName: 'Attendance',

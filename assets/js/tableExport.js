@@ -61,8 +61,80 @@
     URL.revokeObjectURL(url);
   }
 
-  function exportTableToTextFile({ tableId, fileName, rowMapper = null }) {
-    const { headers, rows } = buildTableMatrix({ tableId, rowMapper });
+  function sanitizeFileSegment(value) {
+    return String(value || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .replace(/-{2,}/g, '-');
+  }
+
+  function truncateSegment(value, maxLength = 24) {
+    const text = String(value || '');
+    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+  }
+
+  function getTimestampSuffix() {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    const sec = String(now.getSeconds()).padStart(2, '0');
+    return `${yyyy}${mm}${dd}_${hh}${min}${sec}`;
+  }
+
+  function buildContextFileName({ baseName, extension, contextSegments = [] }) {
+    const safeBaseName = sanitizeFileSegment(baseName) || 'export';
+    const safeExt = String(extension || '')
+      .replace(/^\./, '')
+      .toLowerCase();
+
+    const normalizedSegments = contextSegments
+      .map(segment => sanitizeFileSegment(truncateSegment(segment)))
+      .filter(Boolean);
+
+    const contextPart = normalizedSegments.length ? normalizedSegments.join('_') : 'all';
+    const timestamp = getTimestampSuffix();
+
+    return `${safeBaseName}_${contextPart}_${timestamp}.${safeExt}`;
+  }
+
+  function buildTimestampedFileName({ baseName, extension }) {
+    const safeBaseName = sanitizeFileSegment(baseName) || 'export';
+    const safeExt = String(extension || '')
+      .replace(/^\./, '')
+      .toLowerCase();
+    const timestamp = getTimestampSuffix();
+    return `${safeBaseName}_${timestamp}.${safeExt}`;
+  }
+
+  function getColumnSearchContext(tableId) {
+    const table = document.getElementById(tableId);
+    if (!table) return [];
+
+    const headers = Array.from(table.querySelectorAll('thead th')).map(getHeaderText);
+    const context = [];
+
+    headers.forEach((header, index) => {
+      const input = document.getElementById(`searchInput${index}`);
+      const value = input ? normalizeText(input.value) : '';
+      if (!value) return;
+
+      context.push(`search-${header}-${value}`);
+    });
+
+    return context;
+  }
+
+  function exportTableToTextFile({
+    tableId,
+    fileName,
+    rowMapper = null,
+    includeHiddenRows = false,
+  }) {
+    const { headers, rows } = buildTableMatrix({ tableId, rowMapper, includeHiddenRows });
     const content = [headers.join('\t'), ...rows.map(row => row.join('\t'))].join('\n');
     const blob = new Blob([content], { type: 'text/plain' });
     downloadBlob(blob, fileName);
@@ -152,8 +224,14 @@
     downloadBlob(blob, fileName);
   }
 
-  async function exportTableToSpreadsheet({ tableId, fileName, sheetName, rowMapper = null }) {
-    const matrix = buildTableMatrix({ tableId, rowMapper });
+  async function exportTableToSpreadsheet({
+    tableId,
+    fileName,
+    sheetName,
+    rowMapper = null,
+    includeHiddenRows = false,
+  }) {
+    const matrix = buildTableMatrix({ tableId, rowMapper, includeHiddenRows });
     await exportTablesToSpreadsheet({
       fileName,
       sheets: [{ sheetName: sheetName || 'Sheet1', headers: matrix.headers, rows: matrix.rows }],
@@ -165,5 +243,8 @@
     exportTableToTextFile,
     exportTableToSpreadsheet,
     exportTablesToSpreadsheet,
+    buildTimestampedFileName,
+    buildContextFileName,
+    getColumnSearchContext,
   };
 })();
