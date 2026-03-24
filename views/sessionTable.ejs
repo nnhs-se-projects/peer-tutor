@@ -164,9 +164,12 @@
       Session Database Table
     </h1>
     
-    <div class="flex justify-end mb-4">
+    <div class="flex justify-end mb-4" style="gap: 10px;">
       <button id="exportBtn" class="export-btn">
         <span class="export-icon">📥</span> Export to Text File
+      </button>
+      <button id="exportSpreadsheetBtn" class="export-btn" style="background-color: #2e7d32;">
+        <span class="export-icon">📊</span> Export to Spreadsheet
       </button>
     </div>
     
@@ -227,6 +230,8 @@
   </div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="/js/tableExport.js"></script>
 <script src="/js/sessionTable.js"></script>
 
 <%- include('include/_footer') %>
