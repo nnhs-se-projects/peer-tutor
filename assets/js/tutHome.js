@@ -38,6 +38,25 @@ document.addEventListener('DOMContentLoaded', function () {
             request.status === 'pending'
               ? 'bg-yellow-100 text-yellow-800'
               : 'bg-green-100 text-green-800';
+          const actionsHtml =
+            request.status === 'pending'
+              ? `
+                <div class="flex gap-2 mt-3">
+                  <button
+                    onclick="respondToRequest('${request._id}', 'accepted')"
+                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onclick="respondToRequest('${request._id}', 'declined')"
+                    class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Decline
+                  </button>
+                </div>
+              `
+              : '';
 
           html += `
             <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
@@ -55,26 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <p><strong>Period:</strong> ${request.preferredPeriod}</p>
                 ${request.additionalNotes ? `<p><strong>Notes:</strong> ${request.additionalNotes}</p>` : ''}
               </div>
-              ${
-                request.status === 'pending'
-                  ? `
-                <div class="flex gap-2 mt-3">
-                  <button 
-                    onclick="respondToRequest('${request._id}', 'accepted')"
-                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Accept
-                  </button>
-                  <button 
-                    onclick="respondToRequest('${request._id}', 'declined')"
-                    class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Decline
-                  </button>
-                </div>
-              `
-                  : ''
-              }
+              ${actionsHtml}
             </div>
           `;
         });
