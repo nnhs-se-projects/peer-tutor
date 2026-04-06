@@ -69,18 +69,9 @@ document.addEventListener('DOMContentLoaded', function () {
     tutoringRequestForm.addEventListener('submit', function (e) {
       e.preventDefault();
 
-      // Require a tutor to be selected
       const selectedTutorInput = document.getElementById('selectedTutorId');
-      const tutorRequiredMsg = document.getElementById('tutorRequiredMsg');
-      if (!selectedTutorInput || !selectedTutorInput.value) {
-        if (tutorRequiredMsg) tutorRequiredMsg.classList.remove('hidden');
-        return;
-      }
-      if (tutorRequiredMsg) tutorRequiredMsg.classList.add('hidden');
-
-      // Get selected tutor info from hidden input and banner
-      const tutorId = selectedTutorInput.value;
       const tutorBanner = document.getElementById('selectedTutorBanner');
+      const tutorId = selectedTutorInput?.value || tutorBanner?.dataset?.tutorId || '';
       const tutorName = tutorBanner?.dataset?.tutorName || null;
       const requestType = tutorId ? 'direct' : 'general';
 
@@ -286,4 +277,3 @@ function clearSelectedTutor() {
   const selectedTutorInput = document.getElementById('selectedTutorId');
   if (selectedTutorInput) selectedTutorInput.value = '';
 }
-
