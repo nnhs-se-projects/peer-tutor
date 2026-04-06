@@ -119,10 +119,20 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 100);
   });
 
-  // Export button event listener
-  document.getElementById('exportBtn').addEventListener('click', function () {
-    exportTableToTextFile();
-  });
+  // Export button event listeners
+  const exportBtn = document.getElementById('exportBtn');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', function () {
+      exportTableToTextFile();
+    });
+  }
+
+  const exportSpreadsheetBtn = document.getElementById('exportSpreadsheetBtn');
+  if (exportSpreadsheetBtn) {
+    exportSpreadsheetBtn.addEventListener('click', async function () {
+      await exportTableToSpreadsheet();
+    });
+  }
 });
 
 function filterTable(column) {
@@ -175,35 +185,36 @@ function updateSortIcons(column, isDescending) {
 }
 
 function exportTableToTextFile() {
-  const table = document.getElementById('sessionTable');
-  const headers = Array.from(table.querySelectorAll('thead th')).map(th =>
-    th.querySelector('.header-text').textContent.trim()
-  );
+  if (!window.TableExport) return;
 
-  const rows = Array.from(table.querySelectorAll('tbody tr'))
-    .filter(row => row.style.display !== 'none')
-    .map(row => {
-      return Array.from(row.cells)
-        .map(cell => cell.textContent.trim())
-        .join('\t');
-    });
+  const fileName = window.TableExport.buildTimestampedFileName({
+    baseName: 'sessions-export',
+    extension: 'txt',
+  });
 
-  // Create text content
-  const content = [headers.join('\t'), ...rows].join('\n');
-
-  // Create a blob
-  const blob = new Blob([content], { type: 'text/plain' });
-
-  // Create download link
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'sessions_export.txt';
-
-  // Trigger download
-  document.body.appendChild(link);
-  link.click();
-
-  // Clean up
-  document.body.removeChild(link);
+  window.TableExport.exportTableToTextFile({
+    tableId: 'sessionTable',
+    fileName,
+    includeHiddenRows: true,
+  });
 }
 
+async function exportTableToSpreadsheet() {
+  if (!window.TableExport) return;
+
+  try {
+    const fileName = window.TableExport.buildTimestampedFileName({
+      baseName: 'sessions-export',
+      extension: 'xlsx',
+    });
+
+    await window.TableExport.exportTableToSpreadsheet({
+      tableId: 'sessionTable',
+      fileName,
+      sheetName: 'Sessions',
+      includeHiddenRows: true,
+    });
+  } catch {
+    alert('Unable to export spreadsheet right now. Please try again.');
+  }
+}

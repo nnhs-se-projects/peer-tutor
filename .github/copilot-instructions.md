@@ -129,3 +129,4 @@ npm run lint:ejs      # EJS-specific linting
 - Port switching: Search "8082" in `router.js` and `auth.js` for local (8080) vs. live (8082) deployment
 - Admin pages partially implemented; require password middleware (see TODO in code)
 - Tailwind CSS configured in `tailwind.config.js`; custom CSS in `assets/css/styles.css`
+

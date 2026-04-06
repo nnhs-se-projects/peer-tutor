@@ -190,7 +190,7 @@
   
   .filter-controls {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
     background-color: #f0f8ff;
@@ -214,6 +214,32 @@
     background-color: white;
     font-size: 1rem;
     min-width: 150px;
+  }
+
+  .export-controls {
+    display: flex;
+    gap: 10px;
+  }
+
+  .export-btn {
+    background-color: #FF8800;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .export-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  }
+
+  .export-btn:active {
+    transform: translateY(0);
   }
   
   /* Animation keyframes */
@@ -304,6 +330,19 @@
     background: #FF8800;
     color: white;
   }
+
+  @media (max-width: 768px) {
+    .filter-controls {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+
+    .export-controls {
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+  }
 </style>
 
 <!-- Main Site -->
@@ -322,6 +361,12 @@
           <option value="5">Period 5</option>
           <option value="6">Period 6</option>
         </select>
+      </div>
+      <div class="export-controls">
+        <button id="exportBtn" class="export-btn">📥 Export to Text File</button>
+        <button id="exportSpreadsheetBtn" class="export-btn" style="background-color: #2e7d32;">
+          📊 Export to Spreadsheet
+        </button>
       </div>
     </div>
     
@@ -436,6 +481,8 @@
   </div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="/js/tableExport.js"></script>
 <script src="/js/attendance.js"></script>
 
 <script>

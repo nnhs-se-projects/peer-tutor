@@ -3,17 +3,21 @@
  * Handles column sorting, per-column search, status filtering, and export.
  */
 document.addEventListener('DOMContentLoaded', () => {
+  // Main requests table in adminTutorRequests.ejs
   const table = document.getElementById('requestsTable');
   if (!table) return;
 
+  // We sort/filter rows inside <tbody> so header cells are never moved.
   const tbody = table.querySelector('tbody');
-  const headers = table.querySelectorAll('thead th');
 
   // ── Column Sorting ──
+  // Track current sort direction for each column index.
+  // Example: { 0: 'asc', 3: 'desc' }
   const sortStates = {}; // index -> 'asc' | 'desc'
 
   document.querySelectorAll('.sort-icon').forEach(icon => {
     icon.addEventListener('click', () => {
+      // Each sort icon stores its target column in data-index.
       const index = parseInt(icon.dataset.index);
       const rows = Array.from(tbody.querySelectorAll('tr'));
 
@@ -22,11 +26,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const dir = sortStates[index];
 
       rows.sort((a, b) => {
+        // Compare text content in the selected column.
         const aText = (a.cells[index]?.textContent || '').trim().toLowerCase();
         const bText = (b.cells[index]?.textContent || '').trim().toLowerCase();
         return dir === 'asc' ? aText.localeCompare(bText) : bText.localeCompare(aText);
       });
 
+      // Re-append rows in sorted order.
       rows.forEach(row => tbody.appendChild(row));
       icon.textContent = dir === 'asc' ? '↑' : '↓';
     });
@@ -45,10 +51,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.querySelectorAll('.search-input').forEach(input => {
+    // Re-run filtering on every keystroke for immediate feedback.
     input.addEventListener('input', applyFilters);
   });
 
   // ── Status Filter Buttons ──
+  // Current status tab selected by the user (All, Pending, etc.).
   let activeStatusFilter = 'all';
 
   document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -61,6 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function applyFilters() {
+    // Applies BOTH status filter and per-column text filters.
+    // A row must pass all active conditions to remain visible.
     const rows = Array.from(tbody.querySelectorAll('tr'));
     const searchInputs = document.querySelectorAll('.search-input');
 
@@ -72,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Column search filters
       let searchMatch = true;
       searchInputs.forEach(input => {
+        // data-index ties this search input to its table column.
         const colIndex = parseInt(input.dataset.index);
         const query = input.value.trim().toLowerCase();
         if (query) {
@@ -86,30 +97,46 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── Export to Text File ──
+  // ── Export Buttons ──
   const exportBtn = document.getElementById('exportBtn');
   if (exportBtn) {
     exportBtn.addEventListener('click', () => {
-      const rows = Array.from(tbody.querySelectorAll('tr')).filter(r => r.style.display !== 'none');
+      if (!window.TableExport) return;
 
-      const headerTexts = Array.from(headers).map(
-        th => th.querySelector('.header-text')?.textContent?.trim() || ''
-      );
-
-      let text = headerTexts.join('\t') + '\n';
-      rows.forEach(row => {
-        const cells = Array.from(row.cells).map(c => c.textContent.trim());
-        text += cells.join('\t') + '\n';
+      const fileName = window.TableExport.buildTimestampedFileName({
+        baseName: 'tutor-requests-export',
+        extension: 'txt',
       });
 
-      const blob = new Blob([text], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'tutor_requests.txt';
-      a.click();
-      URL.revokeObjectURL(url);
+      window.TableExport.exportTableToTextFile({
+        tableId: 'requestsTable',
+        fileName,
+        includeHiddenRows: true,
+      });
+    });
+  }
+
+  const exportSpreadsheetBtn = document.getElementById('exportSpreadsheetBtn');
+  if (exportSpreadsheetBtn) {
+    exportSpreadsheetBtn.addEventListener('click', async () => {
+      if (!window.TableExport) return;
+
+      try {
+        const fileName = window.TableExport.buildTimestampedFileName({
+          baseName: 'tutor-requests-export',
+          extension: 'xlsx',
+        });
+
+        await window.TableExport.exportTableToSpreadsheet({
+          tableId: 'requestsTable',
+          fileName,
+          sheetName: 'Tutor Requests',
+          includeHiddenRows: true,
+        });
+      } catch (error) {
+        console.error('Spreadsheet export failed:', error);
+        alert('Unable to export spreadsheet right now. Please try again.');
+      }
     });
   }
 });
-

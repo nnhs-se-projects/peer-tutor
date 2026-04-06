@@ -105,6 +105,20 @@ document.addEventListener('DOMContentLoaded', function () {
       row.style.animation = `fadeIn 0.5s ease-in-out forwards ${index * 0.05}s`;
     }, 100);
   });
+
+  const exportBtn = document.getElementById('exportBtn');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', function () {
+      exportAttendanceToTextFile();
+    });
+  }
+
+  const exportSpreadsheetBtn = document.getElementById('exportSpreadsheetBtn');
+  if (exportSpreadsheetBtn) {
+    exportSpreadsheetBtn.addEventListener('click', async function () {
+      await exportAttendanceToSpreadsheet();
+    });
+  }
 });
 
 function filterTable(column) {
@@ -396,6 +410,124 @@ function buildAttendancePayload() {
   };
 }
 
+function getAttendanceStatusForTutorRow(row) {
+  if (row.dataset.attendanceStatus) {
+    return (
+      row.dataset.attendanceStatus.charAt(0).toUpperCase() + row.dataset.attendanceStatus.slice(1)
+    );
+  }
+
+  const selectedBtn = row.querySelector(
+    '.absent-button.button-selected, .present-button.button-selected'
+  );
+  if (selectedBtn?.dataset?.action) {
+    const action = selectedBtn.dataset.action;
+    return action.charAt(0).toUpperCase() + action.slice(1);
+  }
+
+  return 'Unmarked';
+}
+
+function getAttendanceStatusForMakeupRow(row) {
+  if (row.dataset.attendanceStatus === 'makeup') {
+    return 'Makeup';
+  }
+
+  const selectedBtn = row.querySelector('.makeup-button.button-selected');
+  return selectedBtn ? 'Makeup' : 'Not Selected';
+}
+
+function buildAttendanceExportData() {
+  const mainRows = Array.from(document.querySelectorAll('.tutor-row')).map(row => [
+    (row.cells[0]?.textContent || '').trim(),
+    (row.cells[1]?.textContent || '').trim(),
+    (row.cells[2]?.textContent || '').trim(),
+    (row.cells[3]?.textContent || '').trim(),
+    getAttendanceStatusForTutorRow(row),
+  ]);
+
+  const makeupRows = Array.from(document.querySelectorAll('.makeup-row')).map(row => [
+    (row.cells[0]?.textContent || '').trim(),
+    (row.cells[1]?.textContent || '').trim(),
+    (row.cells[2]?.textContent || '').trim(),
+    getAttendanceStatusForMakeupRow(row),
+  ]);
+
+  return {
+    mainHeaders: ['First Name', 'Last Name', 'Days Missed', 'Days Available', 'Attendance'],
+    mainRows,
+    makeupHeaders: ['First Name', 'Last Name', 'Days Missed', 'Makeup'],
+    makeupRows,
+  };
+}
+
+function getChicagoDateForExport() {
+  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function exportAttendanceToTextFile() {
+  const exportData = buildAttendanceExportData();
+  const content = [
+    'Tutor Attendance',
+    exportData.mainHeaders.join('\t'),
+    ...exportData.mainRows.map(row => row.join('\t')),
+    '',
+    'Makeup Attendance',
+    exportData.makeupHeaders.join('\t'),
+    ...exportData.makeupRows.map(row => row.join('\t')),
+  ].join('\n');
+
+  const blob = new Blob([content], { type: 'text/plain' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  if (window.TableExport) {
+    link.download = window.TableExport.buildTimestampedFileName({
+      baseName: 'attendance-export',
+      extension: 'txt',
+    });
+  } else {
+    link.download = `attendance_export_${getChicagoDateForExport()}.txt`;
+  }
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+}
+
+async function exportAttendanceToSpreadsheet() {
+  if (!window.TableExport) return;
+
+  const exportData = buildAttendanceExportData();
+
+  try {
+    await window.TableExport.exportTablesToSpreadsheet({
+      fileName: window.TableExport.buildTimestampedFileName({
+        baseName: 'attendance-export',
+        extension: 'xlsx',
+      }),
+      sheets: [
+        {
+          sheetName: 'Attendance',
+          headers: exportData.mainHeaders,
+          rows: exportData.mainRows,
+        },
+        {
+          sheetName: 'Makeup Attendance',
+          headers: exportData.makeupHeaders,
+          rows: exportData.makeupRows,
+        },
+      ],
+    });
+  } catch (error) {
+    console.error('Spreadsheet export failed:', error);
+    alert('Unable to export spreadsheet right now. Please try again.');
+  }
+}
+
 // Expose payload builder for inline scripts
 window.buildAttendancePayload = buildAttendancePayload;
 
@@ -422,4 +554,3 @@ async function sendAttendancePayload(payload) {
 }
 
 window.sendAttendancePayload = sendAttendancePayload;
-

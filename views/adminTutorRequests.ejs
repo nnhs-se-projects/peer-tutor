@@ -217,9 +217,12 @@
       <button class="filter-btn" data-filter="completed">Completed</button>
     </div>
 
-    <div class="flex justify-end mb-4">
+    <div class="flex justify-end mb-4" style="gap: 10px;">
       <button id="exportBtn" class="export-btn">
         <span>📥</span> Export to Text File
+      </button>
+      <button id="exportSpreadsheetBtn" class="export-btn" style="background-color: #2e7d32;">
+        <span>📊</span> Export to Spreadsheet
       </button>
     </div>
 
@@ -275,6 +278,8 @@
   </div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="/js/tableExport.js"></script>
 <script src="/js/adminTutorRequests.js"></script>
 
 <%- include('include/_footer') %> <%- include('include/_end') %>
