@@ -19,6 +19,18 @@ const DEVELOPER_EMAILS = [
   //'opbhide@stu.naperville203.org',
 ];
 
+// Emails that should never be auto-assigned teacher role
+const AUTO_TEACHER_ROLE_EXCLUSIONS = ['skmoore@naperville203.org'];
+
+const isTeacherEmail = email => {
+  const normalizedEmail = (email || '').toLowerCase();
+  const isDistrictEmail = normalizedEmail.endsWith('@naperville203.org');
+  const isStudentEmail = normalizedEmail.includes('@stu.');
+  const isExcluded = AUTO_TEACHER_ROLE_EXCLUSIONS.includes(normalizedEmail);
+
+  return isDistrictEmail && !isStudentEmail && !isExcluded;
+};
+
 // from: https://developers.google.com/identity/gsi/web/guides/verify-google-id-token#node.js
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client();
@@ -83,6 +95,13 @@ route.post('/', async (req, res) => {
       return res.status(201).json({ role: req.session.role });
     }
 
+    // Auto-assign teacher role for district staff emails (except explicit exclusions)
+    if (isTeacherEmail(email)) {
+      req.session.role = 'teacher';
+      req.session.userName = email.split('@')[0];
+      return res.status(201).json({ role: req.session.role });
+    }
+
     // Default to student role for unregistered users
     req.session.role = 'student';
     req.session.userName = email.split('@')[0];
@@ -101,3 +120,4 @@ route.get('/logout', (req, res) => {
 });
 
 module.exports = route;
+

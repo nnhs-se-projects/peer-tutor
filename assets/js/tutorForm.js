@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
         teacher,
       });
 
-      // Validate required fields before submitting
+      // Validate require`d fields before submitting
       if (
         !tutorName ||
         !sessionDate ||
