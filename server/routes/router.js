@@ -24,6 +24,18 @@ const daysOfTheWeek = require('../model/daysOfTheWeek.json');
 const courseList = require('../model/courseList.json');
 const courses = require('../model/courses.json');
 
+function escapeRegex(input) {
+  return String(input).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+async function getTutorFromSession(req) {
+  const sessionEmail = (req.session?.email || '').trim();
+  if (!sessionEmail) return null;
+
+  const tutor = await Tutor.findOne({ email: new RegExp(`^${escapeRegex(sessionEmail)}$`, 'i') });
+  return tutor;
+}
+
 // Route to render the authentication page
 
 // No additional logic needed here; the handler ends after sending the response.
@@ -152,6 +164,7 @@ route.post('/api/tutoringRequest', async (req, res) => {
       additionalNotes,
       tutorId,
       tutorName,
+      requestType,
     } = req.body;
 
     // Validate required fields
@@ -180,9 +193,13 @@ route.post('/api/tutoringRequest', async (req, res) => {
       });
     }
 
-    // Get tutor email if tutorId is provided
+    // Determine request type
+    const isGeneralRequest =
+      requestType === 'general' || !tutorId || tutorId === 'null' || tutorId === 'undefined';
+
+    // Get tutor email if this is a direct request and tutorId is provided
     let tutorEmail = null;
-    if (tutorId) {
+    if (!isGeneralRequest && tutorId) {
       const tutor = await Tutor.findById(tutorId);
       if (tutor) {
         tutorEmail = tutor.email;
@@ -192,13 +209,13 @@ route.post('/api/tutoringRequest', async (req, res) => {
     // Create new tutoring request
     const newRequest = new TutoringRequest({
       studentEmail: studentEmail,
-      studentFirstName: studentFirstName,
-      studentLastName: studentLastName,
-      studentID: studentID || '',
-      studentGrade: studentGrade || '',
-      tutorId: tutorId || null,
-      tutorName: tutorName || null,
+      studentFirstName: req.session.firstName || 'Student',
+      studentLastName: req.session.lastName || '',
+      studentID: req.session.studentID || '',
+      tutorId: isGeneralRequest ? null : tutorId || null,
+      tutorName: isGeneralRequest ? null : tutorName || null,
       tutorEmail: tutorEmail,
+      requestType: isGeneralRequest ? 'general' : 'direct',
       subject: subject,
       class: className,
       topic: topic,
@@ -227,31 +244,28 @@ route.post('/api/tutoringRequest', async (req, res) => {
   }
 });
 
-// Get tutoring requests for the logged-in tutor (by session email)
+// Get tutoring requests for the logged-in tutor
 route.get('/api/tutor/requests', async (req, res) => {
   try {
-    const email = req.session.email;
+    const tutor = await getTutorFromSession(req);
+    let tutorRecord = tutor;
 
-    if (!email) {
-      return res.status(401).json({
+    if (!tutorRecord && req.query.tutorID) {
+      const tutorID = parseInt(req.query.tutorID, 10);
+      if (!Number.isNaN(tutorID)) {
+        tutorRecord = await Tutor.findOne({ tutorID });
+      }
+    }
+
+    if (!tutorRecord) {
+      return res.status(400).json({
         success: false,
-        error: 'You must be logged in to view requests',
+        error: 'Tutor account not found for the current login',
       });
     }
 
-    // Find the tutor by their email address
-    const tutor = await Tutor.findOne({ email: email });
-
-    if (!tutor) {
-      return res.status(404).json({
-        success: false,
-        error: 'Tutor profile not found for your account',
-      });
-    }
-
-    // Find all requests for this tutor
     const requests = await TutoringRequest.find({
-      tutorId: tutor._id,
+      tutorId: tutorRecord._id,
       status: { $in: ['pending', 'accepted'] },
     }).sort({ createdAt: -1 });
 
@@ -265,11 +279,133 @@ route.get('/api/tutor/requests', async (req, res) => {
   }
 });
 
+// Get general tutoring requests a tutor is eligible to claim
+route.get('/api/tutor/general-requests', async (req, res) => {
+  try {
+    const tutor = await getTutorFromSession(req);
+    if (!tutor) {
+      return res.status(403).json({
+        success: false,
+        error: 'Tutor account not found for the current login',
+      });
+    }
+
+    const tutorClasses = (Array.isArray(tutor.classes) ? tutor.classes : [])
+      .map(className => String(className).trim())
+      .filter(Boolean);
+
+    if (!tutorClasses.length) {
+      return res.json({ success: true, requests: [] });
+    }
+
+    const classMatchers = tutorClasses.map(
+      className => new RegExp(`^${escapeRegex(className)}$`, 'i')
+    );
+
+    const requests = await TutoringRequest.find({
+      requestType: 'general',
+      status: 'pending',
+      class: { $in: classMatchers },
+    }).sort({ createdAt: -1 });
+
+    res.json({ success: true, requests });
+  } catch (error) {
+    console.error('Error loading general tutoring requests:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to load general request board',
+    });
+  }
+});
+
+// Claim a general tutoring request
+route.post('/api/tutor/general-requests/:requestId/take', async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const { responseMessage } = req.body;
+
+    const tutor = await getTutorFromSession(req);
+    if (!tutor) {
+      return res.status(403).json({
+        success: false,
+        error: 'Tutor account not found for the current login',
+      });
+    }
+
+    const request = await TutoringRequest.findById(requestId);
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        error: 'Request not found',
+      });
+    }
+
+    if (request.requestType !== 'general') {
+      return res.status(400).json({
+        success: false,
+        error: 'This request is not a general-board request',
+      });
+    }
+
+    if (request.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        error: 'This request is no longer available',
+      });
+    }
+
+    const tutorClasses = (Array.isArray(tutor.classes) ? tutor.classes : []).map(className =>
+      String(className).trim().toLowerCase()
+    );
+    const requestClass = String(request.class || '')
+      .trim()
+      .toLowerCase();
+
+    if (!tutorClasses.includes(requestClass)) {
+      return res.status(403).json({
+        success: false,
+        error: 'You can only claim requests for classes in your expertise list',
+      });
+    }
+
+    request.tutorId = tutor._id;
+    request.tutorName = `${tutor.tutorFirstName} ${tutor.tutorLastName}`.trim();
+    request.tutorEmail = tutor.email;
+    request.status = 'accepted';
+    request.responseMessage = responseMessage || 'Accepted from the general request board.';
+    request.respondedAt = new Date();
+
+    await request.save();
+
+    try {
+      await sendRequestAcceptedEmail(request);
+    } catch (emailError) {
+      console.error('Email notification failed after claiming general request:', emailError);
+    }
+
+    res.json({ success: true, request });
+  } catch (error) {
+    console.error('Error claiming general request:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to claim request',
+    });
+  }
+});
+
 // Update tutoring request status (accept/decline)
 route.post('/api/tutor/requests/:requestId/respond', async (req, res) => {
   try {
     const { requestId } = req.params;
     const { status, responseMessage } = req.body;
+
+    const tutor = await getTutorFromSession(req);
+    if (!tutor) {
+      return res.status(403).json({
+        success: false,
+        error: 'Tutor account not found for the current login',
+      });
+    }
 
     if (!['accepted', 'declined'].includes(status)) {
       return res.status(400).json({
@@ -292,6 +428,19 @@ route.post('/api/tutor/requests/:requestId/respond', async (req, res) => {
       return res.status(404).json({
         success: false,
         error: 'Request not found',
+      });
+    }
+
+    const ownsRequest =
+      (request.tutorId && String(request.tutorId) === String(tutor._id)) ||
+      (request.tutorEmail &&
+        tutor.email &&
+        request.tutorEmail.toLowerCase() === tutor.email.toLowerCase());
+
+    if (!ownsRequest) {
+      return res.status(403).json({
+        success: false,
+        error: 'You can only respond to requests assigned to your account',
       });
     }
 
@@ -970,4 +1119,3 @@ route.post('/api/notifications/absence/bulk', async (req, res) => {
 });
 
 module.exports = route;
-

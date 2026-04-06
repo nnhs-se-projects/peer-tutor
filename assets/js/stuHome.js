@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const tutorId = selectedTutorInput.value;
       const tutorBanner = document.getElementById('selectedTutorBanner');
       const tutorName = tutorBanner?.dataset?.tutorName || null;
+      const requestType = tutorId ? 'direct' : 'general';
 
       const formData = {
         studentFirstName: document.getElementById('studentFirstName').value,
@@ -96,6 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
         additionalNotes: document.getElementById('additionalNotes').value,
         tutorId: tutorId,
         tutorName: tutorName,
+        requestType,
       };
 
       // Submit form data

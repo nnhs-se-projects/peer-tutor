@@ -32,12 +32,40 @@
     </div>
   </div>
 
-  <!-- Tutoring Requests Section -->
-  <div class="bg-white bg-opacity-95 rounded-lg shadow-lg p-6 w-full">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4">Your Tutoring Requests</h2>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Direct Tutoring Requests Section -->
+    <div class="bg-white bg-opacity-95 rounded-lg shadow-lg p-6 w-full">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">Your Direct Tutoring Requests</h2>
 
-    <div id="requestsContainer">
-      <p class="text-gray-500 text-center py-4">Loading your requests...</p>
+      <p class="text-sm text-gray-600 mb-4">
+        Requests are linked to your signed-in Google account.
+      </p>
+
+      <div id="requestsContainer">
+        <p class="text-gray-500 text-center py-4">Loading your pending requests...</p>
+      </div>
+    </div>
+
+    <!-- General Request Board Section -->
+    <div class="bg-white bg-opacity-95 rounded-lg shadow-lg p-6 w-full">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-800">General Request Board</h2>
+          <p class="text-sm text-gray-600">
+            Shows open requests that match classes in your expertise list.
+          </p>
+        </div>
+        <button
+          id="loadGeneralRequestsBtn"
+          class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200"
+        >
+          Refresh Board
+        </button>
+      </div>
+
+      <div id="generalRequestsContainer">
+        <p class="text-gray-500 text-center py-4">Loading your claimable requests...</p>
+      </div>
     </div>
   </div>
 </main>
@@ -45,4 +73,3 @@
 <script src="/js/tutHome.js"></script>
 
 <%- include('include/_footer') %> <%- include('include/_end') %>
-
