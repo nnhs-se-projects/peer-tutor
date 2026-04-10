@@ -245,25 +245,41 @@ route.post('/api/tutoringRequest', async (req, res) => {
   }
 });
 
-// Get tutoring requests for the logged-in tutor (by session email)
+// Get direct tutoring requests assigned to the logged-in tutor
 route.get('/api/tutor/requests', async (req, res) => {
   try {
-    const email = req.session.email;
+    const tutor = await getTutorFromSession(req);
 
-    if (!email) {
-      return res.status(401).json({
+    if (!tutor) {
+      return res.status(403).json({
         success: false,
-        error: 'You must be logged in to view requests',
+        error: 'Tutor account not found for the current login',
       });
     }
 
-    // Find the tutor by their email address
-    const tutor = await Tutor.findOne({ email: email });
+    const requests = await TutoringRequest.find({
+      tutorId: tutor._id,
+      status: { $in: ['pending', 'accepted'] },
+    }).sort({ createdAt: -1 });
 
+    res.json({ success: true, requests });
+  } catch (error) {
+    console.error('Error fetching tutor requests:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch requests',
+    });
+  }
+});
+
+// Get general tutoring requests a tutor is eligible to claim
+route.get('/api/tutor/general-requests', async (req, res) => {
+  try {
+    const tutor = await getTutorFromSession(req);
     if (!tutor) {
-      return res.status(404).json({
+      return res.status(403).json({
         success: false,
-        error: 'Tutor profile not found for your account',
+        error: 'Tutor account not found for the current login',
       });
     }
 
