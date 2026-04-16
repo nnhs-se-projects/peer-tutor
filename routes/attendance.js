@@ -29,12 +29,12 @@ router.get('/', async (req, res) => {
     });
 
     // ---- Build the makeup-eligible tutor list ----
-    // Criteria: attendance > 0, NOT scheduled to tutor today, same lunch period filtering done client-side
+    // Criteria: NOT scheduled to tutor today (off-day tutoring only).
+    // Include tutors with 0 absences so leaders can log future makeup sessions.
+    // Lunch-period filtering is done client-side.
     // Tutors who already made up today still appear so the form can be resubmitted;
     // loadSavedAttendance on the client will auto-select their M button.
     const makeupTutors = tutors.filter(tutor => {
-      // Must have absences to make up
-      if ((tutor.attendance || 0) <= 0) return false;
       // Must NOT be scheduled to tutor today (can only make up on off-days)
       const days = Array.isArray(tutor.daysAvailable) ? tutor.daysAvailable : [];
       if (days.includes(todayName)) return false;
@@ -81,12 +81,6 @@ router.post('/updateAttendance', async (req, res) => {
 
     if (!updatedTutor) {
       return res.status(404).json({ success: false, error: 'Tutor not found' });
-    }
-
-    // Ensure attendance doesn't go below 0
-    if (updatedTutor.attendance < 0) {
-      updatedTutor.attendance = 0;
-      await updatedTutor.save();
     }
 
     res.status(200).json({
@@ -139,7 +133,7 @@ router.post('/logSubmission', async (req, res) => {
     }
 
     // Helper: convert status to its days-missed weight
-    const weight = s => (s === 'absent' ? 1 : s === 'makeup' ? -1 : 0);
+    const weight = s => (s === 'absent' ? 1 : s === 'tardy' ? 0.5 : s === 'makeup' ? -1 : 0);
 
     // Build a set of tutorIds in the new payload for quick lookup
     const newTutorIds = new Set(tutors.map(t => t.tutorId));
@@ -154,7 +148,7 @@ router.post('/logSubmission', async (req, res) => {
 
         const tutorDoc = await Tutor.findOne({ tutorID: id });
         if (tutorDoc) {
-          tutorDoc.attendance = Math.max(0, (tutorDoc.attendance || 0) + change);
+          tutorDoc.attendance = (tutorDoc.attendance || 0) + change;
           await tutorDoc.save();
         }
       }
@@ -170,7 +164,7 @@ router.post('/logSubmission', async (req, res) => {
       // Find the Tutor document by their numeric tutorID field
       const tutorDoc = await Tutor.findOne({ tutorID: t.tutorId });
       if (tutorDoc) {
-        tutorDoc.attendance = Math.max(0, (tutorDoc.attendance || 0) + change);
+        tutorDoc.attendance = (tutorDoc.attendance || 0) + change;
         await tutorDoc.save();
       }
     }
@@ -290,11 +284,11 @@ router.post('/updateTutorStatus', async (req, res) => {
     }
 
     // Validate status value
-    const validStatuses = ['present', 'absent', 'makeup'];
+    const validStatuses = ['present', 'tardy', 'absent', 'makeup'];
     if (!validStatuses.includes(newStatus)) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid status. Must be one of: present, absent, makeup',
+        error: 'Invalid status. Must be one of: present, tardy, absent, makeup',
       });
     }
 
@@ -329,12 +323,12 @@ router.post('/updateTutorStatus', async (req, res) => {
     }
 
     // Update the Tutor model's days-missed if the status actually changed
-    const weight = s => (s === 'absent' ? 1 : s === 'makeup' ? -1 : 0);
+    const weight = s => (s === 'absent' ? 1 : s === 'tardy' ? 0.5 : s === 'makeup' ? -1 : 0);
     const change = weight(newStatus) - weight(oldStatus);
     if (change !== 0) {
       const tutorDoc = await Tutor.findOne({ tutorID: tutorId });
       if (tutorDoc) {
-        tutorDoc.attendance = Math.max(0, (tutorDoc.attendance || 0) + change);
+        tutorDoc.attendance = (tutorDoc.attendance || 0) + change;
         await tutorDoc.save();
       }
     }
@@ -364,12 +358,12 @@ router.post('/bulkUpdateStatus', async (req, res) => {
     }
 
     // Validate all status values
-    const validStatuses = ['present', 'absent', 'makeup'];
+    const validStatuses = ['present', 'tardy', 'absent', 'makeup'];
     for (const update of updates) {
       if (!validStatuses.includes(update.newStatus)) {
         return res.status(400).json({
           success: false,
-          error: `Invalid status "${update.newStatus}". Must be one of: present, absent, makeup`,
+          error: `Invalid status "${update.newStatus}". Must be one of: present, tardy, absent, makeup`,
         });
       }
     }
@@ -389,7 +383,7 @@ router.post('/bulkUpdateStatus', async (req, res) => {
     }
 
     // Helper: convert status to its days-missed weight
-    const weight = s => (s === 'absent' ? 1 : s === 'makeup' ? -1 : 0);
+    const weight = s => (s === 'absent' ? 1 : s === 'tardy' ? 0.5 : s === 'makeup' ? -1 : 0);
 
     // Update each tutor's status using MongoDB _id for matching
     let updatedCount = 0;
@@ -421,7 +415,7 @@ router.post('/bulkUpdateStatus', async (req, res) => {
           if (change !== 0) {
             const tutorDoc = await Tutor.findOne({ tutorID: oldInfo.tutorId });
             if (tutorDoc) {
-              tutorDoc.attendance = Math.max(0, (tutorDoc.attendance || 0) + change);
+              tutorDoc.attendance = (tutorDoc.attendance || 0) + change;
               await tutorDoc.save();
               console.log(
                 `Updated Tutor ${tutorDoc.tutorID} days missed by ${change} → ${tutorDoc.attendance}`
@@ -451,4 +445,3 @@ router.post('/bulkUpdateStatus', async (req, res) => {
 });
 
 module.exports = router;
-

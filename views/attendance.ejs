@@ -102,7 +102,7 @@
     outline: none;
   }
   
-  .absent-button, .present-button, .makeup-button {
+  .absent-button, .tardy-button, .present-button, .makeup-button {
     padding: 10px 16px;
     margin: 0 8px;
     border-radius: 6px;
@@ -112,9 +112,27 @@
     transition: all 0.2s;
     font-size: 1rem;
   }
+
+  .absent-button,
+  .tardy-button,
+  .present-button {
+    width: 58px;
+    height: 58px;
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    text-align: center;
+    border-radius: 10px;
+  }
   
   .absent-button {
     background-color: #ff5252;
+    color: white;
+  }
+
+  .tardy-button {
+    background-color: #fdd835;
     color: white;
   }
   
@@ -153,7 +171,7 @@
     border-color: #1976d2 !important;
   }
   
-  .absent-button:hover, .present-button:hover {
+  .absent-button:hover, .tardy-button:hover, .present-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
@@ -169,6 +187,28 @@
 
   .makeup-table thead th {
     background-color: #1565c0;
+  }
+
+  .makeup-search-container {
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .makeup-name-search {
+    width: 100%;
+    max-width: 380px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid #90caf9;
+    background: #ffffff;
+    font-size: 0.95rem;
+  }
+
+  .makeup-name-search:focus {
+    outline: none;
+    border-color: #1565c0;
+    box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.2);
   }
 
   .button-disabled {
@@ -376,7 +416,7 @@
           <tr>
             <% const headers = ['First Name', 'Last Name', 'Days Missed', 'Days Available', 'Attendance']; %> 
             <% headers.forEach((header, index) => { %>
-            <th<%= header === 'Attendance' ? ' style="min-width: 280px;"' : '' %>>
+            <th<%= header === 'Attendance' ? ' style="min-width: 185px;"' : '' %>>
               <div class="header-container">
                 <span class="header-text" id="headerText<%= index %>"><%= header %></span>
                 <% if (index < 4) { %>
@@ -417,8 +457,9 @@
               <td><%= tutor.tutorLastName || tutor.lastName || 'Unknown' %></td>
               <td id="daysMissed-<%= tutor._id %>"><%= tutor.attendance || 0 %></td>
               <td><%= tutor.daysAvailable ? tutor.daysAvailable.join(', ') : '' %></td>
-              <td style="min-width: 280px;">
+              <td style="min-width: 185px;">
                 <button class="absent-button" data-id="<%= tutor._id %>" data-action="absent">A</button>
+                <button class="tardy-button" data-id="<%= tutor._id %>" data-action="tardy">T</button>
                 <button class="present-button" data-id="<%= tutor._id %>" data-action="present">P</button>
               </td>
             </tr>
@@ -435,6 +476,15 @@
     <!-- Makeup Attendance Section -->
     <h2 class="makeup-section-title">Makeup Attendance</h2>
     <div class="blue-box">
+      <div class="makeup-search-container">
+        <input
+          type="text"
+          id="makeupNameSearch"
+          class="makeup-name-search"
+          placeholder="Search tutor name for future makeup"
+          aria-label="Search tutor by name in makeup attendance"
+        />
+      </div>
       <table id="makeupTable" class="bordered-table makeup-table">
         <thead>
           <tr>
@@ -454,6 +504,7 @@
               data-email="<%= tutor.email %>"
               data-first-name="<%= tutor.tutorFirstName || '' %>"
               data-last-name="<%= tutor.tutorLastName || '' %>"
+              data-days-missed="<%= tutor.attendance || 0 %>"
               class="makeup-row"
             >
               <td><%= tutor.tutorFirstName || 'Unknown' %></td>
@@ -497,6 +548,7 @@
     }
 
     const lunchFilter = document.getElementById('lunchFilter');
+    const makeupNameSearch = document.getElementById('makeupNameSearch');
 
     // Filter main rows by lunch period AND current day availability
     function filterRows(selectedPeriod) {
@@ -511,22 +563,40 @@
 
       // Filter makeup rows by lunch period only (day filtering already done server-side)
       let visibleMakeupCount = 0;
+      let lunchMakeupCount = 0;
+      const searchQuery = (makeupNameSearch ? makeupNameSearch.value : '').trim().toLowerCase();
       document.querySelectorAll('.makeup-row').forEach(row => {
         const lunchPeriod = row.getAttribute('data-lunch');
-        const visible = (lunchPeriod === selectedPeriod);
+        const firstName = (row.getAttribute('data-first-name') || '').toLowerCase();
+        const lastName = (row.getAttribute('data-last-name') || '').toLowerCase();
+        const daysMissed = parseInt(row.getAttribute('data-days-missed') || '0', 10) || 0;
+        const fullName = `${firstName} ${lastName}`.trim();
+
+        const matchesLunch = lunchPeriod === selectedPeriod;
+        const matchesSearch = !searchQuery || fullName.includes(searchQuery);
+        // Tutors with 0 missed days should only appear when leaders are actively searching.
+        const canShowWithoutSearch = daysMissed > 0;
+        const visible = matchesLunch && matchesSearch && (canShowWithoutSearch || !!searchQuery);
+
         row.style.display = visible ? '' : 'none';
+        if (matchesLunch) lunchMakeupCount++;
         if (visible) visibleMakeupCount++;
       });
 
       // Show or hide the "no eligible tutors" placeholder
       let noMakeupRow = document.getElementById('noMakeupRow');
       if (visibleMakeupCount === 0) {
+        let noMatchMessage = 'No tutors need makeup for this lunch period';
+        if (searchQuery && lunchMakeupCount > 0) {
+          noMatchMessage = 'No tutors matched your search for this lunch period';
+        }
+
         if (!noMakeupRow) {
           noMakeupRow = document.createElement('tr');
           noMakeupRow.id = 'noMakeupRow';
-          noMakeupRow.innerHTML = '<td colspan="4" class="text-center py-4">No tutors need makeup for this lunch period</td>';
           document.querySelector('#makeupTable tbody').appendChild(noMakeupRow);
         }
+        noMakeupRow.innerHTML = `<td colspan="4" class="text-center py-4">${noMatchMessage}</td>`;
         noMakeupRow.style.display = '';
       } else if (noMakeupRow) {
         noMakeupRow.style.display = 'none';
@@ -540,6 +610,12 @@
 
       // Apply initial filter on page load
       filterRows(lunchFilter.value);
+    }
+
+    if (makeupNameSearch && lunchFilter) {
+      makeupNameSearch.addEventListener('input', function() {
+        filterRows(lunchFilter.value);
+      });
     }
   });
 </script>
