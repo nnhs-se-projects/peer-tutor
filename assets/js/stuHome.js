@@ -34,24 +34,24 @@ document.addEventListener('DOMContentLoaded', function () {
           // Display tutors
           let html = '<div class="mt-4 space-y-4">';
           tutors.forEach(tutor => {
-            const safeName = `${tutor.tutorFirstName} ${tutor.tutorLastName}`
-              .replace(/'/g, "\\'")
-              .replace(/"/g, '&quot;');
             html += `
-              <div class="border rounded-lg p-4 hover:bg-gray-50">
+              <div class="border rounded-lg p-4 bg-gray-100 text-gray-500 opacity-70 grayscale">
                 <div class="font-bold">${tutor.tutorFirstName} ${tutor.tutorLastName}</div>
                 <div class="text-sm text-gray-600">Grade: ${tutor.grade}</div>
                 <div class="text-sm text-gray-600">Lunch Period: ${tutor.lunchPeriod || 'Not set'}</div>
                 <div class="text-sm text-gray-600">Available: ${tutor.daysAvailable.join(', ')}</div>
-                <button 
-                  class="mt-2 bg-orange-500 text-white px-3 py-1 rounded-lg hover:bg-orange-600 text-sm"
-                  onclick="requestTutor('${tutor._id}', '${safeName}')"
+                <button
+                  type="button"
+                  class="mt-2 bg-gray-300 text-gray-600 px-3 py-1 rounded-lg text-sm cursor-not-allowed"
+                  disabled
                 >
-                  Request Session
+                  Request Session (Disabled)
                 </button>
               </div>
             `;
           });
+          html +=
+            '<div class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">Feature currently disabled</div>';
           html += '</div>';
           tutorResults.innerHTML = html;
         })
@@ -211,60 +211,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Function to request a specific tutor
 function requestTutor(tutorId, tutorName) {
-  // Pre-fill request form with selected tutor
-  const subject = document.getElementById('subject').value;
-  const className = document.getElementById('class').value;
-
-  // Populate request form with current selections
-  document.getElementById('requestSubject').value = subject;
-
-  // Trigger subject change event to update class options
-  const event = new Event('change');
-  document.getElementById('requestSubject').dispatchEvent(event);
-
-  // Set class after options are populated
-  setTimeout(() => {
-    document.getElementById('requestClass').value = className;
-  }, 100);
-
-  // Show selected tutor banner on the form
-  const formContainer = document.querySelector('#tutoringRequestForm').parentElement;
-  let tutorBanner = document.getElementById('selectedTutorBanner');
-
-  if (!tutorBanner) {
-    tutorBanner = document.createElement('div');
-    tutorBanner.id = 'selectedTutorBanner';
-    tutorBanner.className =
-      'bg-orange-100 border border-orange-400 text-orange-800 px-4 py-3 rounded-lg mb-4 flex justify-between items-center';
-    formContainer.insertBefore(tutorBanner, document.getElementById('tutoringRequestForm'));
-  }
-
-  tutorBanner.innerHTML = `
-    <div>
-      <span class="font-bold">Selected Tutor:</span> ${tutorName}
-    </div>
-    <button type="button" onclick="clearSelectedTutor()" class="text-orange-600 hover:text-orange-800 font-bold text-lg">&times;</button>
-  `;
-
-  // Store tutor info for form submission
-  tutorBanner.dataset.tutorId = tutorId;
-  tutorBanner.dataset.tutorName = tutorName;
-
-  // Populate the hidden input so the form knows a tutor is selected
-  const selectedTutorInput = document.getElementById('selectedTutorId');
-  if (selectedTutorInput) selectedTutorInput.value = tutorId;
-
-  // Hide the validation message if it was showing
-  const tutorRequiredMsg = document.getElementById('tutorRequiredMsg');
-  if (tutorRequiredMsg) tutorRequiredMsg.classList.add('hidden');
-
-  // Scroll to request form
-  document.querySelector('form#tutoringRequestForm').scrollIntoView({
-    behavior: 'smooth',
-  });
-
-  // Display alert about the selection
-  alert(`You've selected ${tutorName} as your tutor. Please complete the request form below.`);
+  alert('Feature currently disabled');
+  void tutorId;
+  void tutorName;
 }
 
 // Function to clear selected tutor

@@ -193,9 +193,14 @@ route.post('/api/tutoringRequest', async (req, res) => {
       });
     }
 
-    // Determine request type
+    // Direct tutor requests are currently disabled; all student requests are treated as general.
+    const directRequestsEnabled = false;
     const isGeneralRequest =
-      requestType === 'general' || !tutorId || tutorId === 'null' || tutorId === 'undefined';
+      !directRequestsEnabled ||
+      requestType === 'general' ||
+      !tutorId ||
+      tutorId === 'null' ||
+      tutorId === 'undefined';
 
     // Get tutor email if this is a direct request and tutorId is provided
     let tutorEmail = null;
