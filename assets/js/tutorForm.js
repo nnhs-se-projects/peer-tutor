@@ -248,31 +248,66 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const submitButton = document.querySelector('input.submit');
+  // Prefer handling the form's submit event so Enter key submissions are also
+  // intercepted and we don't rely on a specific submit button element.
+  const formEl = document.querySelector('form');
 
-  if (submitButton) {
-    submitButton.addEventListener('click', async event => {
+  if (formEl) {
+    formEl.addEventListener('submit', async event => {
       event.preventDefault(); // Prevent the default form submission
 
-      // Get the values entered by the user
-      const tutorName = document.querySelector('#tutorName').value;
-      const sessionDate = document.querySelector('#sessionDate').value;
-      const sessionPeriod = document.querySelector('#sessionPeriod').value;
-      const department = document.querySelector('#department').value;
-      const classValue = document.querySelector('#class').value;
-      const teacher = document.querySelector('#teacher').value;
-      const focusOfSession = document.querySelector('#FocusOfSession').value;
-      const workAccomplished = document.querySelector('#workaccomplished').value;
-      const isMakeup = document.querySelector('#isMakeup').checked;
-      const tuteeName = document.querySelector('#tuteeName').value;
+      // Get the values entered by the user. Combine tutor last/first into
+      // the expected "Last, First" format used by the server.
+      const tutorFirst = document.querySelector('#tutorFirstName')
+        ? document.querySelector('#tutorFirstName').value.trim()
+        : '';
+      const tutorLast = document.querySelector('#tutorLastName')
+        ? document.querySelector('#tutorLastName').value.trim()
+        : '';
+      const tutorName = tutorLast
+        ? tutorFirst
+          ? `${tutorLast}, ${tutorFirst}`
+          : tutorLast
+        : tutorFirst;
+
+      const sessionDate = document.querySelector('#sessionDate')
+        ? document.querySelector('#sessionDate').value
+        : '';
+      const sessionPeriod = document.querySelector('#sessionPeriod')
+        ? document.querySelector('#sessionPeriod').value
+        : '';
+      const department = document.querySelector('#department')
+        ? document.querySelector('#department').value
+        : '';
+      const classValue = document.querySelector('#class')
+        ? document.querySelector('#class').value
+        : '';
+      const teacher = document.querySelector('#teacher')
+        ? document.querySelector('#teacher').value
+        : '';
+      const focusOfSession = document.querySelector('#FocusOfSession')
+        ? document.querySelector('#FocusOfSession').value
+        : '';
+      const workAccomplished = document.querySelector('#workaccomplished')
+        ? document.querySelector('#workaccomplished').value
+        : '';
+      const isMakeup = document.querySelector('#isMakeup')
+        ? document.querySelector('#isMakeup').checked
+        : false;
+      const tuteeName = document.querySelector('#tuteeName')
+        ? document.querySelector('#tuteeName').value.trim()
+        : '';
 
       console.log('Form values:', {
+        tutorName,
+        sessionDate,
+        sessionPeriod,
         department,
         class: classValue,
         teacher,
       });
 
-      // Validate require`d fields before submitting
+      // Validate required fields before submitting
       if (
         !tutorName ||
         !sessionDate ||
@@ -303,6 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
         focusOfSession,
         workAccomplished,
         isMakeup,
+        tutoringRequestId,
       };
 
       try {
@@ -329,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   } else {
-    console.error('Submit button not found');
+    console.error('Form element not found');
   }
 });
 
