@@ -198,26 +198,19 @@ document.addEventListener('DOMContentLoaded', () => {
       // Store the request ID so it gets sent with the form
       if (requestIdInput) requestIdInput.value = this.value;
 
-      // Auto-fill tutee info
-      const tuteeFirst = document.getElementById('tuteeFirstName');
-      const tuteeLast = document.getElementById('tuteeLastName');
-      const tuteeID = document.getElementById('tuteeID');
-      if (tuteeFirst) tuteeFirst.value = selected.dataset.studentFirst || '';
-      if (tuteeLast) tuteeLast.value = selected.dataset.studentLast || '';
-      if (tuteeID) tuteeID.value = selected.dataset.studentId || '';
-
-      // Auto-fill tutee grade radio button
-      const gradeVal = selected.dataset.grade || '';
-      if (gradeVal) {
-        const gradeRadio = document.querySelector(`input[name="grade"][value="${gradeVal}"]`);
-        if (gradeRadio) gradeRadio.checked = true;
+      // Auto-fill tutee name in expected format: Last, First
+      const tuteeNameEl = document.getElementById('tuteeName');
+      const studentFirst = selected.dataset.studentFirst || '';
+      const studentLast = selected.dataset.studentLast || '';
+      if (tuteeNameEl && (studentFirst || studentLast)) {
+        tuteeNameEl.value = `${studentLast}, ${studentFirst}`.trim();
       }
 
-      // Auto-fill subject, then trigger class list update
-      const subjectEl = document.getElementById('subject');
-      const subjectVal = selected.dataset.subject || '';
-      if (subjectEl && subjectVal) {
-        subjectEl.value = subjectVal;
+      // Auto-fill department, then trigger class list update
+      const departmentEl = document.getElementById('department');
+      const departmentVal = selected.dataset.subject || '';
+      if (departmentEl && departmentVal) {
+        departmentEl.value = departmentVal;
         // Trigger the class/teacher dropdowns to populate
         updateClasses();
 
@@ -249,31 +242,30 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const submitButton = document.querySelector('input.submit');
+  const form = submitButton ? submitButton.closest('form') : null;
 
-  if (submitButton) {
-    submitButton.addEventListener('click', async event => {
+  if (submitButton && form) {
+    form.addEventListener('submit', async event => {
       event.preventDefault(); // Prevent the default form submission
 
       // Get the values entered by the user
-      const tutorName = document.querySelector('#tutorName').value;
-      const sessionDate = document.querySelector('#sessionDate').value;
-      const sessionPeriod = document.querySelector('#sessionPeriod').value;
-      const department = document.querySelector('#department').value;
-      const classValue = document.querySelector('#class').value;
-      const teacher = document.querySelector('#teacher').value;
-      const focusOfSession = document.querySelector('#FocusOfSession').value;
-      const workAccomplished = document.querySelector('#workaccomplished').value;
-      const isMakeup = document.querySelector('#isMakeup').checked;
-      const tuteeName = document.querySelector('#tuteeName').value;
-
-      console.log('Form values:', {
-        department,
-        class: classValue,
-        teacher,
-      });
+      const tutorFirstName = (document.querySelector('#tutorFirstName')?.value || '').trim();
+      const tutorLastName = (document.querySelector('#tutorLastName')?.value || '').trim();
+      const tutorName = `${tutorLastName}, ${tutorFirstName}`;
+      const sessionDate = document.querySelector('#sessionDate')?.value;
+      const sessionPeriod = document.querySelector('#sessionPeriod')?.value;
+      const department = document.querySelector('#department')?.value;
+      const classValue = document.querySelector('#class')?.value;
+      const teacher = document.querySelector('#teacher')?.value;
+      const focusOfSession = document.querySelector('#FocusOfSession')?.value;
+      const workAccomplished = document.querySelector('#workaccomplished')?.value;
+      const isMakeup = document.querySelector('#isMakeup')?.checked;
+      const tuteeName = (document.querySelector('#tuteeName')?.value || '').trim();
 
       // Validate require`d fields before submitting
       if (
+        !tutorFirstName ||
+        !tutorLastName ||
         !tutorName ||
         !sessionDate ||
         !sessionPeriod ||
@@ -303,6 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
         focusOfSession,
         workAccomplished,
         isMakeup,
+        tutoringRequestId,
       };
 
       try {
@@ -320,16 +313,16 @@ document.addEventListener('DOMContentLoaded', () => {
           window.location = '/'; // Redirect to the homepage
         } else {
           const errorData = await response.json();
-          console.error('Error submitting form:', errorData);
+          void errorData;
           alert('There was an error submitting the form.');
         }
       } catch (error) {
-        console.error('Network error:', error);
+        void error;
         alert('There was a network error submitting the form.');
       }
     });
   } else {
-    console.error('Submit button not found');
+    alert('Submit button not found');
   }
 });
 
