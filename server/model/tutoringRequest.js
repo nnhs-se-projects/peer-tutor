@@ -46,6 +46,11 @@ const tutoringRequestSchema = new mongoose.Schema(
     },
 
     // Request details
+    requestType: {
+      type: String,
+      enum: ['direct', 'general'],
+      default: 'direct',
+    },
     subject: {
       type: String,
       required: true,
@@ -100,6 +105,7 @@ const tutoringRequestSchema = new mongoose.Schema(
 // Index for quick lookups by tutor
 tutoringRequestSchema.index({ tutorId: 1, status: 1 });
 tutoringRequestSchema.index({ studentEmail: 1 });
+tutoringRequestSchema.index({ requestType: 1, status: 1, class: 1 });
 
 const TutoringRequest = mongoose.model('TutoringRequest', tutoringRequestSchema);
 

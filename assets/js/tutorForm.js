@@ -21,10 +21,8 @@ async function loadDepartmentData() {
 
     for (const dept of departments) {
       try {
-        console.log(`Attempting to load ${dept}.json...`);
         const response = await fetch(`/js/data/${dept}.json`);
         if (!response.ok) {
-          console.error(`Error loading ${dept}.json: ${response.status} ${response.statusText}`);
           continue;
         }
         const data = await response.json();
@@ -36,9 +34,6 @@ async function loadDepartmentData() {
           !data.teachers ||
           !Array.isArray(data.teachers)
         ) {
-          console.error(
-            `Invalid data structure for ${dept}.json - missing classes or teachers arrays`
-          );
           continue;
         }
 
@@ -56,56 +51,39 @@ async function loadDepartmentData() {
         }
 
         coursesData[formattedName] = data;
-        console.log(
-          `✓ Successfully loaded data for ${formattedName} (${data.classes.length} classes, ${data.teachers.length} teachers)`
-        );
         loadedCount++;
       } catch (error) {
-        console.error(`Error processing ${dept}.json:`, error);
+        void error;
       }
     }
-
-    console.log(`Total subjects loaded: ${loadedCount}/${departments.length}`);
+    void loadedCount;
+    void departments;
 
     // Initialize the form after data is loaded
     initializeForm();
   } catch (error) {
-    console.error('Error loading department data:', error);
+    void error;
   }
 }
 
 // Function to initialize the form
 function initializeForm() {
-  console.log('Form initialized with data for subjects:', Object.keys(coursesData));
-
-  // Test if each subject has the proper format
-  Object.keys(coursesData).forEach(subject => {
-    console.log(
-      `Subject "${subject}": ${coursesData[subject].classes.length} classes, ${coursesData[subject].teachers.length} teachers`
-    );
-  });
-
   // Make sure the dropdown options match our loaded data
   const subjectDropdown = document.getElementById('department');
   if (subjectDropdown) {
     const availableOptions = Array.from(subjectDropdown.options)
       .map(opt => opt.value)
       .filter(v => v !== '');
-    console.log('Subject dropdown options:', availableOptions);
 
     // Check for any missing subjects in the dropdown
     const missingInDropdown = Object.keys(coursesData).filter(
       subject => !availableOptions.includes(subject)
     );
-    if (missingInDropdown.length > 0) {
-      console.warn('Warning: Some loaded subjects are not in the dropdown:', missingInDropdown);
-    }
+    void missingInDropdown;
 
     // Check for any options in dropdown that we don't have data for
     const missingInData = availableOptions.filter(subject => !coursesData[subject]);
-    if (missingInData.length > 0) {
-      console.warn('Warning: Some dropdown options have no loaded data:', missingInData);
-    }
+    void missingInData;
   }
 }
 
@@ -122,24 +100,14 @@ function updateClasses() {
   classDropdown.innerHTML = '<option value="">Select a Class</option>';
   teacherDropdown.innerHTML = '<option value="">Select a Teacher</option>';
 
-  console.log(`Subject selected: "${subject}"`);
-
   // Validate if we have data for this subject
   if (!subject) {
-    console.log('No subject selected');
     return;
   }
 
   if (!coursesData[subject]) {
-    console.error(`No data found for subject: "${subject}"`);
-    console.log('Available subjects:', Object.keys(coursesData));
     return;
   }
-
-  // Log the number of classes and teachers available for this subject
-  console.log(
-    `Loading ${coursesData[subject].classes.length} classes and ${coursesData[subject].teachers.length} teachers for ${subject}`
-  );
 
   // Populate class dropdown based on selected subject
   const classes = coursesData[subject].classes;
@@ -177,9 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const subjectDropdown = document.getElementById('department');
   if (subjectDropdown) {
     subjectDropdown.addEventListener('change', updateClasses);
-    console.log('Added change event listener to department dropdown');
-  } else {
-    console.error('Subject dropdown not found in the DOM');
   }
 
   // Accepted request dropdown auto-fill
@@ -241,31 +206,60 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const submitButton = document.querySelector('input.submit');
-  const form = submitButton ? submitButton.closest('form') : null;
+  // Prefer handling the form's submit event so Enter key submissions are also
+  // intercepted and we don't rely on a specific submit button element.
+  const formEl = document.querySelector('form');
 
-  if (submitButton && form) {
-    form.addEventListener('submit', async event => {
+  if (formEl) {
+    formEl.addEventListener('submit', async event => {
       event.preventDefault(); // Prevent the default form submission
 
-      // Get the values entered by the user
-      const tutorFirstName = (document.querySelector('#tutorFirstName')?.value || '').trim();
-      const tutorLastName = (document.querySelector('#tutorLastName')?.value || '').trim();
-      const tutorName = `${tutorLastName}, ${tutorFirstName}`;
-      const sessionDate = document.querySelector('#sessionDate')?.value;
-      const sessionPeriod = document.querySelector('#sessionPeriod')?.value;
-      const department = document.querySelector('#department')?.value;
-      const classValue = document.querySelector('#class')?.value;
-      const teacher = document.querySelector('#teacher')?.value;
-      const focusOfSession = document.querySelector('#FocusOfSession')?.value;
-      const workAccomplished = document.querySelector('#workaccomplished')?.value;
-      const isMakeup = document.querySelector('#isMakeup')?.checked;
-      const tuteeName = (document.querySelector('#tuteeName')?.value || '').trim();
+      // Get the values entered by the user. Combine tutor last/first into
+      // the expected "Last, First" format used by the server.
+      const tutorFirst = document.querySelector('#tutorFirstName')
+        ? document.querySelector('#tutorFirstName').value.trim()
+        : '';
+      const tutorLast = document.querySelector('#tutorLastName')
+        ? document.querySelector('#tutorLastName').value.trim()
+        : '';
+      const tutorName = tutorLast
+        ? tutorFirst
+          ? `${tutorLast}, ${tutorFirst}`
+          : tutorLast
+        : tutorFirst;
 
-      // Validate require`d fields before submitting
+      const sessionDate = document.querySelector('#sessionDate')
+        ? document.querySelector('#sessionDate').value
+        : '';
+      const sessionPeriod = document.querySelector('#sessionPeriod')
+        ? document.querySelector('#sessionPeriod').value
+        : '';
+      const department = document.querySelector('#department')
+        ? document.querySelector('#department').value
+        : '';
+      const classValue = document.querySelector('#class')
+        ? document.querySelector('#class').value
+        : '';
+      const teacher = document.querySelector('#teacher')
+        ? document.querySelector('#teacher').value
+        : '';
+      const focusOfSession = document.querySelector('#FocusOfSession')
+        ? document.querySelector('#FocusOfSession').value
+        : '';
+      const workAccomplished = document.querySelector('#workaccomplished')
+        ? document.querySelector('#workaccomplished').value
+        : '';
+      const isMakeup = document.querySelector('#isMakeup')
+        ? document.querySelector('#isMakeup').checked
+        : false;
+      const tuteeName = document.querySelector('#tuteeName')
+        ? document.querySelector('#tuteeName').value.trim()
+        : '';
+
+      // Validate required fields before submitting
       if (
-        !tutorFirstName ||
-        !tutorLastName ||
+        !tutorFirst ||
+        !tutorLast ||
         !tutorName ||
         !sessionDate ||
         !sessionPeriod ||
@@ -322,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   } else {
-    alert('Submit button not found');
+    alert('Form not found');
   }
 });
 

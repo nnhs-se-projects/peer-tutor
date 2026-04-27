@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // Add event listeners to attendance buttons (UI toggle only; DB update happens on submit)
-  document.querySelectorAll('.absent-button, .present-button').forEach(button => {
+  document.querySelectorAll('.absent-button, .tardy-button, .present-button').forEach(button => {
     button.addEventListener('click', () => {
       disableOtherButtons(button);
     });
@@ -179,7 +179,7 @@ function disableOtherButtons(clickedButton) {
   if (!row) return;
 
   // Get all buttons in this row
-  const buttons = row.querySelectorAll('.absent-button, .present-button');
+  const buttons = row.querySelectorAll('.absent-button, .tardy-button, .present-button');
 
   // Check if the clicked button is already selected
   const isAlreadySelected = clickedButton.classList.contains('button-selected');
@@ -230,13 +230,13 @@ async function loadSavedAttendance(lunchPeriod) {
     // Build a map of tutorId → saved status
     const savedStatuses = {};
     json.data.tutors.forEach(t => {
-      savedStatuses[t.tutorId] = t.status; // 'present' | 'absent' | 'makeup'
+      savedStatuses[t.tutorId] = t.status; // 'present' | 'tardy' | 'absent' | 'makeup'
     });
 
     // Reset all tutor-row button states before applying saved data
     // (prevents stale clicks from persisting after switching lunch periods)
     document.querySelectorAll('.tutor-row').forEach(row => {
-      const buttons = row.querySelectorAll('.absent-button, .present-button');
+      const buttons = row.querySelectorAll('.absent-button, .tardy-button, .present-button');
       buttons.forEach(btn => {
         btn.classList.remove('button-selected', 'button-disabled');
       });
@@ -254,7 +254,7 @@ async function loadSavedAttendance(lunchPeriod) {
       const savedStatus = savedStatuses[tutorId];
       if (!savedStatus || savedStatus === 'makeup') return; // skip makeup entries for main table
 
-      const buttons = row.querySelectorAll('.absent-button, .present-button');
+      const buttons = row.querySelectorAll('.absent-button, .tardy-button, .present-button');
       buttons.forEach(btn => {
         if (btn.dataset.action === savedStatus) {
           btn.classList.add('button-selected');
@@ -375,9 +375,7 @@ function buildAttendancePayload() {
   // Collect selected makeup rows (optional — only include those with makeup selected)
   const makeupRows = Array.from(document.querySelectorAll('.makeup-row')).filter(
     row =>
-      row.getAttribute('data-lunch') === selectedLunch &&
-      row.style.display !== 'none' &&
-      row.dataset.attendanceStatus === 'makeup'
+      row.getAttribute('data-lunch') === selectedLunch && row.dataset.attendanceStatus === 'makeup'
   );
 
   makeupRows.forEach(row => {
@@ -418,7 +416,7 @@ function getAttendanceStatusForTutorRow(row) {
   }
 
   const selectedBtn = row.querySelector(
-    '.absent-button.button-selected, .present-button.button-selected'
+    '.absent-button.button-selected, .tardy-button.button-selected, .present-button.button-selected'
   );
   if (selectedBtn?.dataset?.action) {
     const action = selectedBtn.dataset.action;

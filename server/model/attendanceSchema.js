@@ -42,10 +42,10 @@ const attendanceSchema = new mongoose.Schema(
           required: true,
           trim: true,
         },
-        // 'present', 'absent', or 'makeup'
+        // 'present', 'tardy', 'absent', or 'makeup'
         status: {
           type: String,
-          enum: ['present', 'absent', 'makeup'],
+          enum: ['present', 'tardy', 'absent', 'makeup'],
           required: true,
         },
       },
@@ -64,4 +64,3 @@ const attendanceSchema = new mongoose.Schema(
 attendanceSchema.index({ date: 1, lunchPeriod: 1 }, { unique: true });
 
 module.exports = mongoose.model('Attendance', attendanceSchema);
-
