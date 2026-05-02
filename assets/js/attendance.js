@@ -24,18 +24,6 @@ function toggleSearch(column) {
   }
 }
 
-function getChicagoDemoDate() {
-  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
-  const demoDate = new Date(now);
-
-  // Demo override: show Friday data when the page is opened on Saturday.
-  if (now.getDay() === 6) {
-    demoDate.setDate(demoDate.getDate() - 1);
-  }
-
-  return demoDate;
-}
-
 // Initialize the table with event listeners and animations
 document.addEventListener('DOMContentLoaded', function () {
   // Add click event listeners to sort icons
@@ -227,7 +215,7 @@ async function loadSavedAttendance(lunchPeriod) {
   if (!lunchPeriod) return;
 
   try {
-    const now = getChicagoDemoDate();
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
     const yyyy = now.getFullYear();
     const mm = String(now.getMonth() + 1).padStart(2, '0');
     const dd = String(now.getDate()).padStart(2, '0');
@@ -408,7 +396,7 @@ function buildAttendancePayload() {
   });
 
   // Send a stable YYYY-MM-DD date so logSubmission always matches the same record
-  const now = getChicagoDemoDate();
+  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const dd = String(now.getDate()).padStart(2, '0');
@@ -472,7 +460,7 @@ function buildAttendanceExportData() {
 }
 
 function getChicagoDateForExport() {
-  const now = getChicagoDemoDate();
+  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const dd = String(now.getDate()).padStart(2, '0');
