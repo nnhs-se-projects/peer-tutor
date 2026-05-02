@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
     // Determine the current day of the week (in Central Time)
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
-    const todayName = dayNames[now.getDay()];
+    const todayName = now.getDay() === 6 ? 'Friday' : dayNames[now.getDay()];
 
     // Find all tutors and sort by last name
     const tutors = await Tutor.find().sort({ tutorLastName: 1 });
