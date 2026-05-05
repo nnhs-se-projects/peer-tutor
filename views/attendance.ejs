@@ -511,7 +511,13 @@
               <td><%= tutor.tutorLastName || 'Unknown' %></td>
               <td><%= tutor.attendance || 0 %></td>
               <td style="min-width: 120px;">
-                <button class="makeup-button" data-id="<%= tutor._id %>" data-action="makeup">M</button>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <button class="makeup-button" data-id="<%= tutor._id %>" data-action="makeup">M</button>
+                  <label style="font-size:0.9rem;display:flex;align-items:center;gap:6px;margin:0">
+                    <input type="checkbox" class="future-makeup-checkbox" /> Future
+                  </label>
+                  <input type="date" class="future-absence-date" style="display:none;max-width:170px" />
+                </div>
               </td>
             </tr>
             <% }) %>

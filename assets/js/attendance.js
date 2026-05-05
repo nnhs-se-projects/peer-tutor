@@ -80,6 +80,47 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  // Add event listeners for future-makeup checkbox and date inputs
+  document.querySelectorAll('.makeup-row').forEach(row => {
+    const chk = row.querySelector('.future-makeup-checkbox');
+    const dateInput = row.querySelector('.future-absence-date');
+    const btn = row.querySelector('.makeup-button');
+
+    if (chk) {
+      chk.addEventListener('change', () => {
+        if (chk.checked) {
+          if (dateInput) dateInput.style.display = '';
+          // ensure makeup is selected when marking future makeup
+          if (btn && !btn.classList.contains('button-selected')) toggleMakeupButton(btn);
+          row.dataset.futureMakeup = 'true';
+        } else {
+          if (dateInput) dateInput.style.display = 'none';
+          delete row.dataset.futureMakeup;
+          delete row.dataset.futureAbsenceDate;
+        }
+        updateSubmitState();
+      });
+    }
+
+    if (dateInput) {
+      dateInput.addEventListener('change', () => {
+        if (dateInput.value) {
+          row.dataset.futureAbsenceDate = dateInput.value; // YYYY-MM-DD
+          // if date chosen, mark futureMakeup if not already
+          const chk = row.querySelector('.future-makeup-checkbox');
+          if (chk && !chk.checked) {
+            chk.checked = true;
+            row.dataset.futureMakeup = 'true';
+            if (btn && !btn.classList.contains('button-selected')) toggleMakeupButton(btn);
+          }
+        } else {
+          delete row.dataset.futureAbsenceDate;
+        }
+        updateSubmitState();
+      });
+    }
+  });
+
   // Re-evaluate submit availability when lunch period selection changes
   const lunchFilter = document.getElementById('lunchFilter');
   if (lunchFilter) {
@@ -230,7 +271,7 @@ async function loadSavedAttendance(lunchPeriod) {
     // Build a map of tutorId → saved status
     const savedStatuses = {};
     json.data.tutors.forEach(t => {
-      savedStatuses[t.tutorId] = t.status; // 'present' | 'tardy' | 'absent' | 'makeup'
+      savedStatuses[t.tutorId] = t; // full tutor subdoc
     });
 
     // Reset all tutor-row button states before applying saved data
@@ -251,12 +292,12 @@ async function loadSavedAttendance(lunchPeriod) {
     // Walk every visible tutor row and pre-select the matching button
     document.querySelectorAll('.tutor-row').forEach(row => {
       const tutorId = Number(row.getAttribute('data-tutor-id'));
-      const savedStatus = savedStatuses[tutorId];
-      if (!savedStatus || savedStatus === 'makeup') return; // skip makeup entries for main table
+      const saved = savedStatuses[tutorId];
+      if (!saved || saved.status === 'makeup') return; // skip makeup entries for main table
 
       const buttons = row.querySelectorAll('.absent-button, .tardy-button, .present-button');
       buttons.forEach(btn => {
-        if (btn.dataset.action === savedStatus) {
+        if (btn.dataset.action === saved.status) {
           btn.classList.add('button-selected');
           btn.classList.remove('button-disabled');
         } else {
@@ -264,19 +305,36 @@ async function loadSavedAttendance(lunchPeriod) {
           btn.classList.remove('button-selected');
         }
       });
-      row.dataset.attendanceStatus = savedStatus;
+      row.dataset.attendanceStatus = saved.status;
     });
 
     // Walk makeup rows and pre-select if previously saved as makeup
     document.querySelectorAll('.makeup-row').forEach(row => {
       const tutorId = Number(row.getAttribute('data-tutor-id'));
-      const savedStatus = savedStatuses[tutorId];
-      if (savedStatus !== 'makeup') return;
+      const saved = savedStatuses[tutorId];
+      if (!saved || saved.status !== 'makeup') return;
 
       const btn = row.querySelector('.makeup-button');
       if (btn) {
         btn.classList.add('button-selected');
         row.dataset.attendanceStatus = 'makeup';
+      }
+      // populate future makeup fields if present
+      if (saved.futureMakeup) {
+        const chk = row.querySelector('.future-makeup-checkbox');
+        const dateInput = row.querySelector('.future-absence-date');
+        if (chk) chk.checked = true;
+        if (dateInput && saved.futureAbsenceDate) {
+          // saved.futureAbsenceDate may be an ISO string
+          const d = new Date(saved.futureAbsenceDate);
+          const yyyy = d.getFullYear();
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          const dd = String(d.getDate()).padStart(2, '0');
+          dateInput.value = `${yyyy}-${mm}-${dd}`;
+          dateInput.style.display = '';
+          row.dataset.futureAbsenceDate = dateInput.value;
+          row.dataset.futureMakeup = 'true';
+        }
       }
     });
 
@@ -300,6 +358,8 @@ function toggleMakeupButton(clickedButton) {
     clickedButton.classList.add('button-selected');
     row.dataset.attendanceStatus = 'makeup';
   }
+
+  // Make sure futureMakeup/date dataset values are considered when loading saved attendance
 }
 
 // Disable submit until every tutor row has a selected attendance status
@@ -385,14 +445,23 @@ function buildAttendancePayload() {
     const lastName = row.getAttribute('data-last-name') || '';
     const email = row.getAttribute('data-email') || '';
 
-    tutors.push({
+    const futureMakeup = row.dataset.futureMakeup === 'true' || false;
+    const futureAbsenceDate = row.dataset.futureAbsenceDate || null;
+
+    const tutorObj = {
       _id: mongoId,
       tutorId: tutorId ? Number(tutorId) : undefined,
       tutorFirstName: firstName,
       tutorLastName: lastName,
       email,
       status: 'makeup',
-    });
+    };
+    if (futureMakeup) {
+      tutorObj.futureMakeup = true;
+      if (futureAbsenceDate) tutorObj.futureAbsenceDate = futureAbsenceDate;
+    }
+
+    tutors.push(tutorObj);
   });
 
   // Send a stable YYYY-MM-DD date so logSubmission always matches the same record
@@ -552,3 +621,4 @@ async function sendAttendancePayload(payload) {
 }
 
 window.sendAttendancePayload = sendAttendancePayload;
+
