@@ -14,9 +14,9 @@ submitButton.addEventListener('click', async event => {
   const tutorID = document.querySelector('input#tutorID').value;
   const email = document.querySelector('input#tutEmail').value;
 
-  const gradeEl = document.querySelector("input[name='grade']:checked");
-  const returningEl = document.querySelector("input[name='newReturning']:checked");
-  const lunchPeriodEl = document.querySelector("input[name='lunchPeriod']:checked");
+  const gradeEl = document.querySelector('input[name=\'grade\']:checked');
+  const returningEl = document.querySelector('input[name=\'newReturning\']:checked');
+  const lunchPeriodEl = document.querySelector('input[name=\'lunchPeriod\']:checked');
 
   if (!gradeEl || !returningEl || !lunchPeriodEl) {
     alert('Please select your grade, new/returning status, and lunch period.');
@@ -27,9 +27,9 @@ submitButton.addEventListener('click', async event => {
   const returning = returningEl.value === 'Returning';
   const lunchPeriod = lunchPeriodEl.value;
   const daysAvailable = Array.from(
-    document.querySelectorAll("input[name='dayOfTheWeek']:checked")
+    document.querySelectorAll('input[name=\'dayOfTheWeek\']:checked')
   ).map(input => input.value);
-  const classes = Array.from(document.querySelectorAll("input[name='courseList']:checked")).map(
+  const classes = Array.from(document.querySelectorAll('input[name=\'courseList\']:checked')).map(
     input => input.value
   );
   const tutorLeader = false;

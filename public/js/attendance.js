@@ -287,6 +287,7 @@ function sortTable(columnIndex) {
   while (switching) {
     switching = false;
     const rows = table.getElementsByTagName('tr');
+    let switchRowIndex = -1;
 
     for (let i = 1; i < rows.length - 1; i++) {
       shouldSwitch = false;
@@ -312,6 +313,7 @@ function sortTable(columnIndex) {
         // Both are numbers, compare numerically
         if ((dir === 'asc' && xNum > yNum) || (dir === 'desc' && xNum < yNum)) {
           shouldSwitch = true;
+          switchRowIndex = i;
           break;
         }
       } else {
@@ -321,13 +323,14 @@ function sortTable(columnIndex) {
           (dir === 'desc' && xContent.toLowerCase() < yContent.toLowerCase())
         ) {
           shouldSwitch = true;
+          switchRowIndex = i;
           break;
         }
       }
     }
 
     if (shouldSwitch) {
-      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      rows[switchRowIndex].parentNode.insertBefore(rows[switchRowIndex + 1], rows[switchRowIndex]);
       switching = true;
       switchcount++;
     } else {

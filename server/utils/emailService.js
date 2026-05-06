@@ -10,25 +10,65 @@
 
 const nodemailer = require('nodemailer');
 
+let cachedTransporter = null;
+
+function getEmailCredentials() {
+  const senderEmail =
+    process.env.EMAIL_SENDER || process.env.EMAIL_USER || process.env.GMAIL_USER || '';
+  const senderPassword =
+    process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS || process.env.GMAIL_APP_PASSWORD || '';
+
+  return { senderEmail, senderPassword };
+}
+
+function getEmailConfigErrorMessage() {
+  return 'Email credentials not configured. Set EMAIL_SENDER/EMAIL_PASSWORD (or EMAIL_USER/EMAIL_PASS) in .env';
+}
+
+function isEmailConfigured() {
+  const { senderEmail, senderPassword } = getEmailCredentials();
+  return Boolean(senderEmail && senderPassword);
+}
+
 /**
  * Create (or reuse) a nodemailer transporter configured from env vars.
  * Returns null when credentials are missing so callers can fail gracefully.
  */
 function getTransporter() {
-  const senderEmail = process.env.EMAIL_SENDER;
-  const senderPassword = process.env.EMAIL_PASSWORD;
+  if (cachedTransporter) return cachedTransporter;
+
+  const { senderEmail, senderPassword } = getEmailCredentials();
 
   if (!senderEmail || !senderPassword) {
-    console.error('Email credentials not configured. Set EMAIL_SENDER and EMAIL_PASSWORD in .env');
+    console.error(getEmailConfigErrorMessage());
     return null;
   }
 
-  return nodemailer.createTransport({
+  cachedTransporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: senderEmail,
       pass: senderPassword,
     },
+  });
+
+  return cachedTransporter;
+}
+
+async function sendEmail({ to, subject, text, html }) {
+  const transporter = getTransporter();
+  if (!transporter) {
+    throw new Error(getEmailConfigErrorMessage());
+  }
+
+  const { senderEmail } = getEmailCredentials();
+
+  return transporter.sendMail({
+    from: senderEmail,
+    to,
+    subject,
+    text,
+    html,
   });
 }
 
@@ -78,8 +118,7 @@ async function sendRequestAcceptedEmail(request) {
     .join('\n');
 
   try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_SENDER,
+    await sendEmail({
       to,
       subject,
       text,
@@ -117,8 +156,7 @@ async function sendRequestDeclinedEmail(request) {
     .join('\n');
 
   try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_SENDER,
+    await sendEmail({
       to,
       subject,
       text,
@@ -171,8 +209,7 @@ async function sendNewRequestEmail(request) {
     .join('\n');
 
   try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_SENDER,
+    await sendEmail({
       to,
       subject,
       text,
@@ -185,6 +222,9 @@ async function sendNewRequestEmail(request) {
 
 module.exports = {
   getTransporter,
+  sendEmail,
+  isEmailConfigured,
+  getEmailConfigErrorMessage,
   sendRequestAcceptedEmail,
   sendRequestDeclinedEmail,
   sendNewRequestEmail,

@@ -5,9 +5,11 @@ const Session = require('../model/session'); // Import the Session schema
 const Tutor = require('../model/tutor'); // Import the Tutor schema
 const TutoringRequest = require('../model/tutoringRequest'); // Import the TutoringRequest schema
 const Teacher = require('../model/teacher'); // Import the Teacher schema
-const nodemailer = require('nodemailer');
 const { requireRole } = require('../middleware/roleAuth'); // Import role middleware
 const {
+  sendEmail,
+  isEmailConfigured,
+  getEmailConfigErrorMessage,
   sendRequestAcceptedEmail,
   sendRequestDeclinedEmail,
   sendNewRequestEmail,
@@ -674,8 +676,8 @@ route.get('/sessionTable', requireRole('teacher'), async (req, res) => {
       return {
         date: session.sessionDate
           ? new Date(session.sessionDate).toLocaleDateString('en-US', {
-              timeZone: 'America/Chicago',
-            })
+            timeZone: 'America/Chicago',
+          })
           : null,
         tuteeName:
           session.tuteeName ||
@@ -817,27 +819,15 @@ route.post('/api/notifications/send', async (req, res) => {
       .json({ success: false, error: 'Missing recipients, subject, or message' });
   }
 
-  const senderEmail = process.env.EMAIL_SENDER;
-  const senderPassword = process.env.EMAIL_PASSWORD;
-
-  if (!senderEmail || !senderPassword) {
+  if (!isEmailConfigured()) {
     return res.status(500).json({
       success: false,
-      error: 'Email credentials not configured. Set EMAIL_SENDER and EMAIL_PASSWORD.',
+      error: getEmailConfigErrorMessage(),
     });
   }
 
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: senderEmail,
-      pass: senderPassword,
-    },
-  });
-
   try {
-    await transporter.sendMail({
-      from: senderEmail,
+    await sendEmail({
       to: recipientList,
       subject,
       text: message,
@@ -938,7 +928,7 @@ route.post('/api/admin/users/:id/role', requireRole('admin'), async (req, res) =
     if (targetTutor.role === 'developer' && !callerIsSuperDev) {
       return res
         .status(403)
-        .json({ success: false, error: "Only super developers can change a developer's role" });
+        .json({ success: false, error: 'Only super developers can change a developer\'s role' });
     }
 
     const tutor = await Tutor.findByIdAndUpdate(id, { role }, { new: true });
@@ -984,20 +974,12 @@ route.post('/api/notifications/absence', async (req, res) => {
     return res.status(400).json({ success: false, error: 'No tutors provided' });
   }
 
-  const senderEmail = process.env.EMAIL_SENDER;
-  const senderPassword = process.env.EMAIL_PASSWORD;
-
-  if (!senderEmail || !senderPassword) {
+  if (!isEmailConfigured()) {
     return res.status(500).json({
       success: false,
-      error: 'Email credentials not configured. Set EMAIL_SENDER and EMAIL_PASSWORD.',
+      error: getEmailConfigErrorMessage(),
     });
   }
-
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: senderEmail, pass: senderPassword },
-  });
 
   const sent = [];
   const failed = [];
@@ -1016,8 +998,7 @@ route.post('/api/notifications/absence', async (req, res) => {
         'Peer Tutoring Program',
       ].join('\n');
 
-      await transporter.sendMail({
-        from: senderEmail,
+      await sendEmail({
         to: tutor.email,
         subject,
         text: message,
@@ -1044,20 +1025,12 @@ route.post('/api/notifications/absence/bulk', async (req, res) => {
       return res.json({ success: true, message: 'No tutors found above the absence threshold.' });
     }
 
-    const senderEmail = process.env.EMAIL_SENDER;
-    const senderPassword = process.env.EMAIL_PASSWORD;
-
-    if (!senderEmail || !senderPassword) {
+    if (!isEmailConfigured()) {
       return res.status(500).json({
         success: false,
-        error: 'Email credentials not configured. Set EMAIL_SENDER and EMAIL_PASSWORD.',
+        error: getEmailConfigErrorMessage(),
       });
     }
-
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user: senderEmail, pass: senderPassword },
-    });
 
     const dateStr = new Date().toLocaleDateString();
     let sentCount = 0;
@@ -1079,8 +1052,7 @@ route.post('/api/notifications/absence/bulk', async (req, res) => {
           'Peer Tutoring Program',
         ].join('\n');
 
-        await transporter.sendMail({
-          from: senderEmail,
+        await sendEmail({
           to: tutor.email,
           subject,
           text: message,
