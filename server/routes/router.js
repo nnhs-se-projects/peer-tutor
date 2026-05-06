@@ -676,8 +676,8 @@ route.get('/sessionTable', requireRole('teacher'), async (req, res) => {
       return {
         date: session.sessionDate
           ? new Date(session.sessionDate).toLocaleDateString('en-US', {
-            timeZone: 'America/Chicago',
-          })
+              timeZone: 'America/Chicago',
+            })
           : null,
         tuteeName:
           session.tuteeName ||
@@ -928,7 +928,7 @@ route.post('/api/admin/users/:id/role', requireRole('admin'), async (req, res) =
     if (targetTutor.role === 'developer' && !callerIsSuperDev) {
       return res
         .status(403)
-        .json({ success: false, error: 'Only super developers can change a developer\'s role' });
+        .json({ success: false, error: "Only super developers can change a developer's role" });
     }
 
     const tutor = await Tutor.findByIdAndUpdate(id, { role }, { new: true });
@@ -1076,3 +1076,4 @@ route.post('/api/notifications/absence/bulk', async (req, res) => {
 });
 
 module.exports = route;
+
