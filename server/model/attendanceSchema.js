@@ -48,6 +48,14 @@ const attendanceSchema = new mongoose.Schema(
           enum: ['present', 'tardy', 'absent', 'makeup'],
           required: true,
         },
+        // If this makeup is to cover a future planned absence, include that date
+        futureMakeup: {
+          type: Boolean,
+          default: false,
+        },
+        futureAbsenceDate: {
+          type: Date,
+        },
       },
     ],
     // Optional: User who recorded the attendance (unsure if we will include this)
@@ -64,3 +72,4 @@ const attendanceSchema = new mongoose.Schema(
 attendanceSchema.index({ date: 1, lunchPeriod: 1 }, { unique: true });
 
 module.exports = mongoose.model('Attendance', attendanceSchema);
+
