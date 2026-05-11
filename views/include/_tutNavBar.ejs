@@ -44,7 +44,7 @@
       </div>
       
       <!-- Navigation links (center) -->
-      <div class="flex items-center space-x-6">
+      <div class="hidden md:flex items-center space-x-6">
         <!-- Tutor Homepage (hidden when already on tutHome) -->
         <% if (typeof currentPage === 'undefined' || currentPage !== 'tutHome') { %>
         <a
@@ -86,12 +86,59 @@
         <% } %>
       </div>
       
-      <!-- Logout (right) -->
-      <div>
-        <a href="/auth/logout" class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-red-600 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out">
-          <span>Logout</span>
-        </a>
+      <!-- Mobile hamburger (right on small screens) -->
+      <div class="flex items-center gap-2">
+        <button id="mobileMenuBtn" class="md:hidden p-2 rounded-lg text-white hover:bg-white/10" aria-expanded="false" aria-controls="mobileMenu" onclick="toggleMobileMenu()">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+
+        <!-- Logout (desktop) -->
+        <div class="hidden md:block">
+          <a href="/auth/logout" class="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:bg-red-600 hover:shadow-md transform hover:scale-105 transition-all duration-200 ease-in-out">
+            <span>Logout</span>
+          </a>
+        </div>
       </div>
     </div>
   </div>
 </nav>
+
+<!-- Mobile menu (shown on small screens) -->
+<div id="mobileMenu" class="md:hidden hidden px-4">
+  <div class="bg-orange-500 rounded-b-lg shadow-inner p-3 space-y-2">
+    <% if (user && user.role === 'developer') { %>
+    <div class="text-white text-sm font-medium mb-2">Developer View</div>
+    <% } %>
+    <% if (typeof currentPage === 'undefined' || currentPage !== 'tutHome') { %>
+    <a href="/tutHome" class="block px-3 py-2 rounded text-white hover:bg-white/90 hover:text-orange-500">📚 Tutor Homepage</a>
+    <% } %>
+    <a href="/stuHome" class="block px-3 py-2 rounded text-white hover:bg-white/90 hover:text-orange-500">✏️ Student Homepage</a>
+    <a href="/" class="block px-3 py-2 rounded text-white hover:bg-white/90 hover:text-orange-500">🏅 Leaderboard</a>
+    <% if (user && ['developer', 'admin', 'lead'].includes(user.role)) { %>
+    <a href="/leadHome" class="block px-3 py-2 rounded text-white hover:bg-white/90 hover:text-orange-500">🏆 Tutor Leader Homepage</a>
+    <% } %>
+    <a href="/auth/logout" class="block px-3 py-2 rounded text-white hover:bg-red-600">Logout</a>
+  </div>
+</div>
+
+<script>
+  function toggleMobileMenu() {
+    const m = document.getElementById('mobileMenu');
+    const btn = document.getElementById('mobileMenuBtn');
+    if (!m) return;
+    m.classList.toggle('hidden');
+    const expanded = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!expanded));
+  }
+  document.addEventListener('click', function(e) {
+    const m = document.getElementById('mobileMenu');
+    const btn = document.getElementById('mobileMenuBtn');
+    if (!m || !btn) return;
+    if (!m.contains(e.target) && !btn.contains(e.target)) {
+      m.classList.add('hidden');
+      btn.setAttribute('aria-expanded', 'false');
+    }
+  });
+</script>

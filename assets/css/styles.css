@@ -28,7 +28,7 @@ label {
   margin-bottom: 5px;
 }
 
-input[type="text"],
+input[type='text'],
 input {
   background-color: white;
   color: black; /* Ensure text is visible */
@@ -36,7 +36,7 @@ input {
   padding: 5px; /* Optional: adds some spacing inside the textbox */
 }
 
-input[type="date"],
+input[type='date'],
 select {
   width: 100%;
   padding: 10px;
@@ -700,6 +700,80 @@ tr:hover {
   background-color: #d8614a; /* Darker green on hover */
 }
 
+@media (max-width: 767px) {
+  #mobileMenu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(84vw, 320px);
+    height: 100vh;
+    padding: 0.75rem;
+    z-index: 60;
+  }
+
+  #mobileMenu > div {
+    min-height: 100%;
+    background: #ffffff !important;
+    border-left: 6px solid #ff8800;
+    border-radius: 0 1rem 1rem 0 !important;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.2);
+    padding: 1rem;
+  }
+
+  #mobileMenu a {
+    color: #1f2937 !important;
+    background: transparent !important;
+    border-radius: 0.75rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  #mobileMenu a:hover {
+    background: rgba(255, 136, 0, 0.12) !important;
+    color: #d97706 !important;
+  }
+
+  #mobileMenu .text-white {
+    color: #1f2937 !important;
+  }
+
+  #mobileMenuBtn {
+    background: #ffffff;
+    color: #ff8800;
+    border: 1px solid rgba(255, 136, 0, 0.35);
+    box-shadow: 0 10px 24px rgba(255, 136, 0, 0.16);
+  }
+
+  main form {
+    width: 100% !important;
+  }
+
+  .form-columns {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 16px !important;
+  }
+
+  .form-column {
+    width: 100% !important;
+    max-width: 720px;
+    min-width: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .orange-box {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  .submit {
+    width: 100% !important;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
 .present-button {
   background-color: #4caf50; /* Green background */
   width: 60px;
@@ -892,4 +966,113 @@ tr:hover {
   border-radius: 50%;
   object-fit: cover;
   background-color: #fff;
+}
+
+@media (max-width: 767px) {
+  #mobileMenu {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(86vw, 330px);
+    padding: 0;
+    z-index: 60;
+    transform: translateX(0);
+    opacity: 1;
+    transition:
+      transform 0.28s ease,
+      opacity 0.28s ease;
+  }
+
+  #mobileMenu.hidden {
+    display: block !important;
+    transform: translateX(-102%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  #mobileMenu::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.38);
+    backdrop-filter: blur(2px);
+    transition: opacity 0.28s ease;
+    z-index: -1;
+  }
+
+  #mobileMenu.hidden::before {
+    opacity: 0;
+  }
+
+  #mobileMenu:not(.hidden)::before {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  #mobileMenu > div {
+    min-height: 100vh;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.98) 0%,
+      rgba(255, 248, 240, 0.98) 100%
+    ) !important;
+    border-right: 1px solid rgba(255, 136, 0, 0.18);
+    box-shadow:
+      0 18px 45px rgba(15, 23, 42, 0.18),
+      0 0 0 100vmax rgba(15, 23, 42, 0.38);
+    padding: 1rem 0.9rem 1.25rem;
+    border-radius: 0 1.25rem 1.25rem 0 !important;
+  }
+
+  #mobileMenu a {
+    color: #1f2937 !important;
+    background: transparent !important;
+    border-radius: 0.9rem;
+    padding: 0.8rem 0.9rem;
+    font-weight: 600;
+  }
+
+  #mobileMenu a:hover {
+    background: rgba(255, 136, 0, 0.12) !important;
+    color: #d97706 !important;
+  }
+
+  #mobileMenu .text-white {
+    color: #1f2937 !important;
+  }
+
+  #mobileMenuBtn {
+    background: #ffffff;
+    color: #ff8800;
+    border: 1px solid rgba(255, 136, 0, 0.35);
+    box-shadow: 0 10px 24px rgba(255, 136, 0, 0.16);
+  }
+
+  main form {
+    width: 100% !important;
+  }
+
+  .form-columns {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 14px !important;
+  }
+
+  .form-column {
+    width: 100% !important;
+    max-width: 760px;
+    min-width: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .orange-box {
+    margin: 0.5rem auto 1rem !important;
+    padding: 18px !important;
+    border-radius: 16px;
+  }
+
+  .submit {
+    width: 100% !important;
+    max-width: 320px;
+    margin: 24px auto 48px;
+  }
 }
