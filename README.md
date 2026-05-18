@@ -163,23 +163,6 @@ These files supply dropdowns and course lists used in forms and filters.
 - **Tutoring requests**: Students can submit tutoring requests; requests are stored and can notify tutors via email when SMTP is configured.
 - **Email notifications (optional)**: Accept/decline notifications sent to students if `EMAIL_SENDER`/`EMAIL_PASSWORD` are configured.
 
-## Known Limitations
-
-- Some tutoring request flows are still being finalized.
-- Attendance UI logic is in progress and may not fully update counts.
-- A few legacy schema and data-type mismatches exist between JSON option files and Mongo types.
-
-## User Stories
-
-- As an admin, I want to see the schedule formed by the student expertise form so that I can view the schedule.
-- As an admin, I want to be able to have the information from the tutor session form organized for me in the desired format.
-- As an admin, I want to see the tutors ranked by tutor session so I can see who is nearing 100 sessions and compare tutors and their sessions.
-- As an admin, I want an automated notification/email/message sent to tutors who have missed 1–2 sessions (have outstanding absences) so that I don't have to send them manually.
-- As an admin, I want to remove tutors so that after a semester has concluded, I can remove tutors who are no longer continuing.
-- As an admin, I want to add certain tutors at the beginning of the semester.
-- As a tutor leader, I want to be able to take attendance for the tutors that come in each period/day and have it keep track of their attendance, letting me know how many days they've been absent.
-- As a student/tutee, I want to be able to see which subjects are being tutored on a given day and lunch period (updated daily).
-
 ## Sprint #1 Questions (Answered)
 
 **Should we have a session-form field for a tutor leader code to confirm the session occurred?**
