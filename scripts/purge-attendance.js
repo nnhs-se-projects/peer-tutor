@@ -1,10 +1,17 @@
 /**
- * One-time script to reset all tutor attendance (days missed) to 0.
- * Usage: node scripts/purge-attendance.js
+ * Reset every tutor's days missed to 0 (e.g. at the start of a semester).
+ * Attendance records are kept; see backfill-attendance.js to recalculate from them.
+ *
+ * Usage: node scripts/purge-attendance.js --yes
  */
 const mongoose = require('mongoose');
 require('dotenv').config();
 const Tutor = require('../server/model/tutor');
+
+if (!process.argv.includes('--yes')) {
+  console.log("This resets every tutor's days missed to 0. Run again with --yes to continue.");
+  process.exit(1);
+}
 
 (async () => {
   try {

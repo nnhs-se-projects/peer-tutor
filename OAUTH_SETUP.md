@@ -1,74 +1,42 @@
-# Google OAuth Setup Guide
+# Google Sign-In Setup
 
-To fix the "Error 400: redirect_uri_mismatch" issue, follow these steps to properly configure Google OAuth:
+The site uses [Google Identity Services](https://developers.google.com/identity/gsi/web): the "Sign in with Google" button gives the browser an ID token, and the server checks it with `google-auth-library` (`server/routes/auth.js`). There are no redirect URIs and no client secret.
 
-## 1. Access Google Cloud Console
+## 1. Create the OAuth client
 
-1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
-2. Sign in with the Google account that manages your OAuth credentials
-3. Select your project or create a new one
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/) and select the project.
+2. Under **APIs & Services > OAuth consent screen**, set up the app name ("NNHS Peer Tutoring") and support email. If the project belongs to the district's Google Workspace, choose **Internal**; otherwise choose **External** and add the people testing it as test users.
+3. Under **APIs & Services > Credentials**, create an **OAuth client ID** of type **Web application**.
+4. Under **Authorized JavaScript origins**, add every address the site is opened from, for example:
+   - `http://localhost:8082` (and any other local port you use)
+   - `https://peertutordev.nnhsse.org`
 
-## 2. Configure OAuth Consent Screen
+Leave **Authorized redirect URIs** empty.
 
-1. Navigate to **APIs & Services > OAuth consent screen**
-2. Select **External** user type (unless you have a Google Workspace)
-3. Fill in the required app information:
-   - App name: "NNHS Peer Tutoring"
-   - User support email: your email
-   - Developer contact information: your email
-4. Add scopes: `email` and `profile`
-5. Add test users (if in testing mode): add your school email addresses
-6. Save and continue
+## 2. Use the client ID
 
-## 3. Create or Update OAuth Credentials
-
-1. Navigate to **APIs & Services > Credentials**
-2. Find your existing OAuth 2.0 Client ID or create a new one by clicking "Create Credentials > OAuth client ID"
-3. For a new client, select **Web application** as the application type
-4. Set a name for your client (e.g., "NNHS Peer Tutoring Web Client")
-5. **Important**: Add the exact redirect URIs that match your application:
-   - `http://localhost:8080/auth/google/callback` (for local development)
-   - Add any production URLs if you're deploying to a live server
-6. Click "Create" or "Save"
-
-## 4. Update Your Environment Variables
-
-Copy the Client ID and Client Secret from the Google Cloud Console and update your `.env` file:
+The team's client ID is the default in `server/routes/auth.js`. To use a different client, set it in `.env`:
 
 ```
-GOOGLE_CLIENT_ID=your_client_id_here
-GOOGLE_CLIENT_SECRET=your_client_secret_here
-GOOGLE_CALLBACK_URL=http://localhost:8080/auth/google/callback
+GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
 ```
 
-## 5. Restart Your Application
+Restart the server after changing `.env`.
 
-After updating your environment variables, restart your application for the changes to take effect.
+## Who can sign in
+
+Only verified District 203 Google accounts (`@naperville203.org` and `@stu.naperville203.org`) are accepted. Anyone else sees "Please sign in with your District 203 Google account."
 
 ## Troubleshooting
 
-If you still see the "redirect_uri_mismatch" error:
+### "The given origin is not allowed for the given client ID"
 
-1. Make sure the redirect URI in your code (`GOOGLE_CALLBACK_URL`) exactly matches what's configured in the Google Cloud Console
-2. Check for trailing slashes - they matter! (`/callback` is different from `/callback/`)
-3. Verify protocol matches (http vs https)
-4. Clear your browser cache and cookies
-5. Try using incognito mode for testing
+The address in the browser isn't in **Authorized JavaScript origins**. Add it exactly (protocol, host, and port) and wait a few minutes for it to apply.
 
-## Error Messages & Solutions
+### The button doesn't appear
 
-### "Error 400: redirect_uri_mismatch"
+Check the browser console. Ad blockers and some privacy settings block `accounts.google.com`.
 
-This error occurs when the redirect URI provided in your authentication request doesn't match any of the URIs registered in the Google Cloud Console.
+### "Authentication failed. Please try again."
 
-### "Access blocked: This app's request is invalid"
-
-Check that your Client Secret is correct and that you've properly configured the OAuth consent screen.
-
-### "Error 401: invalid_client"
-
-Your Client ID or Client Secret is incorrect in your environment variables.
-
-### "Error 403: access_denied"
-
-The user denied access to your application during the consent screen.
+The server couldn't verify the token, usually because `GOOGLE_CLIENT_ID` on the server doesn't match the client the page used.

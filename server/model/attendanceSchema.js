@@ -68,4 +68,3 @@ const attendanceSchema = new mongoose.Schema(
 attendanceSchema.index({ date: 1, lunchPeriod: 1 }, { unique: true });
 
 module.exports = mongoose.model('Attendance', attendanceSchema);
-

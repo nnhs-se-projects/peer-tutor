@@ -1,38 +1,42 @@
 /**
- * Sends the credentials from the Google Sign-In popup to the server for authentication
+ * Sends the credential from the Google Sign-In popup to the server, then goes to the
+ * home page for the user's role.
  *
- * @param {Object} res - the response object from the Google Sign-In popup
+ * @param {Object} response - the response object from the Google Sign-In popup
  */
 
+// Called by Google Sign-In (see data-callback on #g_id_onload)
 // eslint-disable-next-line no-unused-vars
-async function handleCredentialResponse(res) {
+async function handleCredentialResponse(response) {
+  const errorDiv = document.getElementById('error-message');
+  errorDiv.classList.add('hidden');
+
   try {
-    const response = await fetch('/auth', {
-      // send the googleUser's id_token which has all the data we want to the server with a POST request
+    const res = await fetch('/auth', {
       method: 'POST',
-      body: JSON.stringify({
-        credential: res.credential,
-      }),
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ credential: response.credential }),
     });
 
-    if (!response.ok) {
-      throw new Error('Authentication failed');
+    if (res.status !== 201) {
+      throw new Error((await res.text()) || 'Authentication failed');
     }
 
-    const data = await response.json();
-
-    // Redirect based on returned role
-    if (data.role) {
-      window.location = '/';
-    } else {
-      alert('Authentication failed. Please try again.');
-    }
+    const data = await res.json();
+    const roleRedirects = {
+      developer: '/adminHome', // Developers go to admin (have full access)
+      admin: '/adminHome',
+      teacher: '/teachHome',
+      lead: '/leadHome',
+      tutor: '/tutHome',
+      student: '/stuHome',
+    };
+    window.location.href = roleRedirects[data.role] || '/';
   } catch (error) {
     console.error('Login error:', error);
-    alert('Authentication failed. Please try again.');
+    errorDiv.textContent = error.message || 'Authentication failed. Please try again.';
+    errorDiv.classList.remove('hidden');
   }
 }
-

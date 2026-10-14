@@ -6,22 +6,16 @@
       "request": "launch",
       "name": "Node Server",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["start"],
+      "runtimeArgs": ["run", "dev"],
       "outputCapture": "std"
     },
     {
       "type": "chrome",
       "request": "launch",
       "name": "Node Client",
-      "url": "http://localhost:8080",
+      "url": "http://localhost:8082",
       "webRoot": "${workspaceFolder}/assets",
       "outputCapture": "std"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Debug example.js",
-      "program": "${workspaceFolder}/example.js"
     }
   ]
 }

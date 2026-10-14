@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Track current attendance data and pending changes
   let currentAttendanceData = null;
-  let pendingChanges = new Map(); // Map of tutorId -> newStatus
+  let pendingChanges = new Map(); // Map of attendance entry id -> newStatus
 
   // Set default date to today (Central Standard Time)
   const now = new Date();
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!result.success) {
         attendanceDisplay.innerHTML = `
           <div class="text-center text-red-500 italic py-8">
-            Error: ${result.error || 'Failed to fetch attendance data.'}
+            Error: ${escapeHtml(result.error || 'Failed to fetch attendance data.')}
           </div>
         `;
         return;
@@ -89,7 +89,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function displayAttendanceData(data) {
+    // Records are stored at midnight Central time
     const formattedDate = new Date(data.date).toLocaleDateString('en-US', {
+      timeZone: 'America/Chicago',
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -98,8 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let html = `
       <div class="mb-4">
-        <p class="text-gray-700"><strong>Date:</strong> ${formattedDate}</p>
-        <p class="text-gray-700"><strong>Lunch Period:</strong> ${data.lunchPeriod}</p>
+        <p class="text-gray-700"><strong>Date:</strong> ${escapeHtml(formattedDate)}</p>
+        <p class="text-gray-700"><strong>Lunch Period:</strong> ${escapeHtml(data.lunchPeriod)}</p>
         <p class="text-gray-700"><strong>Total Tutors:</strong> ${data.tutors ? data.tutors.length : 0}</p>
       </div>
     `;
@@ -119,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
 
       data.tutors.forEach(tutor => {
-        const statusOptions = ['present', 'absent', 'makeup'];
+        const statusOptions = ['present', 'tardy', 'absent', 'makeup'];
         const statusDropdown = statusOptions
           .map(status => {
             const selected = tutor.status === status ? 'selected' : '';
@@ -127,18 +129,17 @@ document.addEventListener('DOMContentLoaded', () => {
           })
           .join('');
 
-        // Use MongoDB _id for identifying tutors since tutorId may not be populated
-        const tutorIdentifier = tutor._id || tutor.tutorId;
+        // Each tutor's entry in the record has its own _id, used to save changes
         html += `
-          <tr data-tutor-id="${tutorIdentifier}">
-            <td class="border border-gray-300 px-4 py-2">${tutor.tutorId || 'N/A'}</td>
-            <td class="border border-gray-300 px-4 py-2">${tutor.tutorFirstName || ''} ${tutor.tutorLastName || ''}</td>
-            <td class="border border-gray-300 px-4 py-2">${tutor.email || 'N/A'}</td>
+          <tr data-entry-id="${escapeHtml(tutor._id)}">
+            <td class="border border-gray-300 px-4 py-2">${escapeHtml(tutor.tutorId || 'N/A')}</td>
+            <td class="border border-gray-300 px-4 py-2">${escapeHtml(tutor.tutorFirstName)} ${escapeHtml(tutor.tutorLastName)}</td>
+            <td class="border border-gray-300 px-4 py-2">${escapeHtml(tutor.email || 'N/A')}</td>
             <td class="border border-gray-300 px-4 py-2">
-              <select 
+              <select
                 class="status-dropdown px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
-                data-tutor-id="${tutorIdentifier}"
-                data-original-status="${tutor.status}"
+                data-entry-id="${escapeHtml(tutor._id)}"
+                data-original-status="${escapeHtml(tutor.status)}"
               >
                 ${statusDropdown}
               </select>
@@ -173,16 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }
 
-    // // Also show raw JSON data for debugging
-    // html += `
-    //   <div class="mt-6">
-    //     <details class="bg-gray-100 rounded-lg p-4">
-    //       <summary class="cursor-pointer text-gray-700 font-semibold">View Raw JSON Data</summary>
-    //       <pre class="mt-2 text-xs overflow-auto bg-gray-200 p-2 rounded">${JSON.stringify(data, null, 2)}</pre>
-    //     </details>
-    //   </div>
-    // `;
-
     attendanceDisplay.innerHTML = html;
 
     // Add event listeners for status dropdowns
@@ -195,21 +186,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     dropdowns.forEach(dropdown => {
       dropdown.addEventListener('change', event => {
-        // Use string ID since we're now using MongoDB _id
-        const tutorId = event.target.dataset.tutorId;
+        const entryId = event.target.dataset.entryId;
         const originalStatus = event.target.dataset.originalStatus;
         const newStatus = event.target.value;
 
-        console.log(
-          `Dropdown change: tutorId=${tutorId}, original=${originalStatus}, new=${newStatus}`
-        );
-
         // Track changes
         if (newStatus !== originalStatus) {
-          pendingChanges.set(tutorId, newStatus);
+          pendingChanges.set(entryId, newStatus);
           event.target.classList.add('bg-yellow-100', 'border-yellow-500');
         } else {
-          pendingChanges.delete(tutorId);
+          pendingChanges.delete(entryId);
           event.target.classList.remove('bg-yellow-100', 'border-yellow-500');
         }
 
@@ -267,12 +253,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       // Prepare updates array
-      const updates = Array.from(pendingChanges.entries()).map(([tutorId, newStatus]) => ({
-        tutorId,
+      const updates = Array.from(pendingChanges.entries()).map(([entryId, newStatus]) => ({
+        entryId,
         newStatus,
       }));
-
-      console.log('Saving changes:', { attendanceId: currentAttendanceData._id, updates });
 
       const response = await fetch('/attendance/bulkUpdateStatus', {
         method: 'POST',
@@ -286,13 +270,11 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       const result = await response.json();
-      console.log('Save response:', result);
 
       if (result.success) {
         // Update original status for all changed dropdowns
-        pendingChanges.forEach((newStatus, tutorId) => {
-          // tutorId is now a string (MongoDB _id)
-          const dropdown = document.querySelector(`.status-dropdown[data-tutor-id="${tutorId}"]`);
+        pendingChanges.forEach((newStatus, entryId) => {
+          const dropdown = document.querySelector(`.status-dropdown[data-entry-id="${entryId}"]`);
           if (dropdown) {
             dropdown.dataset.originalStatus = newStatus;
             dropdown.classList.remove('bg-yellow-100', 'border-yellow-500');
@@ -318,12 +300,6 @@ document.addEventListener('DOMContentLoaded', () => {
             changeStatus.classList.add('text-gray-500');
           }, 3000);
         }
-
-        // Update raw JSON display
-        const detailsPre = document.querySelector('details pre');
-        if (detailsPre) {
-          detailsPre.textContent = JSON.stringify(result.data, null, 2);
-        }
       } else {
         throw new Error(result.error || 'Failed to save changes');
       }
@@ -341,4 +317,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 });
-

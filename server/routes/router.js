@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * Page routes and JSON API routes.
  * Authentication lives in auth.js and attendance in attendance.js.
@@ -175,7 +174,12 @@ route.get(
       preferredDateLabel: formatDateOnly(request.preferredDate) || 'No date',
     }));
 
-    res.render('tutorForm', { tutor, acceptedRequests, currentPage: 'tutorForm' });
+    res.render('tutorForm', {
+      tutor,
+      acceptedRequests,
+      departments: Object.keys(courses),
+      currentPage: 'tutorForm',
+    });
   })
 );
 
@@ -207,7 +211,10 @@ route.get(
   requireRole('teacher'),
   asyncRoute(async (req, res) => {
     const sessions = await Session.find().sort({ sessionDate: -1 });
-    res.render('sessionTable', { sessions: sessions.map(formatSession), currentPage: 'sessionTable' });
+    res.render('sessionTable', {
+      sessions: sessions.map(formatSession),
+      currentPage: 'sessionTable',
+    });
   })
 );
 
@@ -282,9 +289,7 @@ route.post(
     };
 
     if (!sessionDate || Object.values(fields).some(value => !value)) {
-      return res
-        .status(400)
-        .json({ success: false, error: 'Please fill in all required fields.' });
+      return res.status(400).json({ success: false, error: 'Please fill in all required fields.' });
     }
 
     // A linked request has to be one this tutor accepted
@@ -363,9 +368,7 @@ route.post(
 
     if (body.addingTutor) {
       if (!isAdmin(req)) {
-        return res
-          .status(403)
-          .json({ success: false, error: 'Only admins can add other tutors.' });
+        return res.status(403).json({ success: false, error: 'Only admins can add other tutors.' });
       }
 
       const email = cleanText(body.email).toLowerCase();
@@ -833,10 +836,6 @@ route.post(
         .json({ success: false, error: 'Missing recipients, subject, or message' });
     }
 
-    if (!isEmailConfigured()) {
-      return res.status(500).json({ success: false, error: getEmailConfigErrorMessage() });
-    }
-
     // Only tutors can be emailed from here
     const tutors = await Tutor.find({ email: { $in: recipients.map(exactMatch) } }).select('email');
     const tutorEmails = new Set(tutors.map(tutor => tutor.email.toLowerCase()));
@@ -844,6 +843,10 @@ route.post(
       return res
         .status(400)
         .json({ success: false, error: 'Notifications can only be sent to tutors' });
+    }
+
+    if (!isEmailConfigured()) {
+      return res.status(500).json({ success: false, error: getEmailConfigErrorMessage() });
     }
 
     // Bcc so tutors don't see each other's addresses

@@ -128,3 +128,8 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Student data used by the import scripts (names, ID numbers, emails, attendance).
+# Never commit it: keep the files in scripts/data/ locally and share them privately.
+scripts/data/*
+!scripts/data/README.md

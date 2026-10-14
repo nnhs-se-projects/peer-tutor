@@ -46,7 +46,9 @@ window.TableTools = (function () {
       const sortValue = row => {
         const cell = row.cells[column];
         if (!cell) return '';
-        return cell.dataset.sortValue !== undefined ? cell.dataset.sortValue : cell.textContent.trim();
+        return cell.dataset.sortValue !== undefined
+          ? cell.dataset.sortValue
+          : cell.textContent.trim();
       };
 
       const rows = Array.from(tbody.rows);

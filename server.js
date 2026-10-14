@@ -9,7 +9,7 @@ require('dotenv').config();
 const http = require('http');
 const express = require('express');
 const session = require('express-session');
-const MongoStore = require('connect-mongo');
+const { MongoStore } = require('connect-mongo');
 
 const connectDB = require('./server/database/connection');
 const { wantsJson } = require('./server/middleware/roleAuth');
@@ -41,6 +41,8 @@ app.use(
     saveUninitialized: false,
     store: MongoStore.create({
       clientPromise: database.then(mongoose => mongoose.connection.getClient()),
+      // The default name, "sessions", is already used by the tutoring Session model
+      collectionName: 'loginSessions',
     }),
     cookie: { httpOnly: true, sameSite: 'lax' },
   })
@@ -120,5 +122,5 @@ const server = http.createServer(app);
 
 const PORT = process.env.PORT || 8082;
 server.listen(PORT, () => {
-  console.log(`Server started on http://localhost:${PORT}`);
+  console.info(`Server started on http://localhost:${PORT}`);
 });

@@ -51,28 +51,10 @@ input[type='checkbox'] {
   border: 1px solid #948b8b;
 }
 
-/* Specific styles for the form container */
-.createEntry-form {
-  display: flex;
-  flex-direction: column;
-  align-items: left;
-  margin-bottom: 20px;
-}
-
-.indexTopBar img {
-  max-width: 100px;
-  margin-bottom: 20px;
-}
-
 /* Reduce spacing for the navigation bar */
 .navbar {
   margin-top: auto;
   margin-bottom: auto; /* Adjust this value as needed */
-}
-
-/* Reduce spacing for the headings above the form */
-.create-edit-title {
-  margin-bottom: 10px; /* Adjust this value as needed */
 }
 
 h1 {
@@ -99,20 +81,6 @@ h1 {
   text-align: center; /* Center the text */
   margin-top: 0%; /* Adjust this value as needed */
   margin-bottom: 10px; /* Adjust this value as needed */
-}
-
-.black-subheading {
-  font-size: 2em; /* Medium-sized title */
-  color: #000000; /* Black text color */
-  text-align: center; /* Center the text */
-  margin-top: 0%; /* Adjust this value as needed */
-  margin-bottom: 10px; /* Adjust this value as needed */
-}
-
-.indexTopBar h1,
-.indexTopBar h2 {
-  margin: auto;
-  text-align: center;
 }
 
 fieldset {
@@ -179,35 +147,9 @@ ul li {
   margin: 0 auto; /* Center horizontally */
 }
 
-.google-signin-button {
-  font-size: 1.5rem; /* Increase font size */
-  padding: 10px 20px; /* Add padding for a larger button */
-  background-color: #4285f4; /* Google blue */
-  color: white;
-  border: none;
-  border-radius: 5px;
-  text-decoration: none;
-  display: inline-block;
-  text-align: center;
-}
-
-.google-signin-button:hover {
-  background-color: #357ae8; /* Darker blue on hover */
-}
-
 .authForm img {
   width: 100px;
   height: 100px;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
-}
-
-.authTitle {
-  font-size: x-large;
-  margin-bottom: 20px;
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
@@ -261,42 +203,6 @@ footer,
   height: auto; /* Maintain aspect ratio */
 }
 
-.NNHS-logo {
-  max-width: 40%; /* Ensure the image scales properly */
-  height: auto; /* Maintain aspect ratio */
-}
-
-.entries-display {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 0 auto;
-  width: 75%;
-}
-
-.entries-title {
-  font-size: 2em; /* Optional: Adjust font size */
-  color: #000000; /* Optional: Adjust text color */
-}
-
-.entries-text {
-  font-size: 1em; /* Optional: Adjust font size */
-  color: #000000; /* Optional: Adjust text color */
-}
-
-.createEntry-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 0 auto;
-  width: 75%;
-}
-
-.create-edit-title {
-  font-size: 2em; /* Optional: Adjust font size */
-  color: #ffffff; /* Optional: Adjust text color */
-}
-
 .title {
   font-size: 4em;
   display: flex;
@@ -326,31 +232,6 @@ footer,
   align-items: center;
   gap: 10px;
   border: black 1px solid;
-}
-
-.entryHabit {
-  flex-basis: 200px;
-}
-
-.entryContent {
-  flex-grow: 1;
-}
-
-.entry-box {
-  border: 4px solid #000000;
-  padding: 25px;
-  margin: 20px 0;
-  border-radius: 10px;
-  background-color: #ffc17a;
-}
-
-.editFunctions {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
 }
 
 .formQuestions {
@@ -419,15 +300,6 @@ a.submit:hover {
   background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
 }
 
-.popup-content {
-  background-color: #fff;
-  margin: 15% auto;
-  padding: 20px;
-  border: 1px solid #888;
-  width: 50%;
-  text-align: center;
-}
-
 .close {
   color: #aaa;
   float: right;
@@ -436,44 +308,7 @@ a.submit:hover {
   cursor: pointer;
 }
 
-/* Full-width orange button */
-.full-width-orange-button {
-  width: 100%;
-  background-color: #ff8800; /* orange color */
-  color: white;
-  padding: 15px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  text-align: center;
-  text-decoration: none; /* Remove underline from links */
-  display: inline-block; /* Ensure proper padding for links */
-}
-
-.full-width-orange-button:hover {
-  background-color: #ff6600; /* Darker orange on hover */
-}
-
-/* Full-width blue button */
-.full-width-blue-button {
-  width: 100%;
-  background-color: #0066ff; /* Blue color */
-  color: white;
-  padding: 15px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  text-align: center;
-  text-decoration: none; /* Remove underline from links */
-  display: inline-block; /* Ensure proper padding for links */
-}
-
-.full-width-blue-button:hover {
-  background-color: #0056d6; /* Darker blue on hover */
-}
-
 /* blue navbar buttons */
-.blue-button,
 input[type='submit'],
 a.submit {
   background-color: #0066ff; /* Blue color */
@@ -487,14 +322,12 @@ a.submit {
   display: inline-block; /* Ensure proper padding for links */
 }
 
-.blue-button:hover,
 input[type='submit']:hover,
 a.submit:hover {
   background-color: #0056d6; /* Darker blue on hover */
 }
 
 /* orange navbar buttons */
-.orange-button,
 input[type='submit'],
 a.submit {
   background-color: #ff8800; /* Blue color */
@@ -508,7 +341,6 @@ a.submit {
   display: inline-block; /* Ensure proper padding for links */
 }
 
-.orange-button:hover,
 input[type='submit']:hover,
 a.submit:hover {
   background-color: #ff6600; /* Darker blue on hover */
@@ -530,15 +362,6 @@ a.submit:hover {
   margin-left: 50px; /* Adds buffer space on the left */
   margin-right: 50px; /* Adds buffer space on the right */
   background-color: #ffd6a8; /* Orange background color */
-}
-
-.white-box {
-  padding: 25px;
-  margin-top: 25px;
-  margin-bottom: 25px;
-  margin-left: 50px; /* Adds buffer space on the left */
-  margin-right: 50px; /* Adds buffer space on the right */
-  background-color: #ffffff;
 }
 
 /* General Table Styles */
@@ -582,40 +405,10 @@ tr:hover {
   display: inline-block;
 }
 
-.sort-icon-container {
-  position: absolute;
-  right: 10px; /* Position the icon 10px from the right edge */
-  top: 50%;
-  transform: translateY(-50%); /* Vertically center the icon */
-  font-size: 14px;
-  color: #ffffff; /* White color for sort icons */
-  padding: 10px; /* Increase click area */
-  border-radius: 50%; /* Make it circular */
-}
-
 /* Sort Icon Styles */
 .sort-icon {
   font-size: 20px;
   transition: color 0.2s ease-in-out;
-}
-
-/* Hover Circle Effect */
-.sort-icon-container::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 35px; /* Circle size */
-  height: 35px;
-  background: rgba(255, 255, 255, 0.2); /* Light white overlay */
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
-}
-
-.sort-icon-container:hover::before {
-  opacity: 1;
 }
 
 .search-input {
@@ -656,14 +449,6 @@ tr:hover {
   overflow: auto; /* Enable scroll if needed */
   background-color: rgb(0, 0, 0); /* Fallback color */
   background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
-}
-
-.popup-content {
-  background-color: #fefefe;
-  margin: 15% auto; /* 15% from the top and centered */
-  padding: 20px;
-  border: 1px solid #888;
-  width: 80%; /* Could be more or less, depending on screen size */
 }
 
 .close {
@@ -816,156 +601,13 @@ tr:hover {
 
 /* NEW LEADERBOARD */
 
-.leaderboard-table {
-  width: 100%;
-  border-collapse: collapse;
-  color: white;
-  font-family: Arial, sans-serif;
-}
-
-.leaderboard-table th,
-.leaderboard-table td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #ccc;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 12px;
-  background-color: #444;
-  border-radius: 6px;
-  overflow: hidden;
-  display: flex;
-}
-
-.bar-green {
-  background-color: #32cd32;
-  height: 100%;
-}
-
-.bar-red {
-  background-color: #ff4c4c;
-  height: 100%;
-}
-
 .podium {
   text-align: center;
   margin-bottom: 20px;
 }
 
-.podium-container {
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 20px;
-  position: relative;
-}
-
-.podium-place {
-  text-align: center;
-  position: relative;
-}
-
-.podium-1 {
-  order: 1;
-  transform: translateY(0px); /* Raise 1st place higher */
-}
-
-.podium-2 {
-  order: 0;
-  transform: translateY(30px); /* Slightly lower than 1st */
-}
-
-.podium-3 {
-  order: 2;
-  transform: translateY(60px); /* Slightly lower than 2nd */
-}
-
-.podium-place .avatar {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  overflow: hidden;
-  background-color: #ccc;
-  border: 5px solid #ccc;
-}
-
-.podium-1 .avatar {
-  border-color: gold;
-}
-
-.podium-place .avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.placeholder-avatar {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  font-size: 2em;
-  font-weight: bold;
-  color: white;
-  background-color: #888;
-  text-transform: uppercase;
-}
-
-.podium-place .name {
-  font-size: 1.2em;
-  font-weight: bold;
-}
-
-.podium-place .score {
-  font-size: 1em;
-  color: #888;
-}
-
-.podium-1 .crown {
-  position: absolute;
-  top: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 1.5em;
-}
-
 .leaderboard {
   margin-top: 75px; /* Add space below the podium to prevent overlap */
-}
-
-.progress-ring {
-  position: relative;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background: conic-gradient(gold calc(var(--progress) * 1%), #ccc calc(var(--progress) * 1%));
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.podium-2 .progress-ring {
-  background: conic-gradient(silver calc(var(--progress) * 1%), #ccc calc(var(--progress) * 1%));
-}
-
-.podium-3 .progress-ring {
-  background: conic-gradient(#cd7f32 calc(var(--progress) * 1%), #ccc calc(var(--progress) * 1%));
-}
-
-.progress-ring img,
-.progress-ring .placeholder-avatar {
-  width: 80%;
-  height: 80%;
-  border-radius: 50%;
-  object-fit: cover;
-  background-color: #fff;
 }
 
 @media (max-width: 767px) {

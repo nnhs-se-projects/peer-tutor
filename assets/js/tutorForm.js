@@ -1,322 +1,118 @@
-// Data structure to hold loaded data
+/**
+ * Tutor session form: department → class/teacher dropdowns, filling the form from an
+ * accepted request, and submission. The tutor is always the signed-in account.
+ */
+
+// Subjects with their classes and teachers, keyed by the department dropdown values
 let coursesData = {};
 
-// Load department data from JSON files
-async function loadDepartmentData() {
-  try {
-    const departments = [
-      'math',
-      'english',
-      'cte',
-      'fine-arts',
-      'wellness',
-      'science',
-      'social-studies',
-      'world-classical-language',
-      'el-classes',
-      'academic-support',
-    ];
-
-    let loadedCount = 0;
-
-    for (const dept of departments) {
-      try {
-        const response = await fetch(`/js/data/${dept}.json`);
-        if (!response.ok) {
-          continue;
-        }
-        const data = await response.json();
-
-        // Validate data structure
-        if (
-          !data.classes ||
-          !Array.isArray(data.classes) ||
-          !data.teachers ||
-          !Array.isArray(data.teachers)
-        ) {
-          continue;
-        }
-
-        // Format the department name for display
-        let formattedName = dept.charAt(0).toUpperCase() + dept.slice(1).replace(/-/g, ' ');
-
-        // Special case for "EL classes"
-        if (dept === 'el-classes') {
-          formattedName = 'EL classes';
-        }
-
-        // Special case for World & Classical Language
-        if (dept === 'world-classical-language') {
-          formattedName = 'World & Classical Language';
-        }
-
-        coursesData[formattedName] = data;
-        loadedCount++;
-      } catch (error) {
-        void error;
-      }
-    }
-    void loadedCount;
-    void departments;
-
-    // Initialize the form after data is loaded
-    initializeForm();
-  } catch (error) {
-    void error;
-  }
+function fillOptions(select, placeholder, values) {
+  select.innerHTML = '';
+  select.appendChild(new Option(placeholder, ''));
+  values.forEach(value => select.appendChild(new Option(value, value)));
 }
 
-// Function to initialize the form
-function initializeForm() {
-  // Make sure the dropdown options match our loaded data
-  const subjectDropdown = document.getElementById('department');
-  if (subjectDropdown) {
-    const availableOptions = Array.from(subjectDropdown.options)
-      .map(opt => opt.value)
-      .filter(v => v !== '');
-
-    // Check for any missing subjects in the dropdown
-    const missingInDropdown = Object.keys(coursesData).filter(
-      subject => !availableOptions.includes(subject)
-    );
-    void missingInDropdown;
-
-    // Check for any options in dropdown that we don't have data for
-    const missingInData = availableOptions.filter(subject => !coursesData[subject]);
-    void missingInData;
-  }
-}
-
-// Call loadDepartmentData when the page loads
-document.addEventListener('DOMContentLoaded', loadDepartmentData);
-
-// Function to update the class options based on the selected subject
+// Update the class and teacher options for the selected department
 function updateClasses() {
   const subject = document.getElementById('department').value;
-  const classDropdown = document.getElementById('class');
-  const teacherDropdown = document.getElementById('teacher');
+  const department = coursesData[subject] || { classes: [], teachers: [] };
 
-  // Clear previous options
-  classDropdown.innerHTML = '<option value="">Select a Class</option>';
-  teacherDropdown.innerHTML = '<option value="">Select a Teacher</option>';
-
-  // Validate if we have data for this subject
-  if (!subject) {
-    return;
-  }
-
-  if (!coursesData[subject]) {
-    return;
-  }
-
-  // Populate class dropdown based on selected subject
-  const classes = coursesData[subject].classes;
-  classes.forEach(course => {
-    const option = document.createElement('option');
-    option.value = course;
-    option.textContent = course;
-    classDropdown.appendChild(option);
-  });
-
-  // Populate teacher dropdown based on selected subject
-  updateTeachers(subject);
+  fillOptions(document.getElementById('class'), 'Select a Class', department.classes);
+  fillOptions(document.getElementById('teacher'), 'Select a Teacher', department.teachers);
 }
 
-// Function to update teacher options based on the selected subject
-function updateTeachers(subject) {
-  const teacherDropdown = document.getElementById('teacher');
+document.addEventListener('DOMContentLoaded', async () => {
+  const formEl = document.getElementById('tutorSessionForm');
+  const departmentEl = document.getElementById('department');
 
-  // Clear previous teacher options
-  teacherDropdown.innerHTML = '<option value="">Select a Teacher</option>';
+  departmentEl.addEventListener('change', updateClasses);
 
-  if (subject && coursesData[subject]) {
-    const teachers = coursesData[subject].teachers;
-    teachers.forEach(teacher => {
-      const option = document.createElement('option');
-      option.value = teacher;
-      option.textContent = teacher;
-      teacherDropdown.appendChild(option);
-    });
-  }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  // Add event listener to the subject dropdown
-  const subjectDropdown = document.getElementById('department');
-  if (subjectDropdown) {
-    subjectDropdown.addEventListener('change', updateClasses);
+  try {
+    const response = await fetch('/api/courses');
+    if (!response.ok) throw new Error(`Server returned ${response.status}`);
+    coursesData = await response.json();
+    updateClasses();
+  } catch (error) {
+    console.error('Error loading class lists:', error);
+    alert('Could not load the class lists. Please reload the page.');
   }
 
-  // Accepted request dropdown auto-fill
+  // Fill the form from an accepted request
   const acceptedRequestSelect = document.getElementById('acceptedRequestSelect');
   if (acceptedRequestSelect) {
     acceptedRequestSelect.addEventListener('change', function () {
       const selected = this.options[this.selectedIndex];
-      const requestIdInput = document.getElementById('tutoringRequestId');
+      document.getElementById('tutoringRequestId').value = this.value;
+      if (!this.value) return;
 
-      if (!this.value) {
-        // Cleared selection — reset the hidden field
-        if (requestIdInput) requestIdInput.value = '';
-        return;
+      const { studentFirst, studentLast, subject, date, period, topic } = selected.dataset;
+
+      // Tutee name in the expected "Last, First" format
+      if (studentFirst || studentLast) {
+        document.getElementById('tuteeName').value = `${studentLast}, ${studentFirst}`.trim();
       }
 
-      // Store the request ID so it gets sent with the form
-      if (requestIdInput) requestIdInput.value = this.value;
-
-      // Auto-fill tutee name in expected format: Last, First
-      const tuteeNameEl = document.getElementById('tuteeName');
-      const studentFirst = selected.dataset.studentFirst || '';
-      const studentLast = selected.dataset.studentLast || '';
-      if (tuteeNameEl && (studentFirst || studentLast)) {
-        tuteeNameEl.value = `${studentLast}, ${studentFirst}`.trim();
-      }
-
-      // Auto-fill department, then trigger class list update
-      const departmentEl = document.getElementById('department');
-      const departmentVal = selected.dataset.subject || '';
-      if (departmentEl && departmentVal) {
-        departmentEl.value = departmentVal;
-        // Trigger the class/teacher dropdowns to populate
+      if (subject) {
+        departmentEl.value = subject;
         updateClasses();
-
-        // Wait briefly for the class dropdown to populate, then set the class value
-        setTimeout(() => {
-          const classEl = document.getElementById('class');
-          const classVal = selected.dataset.class || '';
-          if (classEl && classVal) {
-            classEl.value = classVal;
-          }
-        }, 200);
+        document.getElementById('class').value = selected.dataset.class || '';
       }
 
-      // Auto-fill session date
-      const dateEl = document.getElementById('sessionDate');
-      const dateVal = selected.dataset.date || '';
-      if (dateEl && dateVal) dateEl.value = dateVal;
-
-      // Auto-fill session period
-      const periodEl = document.getElementById('sessionPeriod');
-      const periodVal = selected.dataset.period || '';
-      if (periodEl && periodVal) periodEl.value = periodVal;
-
-      // Auto-fill work accomplished / topic
-      const workEl = document.getElementById('workaccomplished');
-      const topicVal = selected.dataset.topic || '';
-      if (workEl && topicVal) workEl.value = topicVal;
+      if (date) document.getElementById('sessionDate').value = date;
+      // Requests store the lunch period as a number ("4"); the form uses "4th"
+      if (period) {
+        document.getElementById('sessionPeriod').value = /^\d+$/.test(period)
+          ? `${period}th`
+          : period;
+      }
+      if (topic) document.getElementById('workaccomplished').value = topic;
     });
   }
 
-  // Prefer handling the form's submit event so Enter key submissions are also
-  // intercepted and we don't rely on a specific submit button element.
-  const formEl = document.querySelector('form');
+  formEl.addEventListener('submit', async event => {
+    event.preventDefault();
 
-  if (formEl) {
-    formEl.addEventListener('submit', async event => {
-      event.preventDefault(); // Prevent the default form submission
+    const value = id => document.getElementById(id).value.trim();
+    const formData = {
+      sessionDate: value('sessionDate'),
+      tuteeName: value('tuteeName'),
+      sessionPeriod: value('sessionPeriod'),
+      teacher: value('teacher'),
+      department: value('department'),
+      class: value('class'),
+      focusOfSession: value('FocusOfSession'),
+      workAccomplished: value('workaccomplished'),
+      isMakeup: document.getElementById('isMakeup').checked,
+      tutoringRequestId: document.getElementById('tutoringRequestId')?.value || '',
+    };
 
-      // Get the values entered by the user. Combine tutor last/first into
-      // the expected "Last, First" format used by the server.
-      const tutorFirst = document.querySelector('#tutorFirstName')
-        ? document.querySelector('#tutorFirstName').value.trim()
-        : '';
-      const tutorLast = document.querySelector('#tutorLastName')
-        ? document.querySelector('#tutorLastName').value.trim()
-        : '';
-      const tutorName = tutorLast
-        ? tutorFirst
-          ? `${tutorLast}, ${tutorFirst}`
-          : tutorLast
-        : tutorFirst;
+    const required = Object.entries(formData).filter(
+      ([key]) => !['isMakeup', 'tutoringRequestId'].includes(key)
+    );
+    if (required.some(([, fieldValue]) => !fieldValue)) {
+      alert('Please fill in all required fields before submitting.');
+      return;
+    }
 
-      const sessionDate = document.querySelector('#sessionDate')
-        ? document.querySelector('#sessionDate').value
-        : '';
-      const sessionPeriod = document.querySelector('#sessionPeriod')
-        ? document.querySelector('#sessionPeriod').value
-        : '';
-      const department = document.querySelector('#department')
-        ? document.querySelector('#department').value
-        : '';
-      const classValue = document.querySelector('#class')
-        ? document.querySelector('#class').value
-        : '';
-      const teacher = document.querySelector('#teacher')
-        ? document.querySelector('#teacher').value
-        : '';
-      const focusOfSession = document.querySelector('#FocusOfSession')
-        ? document.querySelector('#FocusOfSession').value
-        : '';
-      const workAccomplished = document.querySelector('#workaccomplished')
-        ? document.querySelector('#workaccomplished').value
-        : '';
-      const isMakeup = document.querySelector('#isMakeup')
-        ? document.querySelector('#isMakeup').checked
-        : false;
-      const tuteeName = document.querySelector('#tuteeName')
-        ? document.querySelector('#tuteeName').value.trim()
-        : '';
+    try {
+      const response = await fetch('/submitTutorForm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
 
-      // Validate required fields before submitting
-      if (
-        !tutorFirst ||
-        !tutorLast ||
-        !tutorName ||
-        !sessionDate ||
-        !sessionPeriod ||
-        !department ||
-        !classValue ||
-        !teacher ||
-        !focusOfSession ||
-        !workAccomplished ||
-        !tuteeName
-      ) {
-        alert('Please fill in all required fields before submitting.');
-        return;
+      if (response.ok) {
+        alert('Form successfully submitted!');
+        window.location = '/'; // Redirect to the homepage
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        alert(errorData.error || 'There was an error submitting the form.');
       }
-
-      // Include linked tutoring request ID if one was selected
-      const tutoringRequestIdEl = document.getElementById('tutoringRequestId');
-      const tutoringRequestId = tutoringRequestIdEl ? tutoringRequestIdEl.value : '';
-
-      const formData = {
-        sessionDate,
-        tuteeName,
-        tutorName,
-        sessionPeriod,
-        teacher,
-        department,
-        class: classValue,
-        focusOfSession,
-        workAccomplished,
-        isMakeup,
-        tutoringRequestId,
-      };
-
-      try {
-        const response = await fetch('/submitTutorForm', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        });
-
-        // Show an alert based on the response and redirect to the homepage
-        if (response.ok) {
-          alert('Form successfully submitted!');
-          window.location = '/'; // Redirect to the homepage
-        } else {
-          const errorData = await response.json();
-          void errorData;
-          alert('There was an error submitting the form.');
-        }
-      } catch (error) {
-        void error;
-        alert('There was a network error submitting the form.');
-      }
-    });
-  } else {
-    alert('Form not found');
-  }
+    } catch (error) {
+      console.error('Network error:', error);
+      alert('There was a network error submitting the form.');
+    }
+  });
 });
-

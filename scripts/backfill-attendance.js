@@ -1,61 +1,56 @@
 /**
- * Backfill tutor.attendance counters from existing Attendance records.
+ * Recalculate every tutor's days missed (Tutor.attendance) from the Attendance records,
+ * using the same weights as the attendance page: absent +1, tardy +0.5, makeup −1.
  *
- * The old logSubmission code saved Attendance documents but never updated
- * the Tutor.attendance counter.  This script tallies absent (+1) and
- * makeup (−1) statuses across ALL Attendance records and writes the
- * correct totals back to each Tutor document (clamped to 0 minimum).
+ * Pass --since YYYY-MM-DD to only count records from that date on (e.g. the first day of
+ * the semester, after running purge-attendance.js).
  *
- * Run once:  node scripts/backfill-attendance.js
+ * Usage:  node scripts/backfill-attendance.js [--since 2026-01-20]
  */
 
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const connectDB = require('../server/database/connection');
 const Tutor = require('../server/model/tutor');
 const Attendance = require('../server/model/attendanceSchema');
+const { statusWeight } = require('../server/utils/attendance');
+const { getAttendanceDayRange } = require('../server/utils/dates');
 
 (async () => {
+  const sinceIndex = process.argv.indexOf('--since');
+  const since = sinceIndex === -1 ? null : process.argv[sinceIndex + 1];
+  const sinceRange = since ? getAttendanceDayRange(since) : null;
+  if (since && !sinceRange) {
+    console.error('--since must be a date like 2026-01-20');
+    process.exit(1);
+  }
+
   await connectDB();
 
-  // Tally absent / makeup across every attendance record
-  const tally = {}; // tutorID → net missed days
+  // Tally days missed across the attendance records
+  const tally = {}; // tutorID → net days missed
 
-  const records = await Attendance.find();
+  const records = await Attendance.find(sinceRange ? { date: { $gte: sinceRange.start } } : {});
   console.log(`Processing ${records.length} attendance records…`);
 
   records.forEach(rec => {
     if (!Array.isArray(rec.tutors)) return;
     rec.tutors.forEach(t => {
-      const id = t.tutorId;
-      if (id == null) return;
-      if (!tally[id]) tally[id] = 0;
-      if (t.status === 'absent') tally[id] += 1;
-      if (t.status === 'makeup') tally[id] -= 1;
+      if (t.tutorId == null) return;
+      tally[t.tutorId] = (tally[t.tutorId] || 0) + statusWeight(t.status);
     });
   });
 
-  console.log('\nComputed tallies:');
-  for (const [id, count] of Object.entries(tally)) {
-    const clamped = Math.max(0, count);
-    console.log(`  tutorID ${id}: raw=${count}, clamped=${clamped}`);
-  }
-
-  // Write back to each Tutor document
+  // Write back to each Tutor document. Tutors without any records go to 0.
   let updated = 0;
-  for (const [id, count] of Object.entries(tally)) {
-    const clamped = Math.max(0, count);
-    const result = await Tutor.findOneAndUpdate(
-      { tutorID: Number(id) },
-      { attendance: clamped },
-      { new: true }
-    );
-    if (result) {
+  const tutors = await Tutor.find();
+  for (const tutor of tutors) {
+    const daysMissed = tally[tutor.tutorID] || 0;
+    if (tutor.attendance !== daysMissed) {
+      await Tutor.updateOne({ _id: tutor._id }, { attendance: daysMissed });
       console.log(
-        `  ✓ ${result.tutorFirstName} ${result.tutorLastName} → attendance=${result.attendance}`
+        `  ✓ ${tutor.tutorFirstName} ${tutor.tutorLastName}: ${tutor.attendance} → ${daysMissed}`
       );
       updated++;
-    } else {
-      console.log(`  ✗ No tutor found with tutorID=${id}`);
     }
   }
 
@@ -65,4 +60,3 @@ const Attendance = require('../server/model/attendanceSchema');
   console.error(e);
   process.exit(1);
 });
-

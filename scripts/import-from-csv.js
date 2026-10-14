@@ -14,6 +14,9 @@
  *              HISTORY | WORLD LANGUAGE | ELECTIVE | DAYS
  *   Creates:   Tutor docs (with classes populated) or updates existing tutors' classes
  *
+ * New tutors are only created when their email is in scripts/data/tutor-emails.json
+ * (tutors sign in with that email); anyone without one is skipped with a warning.
+ *
  * Usage:
  *   1. Export each Google Sheet tab as .csv into  scripts/data/
  *   2. Run:  node scripts/import-from-csv.js
@@ -30,9 +33,18 @@ const connectDB = require('../server/database/connection');
 // ── Models ──────────────────────────────────────────────────────────────────
 const Tutor = require('../server/model/tutor');
 const Attendance = require('../server/model/attendanceSchema');
+const { escapeRegex } = require('../server/utils/regex');
+const { DATA_DIR, loadTutorEmails } = require('./lib/data');
 
 // ── Config ──────────────────────────────────────────────────────────────────
-const CSV_DIR = path.join(__dirname, 'data');
+const CSV_DIR = DATA_DIR;
+
+// Look up a tutor's email by name in scripts/data/tutor-emails.json
+let tutorEmails = null;
+function lookupEmail(lastName, firstName) {
+  if (!tutorEmails) tutorEmails = loadTutorEmails();
+  return tutorEmails.get(`${lastName}|${firstName}`.toLowerCase()) || null;
+}
 
 // Map short day abbreviations (used in both CSV formats) to full day names
 const DAY_HEADER_MAP = {
@@ -324,12 +336,19 @@ async function importExpertise(filePath) {
       await existing.save();
       updated++;
     } else {
+      const email = lookupEmail(lastName, firstName);
+      if (!email) {
+        console.warn(`   ⚠  No email for ${firstName} ${lastName} – skipped`);
+        skipped++;
+        continue;
+      }
+
       // Create a new tutor (tutorID set to 0 as placeholder — attendance CSV fills it in)
       await Tutor.create({
         tutorFirstName: firstName,
         tutorLastName: lastName,
         tutorID: 0,
-        email: '',
+        email,
         grade,
         returning,
         lunchPeriod,
@@ -347,13 +366,6 @@ async function importExpertise(filePath) {
   console.log(
     `   ✅ Tutors — created: ${created}, updated (classes): ${updated}, skipped: ${skipped}`
   );
-}
-
-/**
- * Escape special regex characters in a string for safe use in RegExp constructor.
- */
-function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 // ── Per-file import logic (Attendance) ──────────────────────────────────────
@@ -383,6 +395,7 @@ async function importAttendance(filePath) {
 
   let tutorsCreated = 0;
   let tutorsSkipped = 0;
+  let tutorsWithoutEmail = 0;
   let rowsProcessed = 0;
 
   for (const cells of rows) {
@@ -421,12 +434,19 @@ async function importAttendance(filePath) {
       });
     }
 
+    const email = existingTutor ? existingTutor.email : lookupEmail(lastName, firstName);
+    if (!email) {
+      console.warn(`      ⚠  No email for ${firstName} ${lastName} (ID ${tutorID}) – skipped`);
+      tutorsWithoutEmail++;
+      continue;
+    }
+
     if (!existingTutor) {
       await Tutor.create({
         tutorFirstName: firstName,
         tutorLastName: lastName,
         tutorID,
-        email: '',
+        email,
         grade,
         returning,
         lunchPeriod,
@@ -467,7 +487,7 @@ async function importAttendance(filePath) {
         tutorId: tutorID,
         tutorFirstName: firstName,
         tutorLastName: lastName,
-        email: '', // not in this CSV
+        email,
         status,
       });
     }
@@ -475,7 +495,7 @@ async function importAttendance(filePath) {
 
   console.log(`   Processed ${rowsProcessed} tutor rows`);
   console.log(
-    `   ✅ Tutors  — created: ${tutorsCreated}, skipped (already exist): ${tutorsSkipped}`
+    `   ✅ Tutors  — created: ${tutorsCreated}, skipped (already exist): ${tutorsSkipped}, skipped (no email): ${tutorsWithoutEmail}`
   );
 
   // ── Write Attendance documents ──────────────────────────────────────────

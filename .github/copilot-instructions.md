@@ -2,131 +2,95 @@
 
 ## Project Overview
 
-Peer Tutoring App is a role-based tutoring platform connecting tutors, students, and teachers. Users authenticate via Google OAuth2 and access role-specific dashboards (tutor, student, teacher, admin).
+Peer Tutoring App is a role-based tutoring platform connecting tutors, students, tutor leaders, teachers, and admins. Users sign in with their District 203 Google account and see role-specific dashboards.
 
 ## Architecture
 
 ### Tech Stack
 
-- **Backend**: Express.js with Node.js, EJS templating
+- **Backend**: Express 4 on Node.js 20+, EJS templating
 - **Database**: MongoDB via Mongoose (see `server/database/connection.js`)
-- **Frontend**: EJS views + Tailwind CSS + client-side JS
-- **Authentication**: Google OAuth2 with express-session (via `server/routes/auth.js`)
-- **CSS**: Tailwind + custom Pico.min.css
+- **Frontend**: EJS views + Tailwind CSS (CDN) + custom CSS in `assets/css/styles.css` + client-side JS in `assets/js/`
+- **Authentication**: Google Identity Services ID tokens verified in `server/routes/auth.js`; sessions in MongoDB via `connect-mongo` (`loginSessions` collection)
 
 ### Core Components
 
-**Authentication Flow** (`server/routes/auth.js`)
+**Server** (`server.js`)
 
-- Google OAuth2 verification stores email in `req.session.email`
-- Session middleware in `server.js` redirects unauthenticated requests to `/auth/`
-- Session secret stored in `.env` as `SESSION_SECRET`
+- Serves `/css`, `/img`, `/js` from `assets/`, then sessions, then a gate that sends signed-out users to `/auth` (or a 401 JSON error for API calls)
+- Re-checks the signed-in user's role every minute (`resolveUser` in `server/utils/users.js`)
+- Ends with an error handler: JSON for API calls and form posts, the error page otherwise
+
+**Routes** (`server/routes/`)
+
+- `auth.js`: sign-in (district accounts only), logout
+- `attendance.js`: attendance page and API (mounted at `/attendance`)
+- `router.js`: all other pages and JSON APIs
+
+**Middleware** (`server/middleware/`)
+
+- `roleAuth.js`: `requireRole(...roles)` with the role hierarchy, developer email lists
+- `asyncRoute.js`: wraps async handlers so errors reach the error handler
+
+**Utilities** (`server/utils/`)
+
+- `users.js`: email → role lookup, case-insensitive tutor lookup by email
+- `dates.js`: date-only parsing/formatting, attendance day ranges, Central time helpers
+- `attendance.js`: attendance statuses and their days-missed weights
+- `emailService.js`: nodemailer helpers and email templates
+- `regex.js`: `escapeRegex`, `exactMatch`
 
 **Data Models** (`server/model/`)
 
-- `tutor.js`: Tutor schema with sessionHistory array, classes array, attendance tracking
-- `session.js`: Session schema linking tutors, tutees, teachers, with subject/class/period
-- `tutee.js`: Student schema with email and session history
-- `teacher.js`: Teacher schema with admin boolean flag
-- Schema comments document all fields; review each model before adding migrations
-
-**Routes** (`server/routes/router.js`)
-
-- Main router handles 400+ lines of route handlers
-- Returns JSON from APIs, renders EJS for views
-- Pattern: fetch from DB → format data → render view (e.g., line 22-45 homepage route)
+- `tutor.js`, `session.js`, `teacher.js`, `tutoringRequest.js`, `attendanceSchema.js`
+- `courses.json` is the only list of subjects, classes, and teachers
 
 **Views** (`views/`)
 
-- EJS templates with role-based nav includes (`_tutNavBar.ejs`, `_teachNavBar.ejs`, etc.)
-- Client-side JS in `assets/js/` (e.g., `tutorForm.js`, `sessionTable.js`)
-- Namespace convention: view-specific JS matches view name
-
-**Data Files** (`server/model/` and `assets/data/`)
-
-- JSON files supply dropdown options: `grades.json`, `daysOfTheWeek.json`, `lunchPeriods.json`, subject/class files
-- Used in forms and filters; ensure consistency when updating
+- Every page includes `include/_header`, `include/_navbar` (role-aware, pass `currentPage`), `include/_footer`, `include/_end`
+- Page scripts live in `assets/js/<page>.js`; shared helpers in `common.js` (`escapeHtml`, `formatDateOnly`), `tableTools.js` (sort/search), and `tableExport.js` (text/xlsx export)
 
 ## Key Workflows
 
-### Starting Development
-
 ```bash
-npm start  # Runs nodemon server.js on port 8080 (local) or 8082 (live)
+npm run dev          # nodemon server.js (port 8082 unless PORT is set)
+npm start            # node server.js
+npm run lint         # ESLint
+npm run format       # Prettier (LF line endings)
+npm run lint:ejs     # EJS syntax check
 ```
 
-### Code Quality
+## Project-Specific Rules
 
-```bash
-npm run lint           # Check JS and EJS
-npm run lint:fix      # Auto-fix linting issues
-npm run format        # Format all files with Prettier
-npm run lint:ejs      # EJS-specific linting
-```
+**Security**
 
-## Project-Specific Patterns
+- Every route needs `requireRole(...)` for the lowest role allowed to use it; the global gate only checks that someone is signed in
+- Take the user's identity from `req.session` (or `getTutorFromSession`), never from the request body
+- Check ownership before changing a record (e.g. a tutor can only answer their own requests)
+- Escape anything inserted with `innerHTML` using `escapeHtml`, or build elements with `textContent`
+- Build regular expressions from user input only with `escapeRegex` / `exactMatch`
 
-**Environment Variables**
+**Routes**
 
-- `.env` file required; see Trello for credentials
-- Key vars: `SESSION_SECRET`, `MONGO_URI`, `GOOGLE_CLIENT_ID`
+- Wrap async handlers in `asyncRoute(...)`
+- API endpoints return `{ success, ... }` JSON; page routes render EJS with `currentPage`
+- Validate request bodies (`cleanText`, catalog/option lists) before writing to MongoDB
+- Use atomic updates (`findOneAndUpdate` with a status condition, `$inc`, `$push`) when two people could change the same record at once
 
-**Routing Pattern**
+**Dates**
 
-- API endpoints return JSON; page routes render EJS with data object
-- Always check `req.session.email` exists before serving protected views
+- Calendar dates from forms are stored at noon UTC (`parseDateOnly`) and formatted in UTC (`formatDateOnly`) so they don't shift a day in Central time
+- Attendance records are keyed by `getAttendanceDayRange` (midnight Central Standard Time)
 
-**Database Queries**
+**Data**
 
-- Use `await Model.find()`, `.findById()`, `.findByIdAndUpdate()`
-- Session storage: tutors/tutees have `sessionHistory` arrays; append new sessions to both tutor and tutee records
+- Student data for the import scripts lives in `scripts/data/` and must never be committed
+- Add classes and teachers to `server/model/courses.json` only
 
-**Form Submissions**
+## Environment Variables
 
-- EJS forms POST to Express routes; routes update MongoDB and respond
-- Subject/class selection cascades (e.g., `cteClasses.json` loaded by `courseList.json`)
+- `MONGO_URI`, `SESSION_SECRET` (required)
+- `EMAIL_SENDER`, `EMAIL_PASSWORD` (optional, Gmail SMTP)
+- `PORT` (optional, default 8082), `GOOGLE_CLIENT_ID` (optional)
 
-**Frontend JS Conventions**
-
-- Client scripts in `assets/js/` are loaded via `server.js` static routes
-- Scripts access global data embedded in EJS templates (not via AJAX typically)
-
-## Critical Files to Know
-
-| File                      | Purpose                                       |
-| ------------------------- | --------------------------------------------- |
-| `server.js`               | App initialization, middleware, static routes |
-| `server/routes/router.js` | All page & API routes (400+ lines)            |
-| `server/routes/auth.js`   | Google OAuth2 verification                    |
-| `server/model/*.js`       | Mongoose schemas (document all fields)        |
-| `views/*.ejs`             | Templates; role-based navbars in `include/`   |
-| `.env`                    | Database, OAuth, session credentials          |
-
-## Common Tasks
-
-**Adding a new form/page**
-
-1. Create schema in `server/model/` if needed
-2. Add route in `server/routes/router.js` (GET for form, POST for submission)
-3. Create EJS view in `views/` with appropriate nav bar include
-4. Add client-side validation in `assets/js/` if needed
-5. Update JSON data files if new dropdowns required
-
-**Querying/Updating MongoDB**
-
-- Reference existing routes for patterns (e.g., tutor expertise or session creation)
-- Always await async DB calls and wrap in try/catch
-- Document schema changes in model comments
-
-**Debugging**
-
-- Check `req.session.email` to verify auth state
-- Mongoose validation errors logged to console; check `.env` MongoDB connection string
-- Browser console for frontend JS; use `nodemon` auto-restart for backend changes
-
-## Notes
-
-- Port switching: Search "8082" in `router.js` and `auth.js` for local (8080) vs. live (8082) deployment
-- Admin pages partially implemented; require password middleware (see TODO in code)
-- Tailwind CSS configured in `tailwind.config.js`; custom CSS in `assets/css/styles.css`
-
+Secrets are shared through Trello, never committed.

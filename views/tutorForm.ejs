@@ -171,7 +171,15 @@
 <main class="container mx-auto px-4 py-8 flex-grow">
   <div class="container mx-auto px-4 max-w-12xl">
     <h1 class="text-4xl font-bold mb-8 text-center text-white">Tutor Session Form</h1>
-    <form>
+    <% if (!tutor) { %>
+    <div class="orange-box mb-6" style="max-width: 700px; margin-left: auto; margin-right: auto;">
+      <p class="font-medium">
+        There is no tutor record for the account you signed in with, so sessions can't be logged
+        yet. Fill out the <a href="/expertiseForm" class="underline">expertise form</a> first.
+      </p>
+    </div>
+    <% } %>
+    <form id="tutorSessionForm">
       <% if (acceptedRequests && acceptedRequests.length > 0) { %>
       <div class="orange-box mb-6" style="max-width: 700px; margin-left: auto; margin-right: auto;">
         <label class="formQuestions font-medium" for="acceptedRequestSelect">Fill from Accepted Request</label>
@@ -187,10 +195,10 @@
               data-subject="<%= request.subject %>"
               data-class="<%= request.class %>"
               data-period="<%= request.preferredPeriod %>"
-              data-date="<%= request.preferredDate ? new Date(request.preferredDate).toISOString().split('T')[0] : '' %>"
+              data-date="<%= request.preferredDateValue %>"
               data-topic="<%= request.topic %>"
             >
-              <%= request.studentFirstName %> <%= request.studentLastName %> — <%= request.subject %> (<%= request.class %>) — <%= request.preferredDate ? new Date(request.preferredDate).toLocaleDateString() : 'No date' %>
+              <%= request.studentFirstName %> <%= request.studentLastName %> — <%= request.subject %> (<%= request.class %>) — <%= request.preferredDateLabel %>
             </option>
           <% }); %>
         </select>
@@ -203,14 +211,14 @@
         <div class="form-column">
           <h2 class="black-heading">Tutor</h2>
           <div class="orange-box">
+            <%# Sessions are always logged for the signed-in tutor %>
             <label class="formQuestions font-medium" for="tutorFirstName">Tutor First Name</label>
             <input
               type="text"
               class="font-medium"
               id="tutorFirstName"
-              name="tutorFirstName"
               value="<%= tutor ? tutor.tutorFirstName : '' %>"
-              required
+              readonly
             />
 
             <label class="formQuestions font-medium" for="tutorLastName">Tutor Last Name</label>
@@ -218,13 +226,12 @@
               type="text"
               class="font-medium"
               id="tutorLastName"
-              name="tutorLastName"
               value="<%= tutor ? tutor.tutorLastName : '' %>"
-              required
+              readonly
             />
 
             <label class="formQuestions font-medium" for="tutorID">Tutor ID</label>
-            <input type="text" class="font-medium" id="tutorID" name="tutorID" value="<%= tutor ? tutor.tutorID : '' %>" required />
+            <input type="text" class="font-medium" id="tutorID" value="<%= tutor ? tutor.tutorID : '' %>" readonly />
 
             <label class="formQuestions font-medium" for="sessionDate">Date</label>
             <input type="date" class="font-medium" id="sessionDate" name="sessionDate" required />
@@ -255,20 +262,12 @@
               class="font-medium"
               id="department"
               name="department"
-              onchange="updateClasses()"
               required
             >
               <option value="">Select a Department</option>
-              <option value="Math">Math</option>
-              <option value="English">English</option>
-              <option value="CTE">CTE</option>
-              <option value="Fine Arts">Fine Arts</option>
-              <option value="Wellness">Wellness</option>
-              <option value="World & Classical Language">World & Classical Language</option>
-              <option value="Science">Science</option>
-              <option value="Social Studies">Social Studies</option>
-              <option value="EL classes">EL classes</option>
-              <option value="Academic Support">Academic Support</option>
+              <% departments.forEach(function(department) { %>
+              <option value="<%= department %>"><%= department %></option>
+              <% }); %>
             </select>
 
             <label class="formQuestions font-medium" for="class">Class</label>

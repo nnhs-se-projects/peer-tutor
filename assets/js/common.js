@@ -27,7 +27,5 @@ function escapeHtml(value) {
 function formatDateOnly(value) {
   if (!value) return '';
   const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? ''
-    : date.toLocaleDateString('en-US', { timeZone: 'UTC' });
+  return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-US', { timeZone: 'UTC' });
 }

@@ -1,5 +1,3 @@
-<!-- cSpell:ignoreRegExp /[^\s]{40,}/ -->
-
 <!-- include header -->
 <%- include('include/_header') %>
 <!-- No navigation bar for login page -->
@@ -25,7 +23,7 @@
           <script src="https://accounts.google.com/gsi/client" async defer></script>
           <div
             id="g_id_onload"
-            data-client_id="730546621620-dnost72pte48o0p59hbc7nj03ra94efl.apps.googleusercontent.com"
+            data-client_id="<%= googleClientId %>"
             data-context="signin"
             data-callback="handleCredentialResponse"
             data-auto_prompt="false"
@@ -90,52 +88,6 @@
   }
 </style>
 
-<script>
-  // Handle credential response from Google Sign-In
-  function handleCredentialResponse(response) {
-    // Hide any existing error
-    document.getElementById('error-message').classList.add('hidden');
-
-    // Send the credential to our backend
-    fetch('/auth', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        credential: response.credential,
-      }),
-    })
-      .then(response => {
-        if (response.status === 201) {
-          return response.json();
-        } else {
-          // Handle authentication error
-          return response.text().then(text => {
-            throw new Error(text || 'Authentication failed');
-          });
-        }
-      })
-      .then(data => {
-        // Redirect based on user role
-        const roleRedirects = {
-          developer: '/adminHome', // Developers go to admin (have full access)
-          admin: '/adminHome',
-          teacher: '/teachHome',
-          lead: '/leadHome',
-          tutor: '/tutHome',
-          student: '/stuHome',
-        };
-        window.location.href = roleRedirects[data.role] || '/';
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        // Show error message
-        const errorDiv = document.getElementById('error-message');
-        errorDiv.textContent = error.message || 'Authentication failed. Please try again.';
-        errorDiv.classList.remove('hidden');
-      });
-  }
-</script>
+<script src="/js/auth.js"></script>
 
 <%- include('include/_footer') %> <%- include('include/_end') %>

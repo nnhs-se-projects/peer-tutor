@@ -1,4 +1,3 @@
-views/include/_header.ejs
 node_modules
 dist
 build

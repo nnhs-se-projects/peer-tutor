@@ -48,7 +48,9 @@
           return rowMapper(row);
         }
 
-        return exportedColumns.map(index => (row.cells[index] ? getCellText(row.cells[index]) : ''));
+        return exportedColumns.map(index =>
+          row.cells[index] ? getCellText(row.cells[index]) : ''
+        );
       })
       .filter(row => Array.isArray(row) && row.length > 0);
 

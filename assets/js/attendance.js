@@ -178,7 +178,8 @@ document.addEventListener('DOMContentLoaded', function () {
         `/attendance/getAttendance?date=${todayInSchoolZone()}&lunchPeriod=${encodeURIComponent(lunchPeriod)}`
       );
       const json = res.ok ? await res.json() : null;
-      const savedTutors = json && json.data && Array.isArray(json.data.tutors) ? json.data.tutors : null;
+      const savedTutors =
+        json && json.data && Array.isArray(json.data.tutors) ? json.data.tutors : null;
       if (!savedTutors) return;
 
       const savedById = new Map(savedTutors.map(t => [String(t.tutorId), t]));
@@ -189,8 +190,14 @@ document.addEventListener('DOMContentLoaded', function () {
           const saved = savedById.get(row.dataset.tutorId);
           const status = saved && saved.status !== 'makeup' ? saved.status : null;
           row.querySelectorAll('.absent-button, .tardy-button, .present-button').forEach(btn => {
-            btn.classList.toggle('button-selected', Boolean(status) && btn.dataset.action === status);
-            btn.classList.toggle('button-disabled', Boolean(status) && btn.dataset.action !== status);
+            btn.classList.toggle(
+              'button-selected',
+              Boolean(status) && btn.dataset.action === status
+            );
+            btn.classList.toggle(
+              'button-disabled',
+              Boolean(status) && btn.dataset.action !== status
+            );
           });
           if (status) {
             row.dataset.attendanceStatus = status;

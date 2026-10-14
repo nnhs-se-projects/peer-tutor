@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * Email service utility for sending automated notifications.
  * Uses nodemailer with Gmail SMTP.
@@ -131,7 +130,7 @@ async function sendRequestAcceptedEmail(request) {
       subject,
       text,
     });
-    console.log('Acceptance email sent');
+    console.info('Acceptance email sent');
   } catch (err) {
     console.error('Failed to send acceptance email:', err.message);
   }
@@ -167,7 +166,7 @@ async function sendRequestDeclinedEmail(request) {
       subject,
       text,
     });
-    console.log('Declined email sent');
+    console.info('Declined email sent');
   } catch (err) {
     console.error('Failed to send declined email:', err.message);
   }
