@@ -5,7 +5,7 @@
 const mongoose = require('mongoose');
 
 const schema = new mongoose.Schema({
-  // date/time the session was recorded
+  // date of the session (stored at noon UTC, see server/utils/dates.js)
   sessionDate: {
     type: Date,
     required: true,
@@ -54,6 +54,11 @@ const schema = new mongoose.Schema({
   isMakeup: {
     type: Boolean,
     default: false,
+  },
+  // tutor who logged the session
+  tutorId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Tutor',
   },
 
   // ── Legacy fields (kept so old records still display) ──────────────

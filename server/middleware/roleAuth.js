@@ -3,7 +3,10 @@
  * Checks if the user has the required role to access a route
  */
 
-// Super developers can change the roles of other developers
+// These users always sign in with the developer role
+const DEVELOPER_EMAILS = ['eqin@stu.naperville203.org'];
+
+// Super developers can also change the roles of other developers
 const SUPER_DEVELOPER_EMAILS = ['eqin@stu.naperville203.org', 'jxwu@stu.naperville203.org'];
 
 /**
@@ -11,9 +14,7 @@ const SUPER_DEVELOPER_EMAILS = ['eqin@stu.naperville203.org', 'jxwu@stu.napervil
  * @param {string} email
  * @returns {boolean}
  */
-const isSuperDeveloper = email => {
-  return SUPER_DEVELOPER_EMAILS.includes((email || '').toLowerCase());
-};
+const isSuperDeveloper = email => SUPER_DEVELOPER_EMAILS.includes((email || '').toLowerCase());
 
 // Define role hierarchy - higher roles inherit permissions from lower roles
 const ROLE_HIERARCHY = {
@@ -26,6 +27,26 @@ const ROLE_HIERARCHY = {
 };
 
 /**
+ * Get all permissions for a role based on hierarchy
+ * @param {string} role - The user's role
+ * @returns {string[]} Array of all roles the user has access to
+ */
+const getRolePermissions = role => ROLE_HIERARCHY[role] || [role];
+
+/**
+ * API calls and form submissions get JSON errors; page loads get a redirect or error page.
+ * @param {import('express').Request} req
+ */
+const wantsJson = req => req.method !== 'GET' || req.originalUrl.startsWith('/api/');
+
+const denyAccess = (req, res, message) => {
+  if (wantsJson(req)) {
+    return res.status(403).json({ success: false, error: message });
+  }
+  return res.status(403).render('error', { message });
+};
+
+/**
  * Middleware to check if user has required role
  * @param  {...string} allowedRoles - Roles that are allowed to access the route
  * @returns {Function} Express middleware function
@@ -34,70 +55,37 @@ const requireRole = (...allowedRoles) => {
   return (req, res, next) => {
     // Check if user is authenticated
     if (!req.session.email) {
-      return res.redirect('/auth/');
+      if (wantsJson(req)) {
+        return res.status(401).json({ success: false, error: 'Please sign in again.' });
+      }
+      return res.redirect('/auth');
     }
 
     // Check if user has a role assigned
     if (!req.session.role) {
-      return res.status(403).render('error', {
-        message: 'Access denied. You do not have a role assigned. Please contact an administrator.',
-        user: req.session,
-      });
+      return denyAccess(
+        req,
+        res,
+        'Access denied. You do not have a role assigned. Please contact an administrator.'
+      );
     }
-
-    // Get all roles the user's role has access to
-    const userRoles = ROLE_HIERARCHY[req.session.role] || [req.session.role];
 
     // Check if any of the allowed roles match the user's effective roles
-    const hasPermission = allowedRoles.some(role => userRoles.includes(role));
-
-    if (!hasPermission) {
-      return res.status(403).render('error', {
-        message: 'Access denied. You do not have permission to view this page.',
-        user: req.session,
-      });
+    const userRoles = getRolePermissions(req.session.role);
+    if (!allowedRoles.some(role => userRoles.includes(role))) {
+      return denyAccess(req, res, 'Access denied. You do not have permission to do that.');
     }
 
     next();
   };
-};
-
-/**
- * Middleware to check if user has specific role (exact match, no hierarchy)
- * @param  {...string} allowedRoles - Exact roles that are allowed
- * @returns {Function} Express middleware function
- */
-const requireExactRole = (...allowedRoles) => {
-  return (req, res, next) => {
-    if (!req.session.email) {
-      return res.redirect('/auth/');
-    }
-
-    if (!req.session.role || !allowedRoles.includes(req.session.role)) {
-      return res.status(403).render('error', {
-        message: 'Access denied. You do not have permission to view this page.',
-        user: req.session,
-      });
-    }
-
-    next();
-  };
-};
-
-/**
- * Get all permissions for a role based on hierarchy
- * @param {string} role - The user's role
- * @returns {string[]} Array of all roles the user has access to
- */
-const getRolePermissions = role => {
-  return ROLE_HIERARCHY[role] || [role];
 };
 
 module.exports = {
   requireRole,
-  requireExactRole,
   getRolePermissions,
   isSuperDeveloper,
+  wantsJson,
   ROLE_HIERARCHY,
+  DEVELOPER_EMAILS,
   SUPER_DEVELOPER_EMAILS,
 };

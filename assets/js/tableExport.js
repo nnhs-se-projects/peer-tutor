@@ -34,7 +34,12 @@
       throw new Error(`Table with id "${tableId}" was not found.`);
     }
 
-    const headers = Array.from(table.querySelectorAll('thead th')).map(getHeaderText);
+    // Columns marked with data-no-export (such as action buttons) are left out
+    const headerCells = Array.from(table.querySelectorAll('thead th'));
+    const exportedColumns = headerCells
+      .map((th, index) => (th.hasAttribute('data-no-export') ? null : index))
+      .filter(index => index !== null);
+    const headers = exportedColumns.map(index => getHeaderText(headerCells[index]));
 
     const rows = Array.from(table.querySelectorAll('tbody tr'))
       .filter(row => includeHiddenRows || isRowVisible(row))
@@ -43,7 +48,7 @@
           return rowMapper(row);
         }
 
-        return Array.from(row.cells).map(getCellText);
+        return exportedColumns.map(index => (row.cells[index] ? getCellText(row.cells[index]) : ''));
       })
       .filter(row => Array.isArray(row) && row.length > 0);
 
@@ -69,11 +74,6 @@
       .replace(/-{2,}/g, '-');
   }
 
-  function truncateSegment(value, maxLength = 24) {
-    const text = String(value || '');
-    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
-  }
-
   function getTimestampSuffix() {
     const now = new Date();
     const yyyy = now.getFullYear();
@@ -85,22 +85,6 @@
     return `${yyyy}${mm}${dd}_${hh}${min}${sec}`;
   }
 
-  function buildContextFileName({ baseName, extension, contextSegments = [] }) {
-    const safeBaseName = sanitizeFileSegment(baseName) || 'export';
-    const safeExt = String(extension || '')
-      .replace(/^\./, '')
-      .toLowerCase();
-
-    const normalizedSegments = contextSegments
-      .map(segment => sanitizeFileSegment(truncateSegment(segment)))
-      .filter(Boolean);
-
-    const contextPart = normalizedSegments.length ? normalizedSegments.join('_') : 'all';
-    const timestamp = getTimestampSuffix();
-
-    return `${safeBaseName}_${contextPart}_${timestamp}.${safeExt}`;
-  }
-
   function buildTimestampedFileName({ baseName, extension }) {
     const safeBaseName = sanitizeFileSegment(baseName) || 'export';
     const safeExt = String(extension || '')
@@ -108,24 +92,6 @@
       .toLowerCase();
     const timestamp = getTimestampSuffix();
     return `${safeBaseName}_${timestamp}.${safeExt}`;
-  }
-
-  function getColumnSearchContext(tableId) {
-    const table = document.getElementById(tableId);
-    if (!table) return [];
-
-    const headers = Array.from(table.querySelectorAll('thead th')).map(getHeaderText);
-    const context = [];
-
-    headers.forEach((header, index) => {
-      const input = document.getElementById(`searchInput${index}`);
-      const value = input ? normalizeText(input.value) : '';
-      if (!value) return;
-
-      context.push(`search-${header}-${value}`);
-    });
-
-    return context;
   }
 
   function exportTableToTextFile({
@@ -238,13 +204,45 @@
     });
   }
 
+  /**
+   * Wire the page's "Export to Text File" (#exportBtn) and "Export to Spreadsheet"
+   * (#exportSpreadsheetBtn) buttons to export a whole table.
+   */
+  function bindExportButtons({ tableId, baseName, sheetName }) {
+    const exportBtn = document.getElementById('exportBtn');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        exportTableToTextFile({
+          tableId,
+          fileName: buildTimestampedFileName({ baseName, extension: 'txt' }),
+          includeHiddenRows: true,
+        });
+      });
+    }
+
+    const exportSpreadsheetBtn = document.getElementById('exportSpreadsheetBtn');
+    if (exportSpreadsheetBtn) {
+      exportSpreadsheetBtn.addEventListener('click', async () => {
+        try {
+          await exportTableToSpreadsheet({
+            tableId,
+            fileName: buildTimestampedFileName({ baseName, extension: 'xlsx' }),
+            sheetName,
+            includeHiddenRows: true,
+          });
+        } catch (error) {
+          console.error('Spreadsheet export failed:', error);
+          alert('Unable to export spreadsheet right now. Please try again.');
+        }
+      });
+    }
+  }
+
   window.TableExport = {
-    buildTableMatrix,
     exportTableToTextFile,
     exportTableToSpreadsheet,
     exportTablesToSpreadsheet,
     buildTimestampedFileName,
-    buildContextFileName,
-    getColumnSearchContext,
+    bindExportButtons,
   };
 })();

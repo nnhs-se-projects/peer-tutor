@@ -17,7 +17,8 @@ document.addEventListener('DOMContentLoaded', function () {
       tutorResults.innerHTML = '<div class="text-center"><p>Searching for tutors...</p></div>';
 
       // Fetch tutors who can teach the selected subject/class
-      fetch(`/api/tutors?subject=${subject}&class=${className}`)
+      const query = new URLSearchParams({ subject, class: className });
+      fetch(`/api/tutors?${query}`)
         .then(response => {
           if (!response.ok) {
             throw new Error('Network response was not ok');
@@ -31,15 +32,15 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
           }
 
-          // Display tutors
+          // Display tutors (requesting a specific tutor is currently disabled)
           let html = '<div class="mt-4 space-y-4">';
           tutors.forEach(tutor => {
             html += `
               <div class="border rounded-lg p-4 bg-gray-100 text-gray-500 opacity-70 grayscale">
-                <div class="font-bold">${tutor.tutorFirstName} ${tutor.tutorLastName}</div>
-                <div class="text-sm text-gray-600">Grade: ${tutor.grade}</div>
-                <div class="text-sm text-gray-600">Lunch Period: ${tutor.lunchPeriod || 'Not set'}</div>
-                <div class="text-sm text-gray-600">Available: ${tutor.daysAvailable.join(', ')}</div>
+                <div class="font-bold">${escapeHtml(tutor.tutorFirstName)} ${escapeHtml(tutor.tutorLastName)}</div>
+                <div class="text-sm text-gray-600">Grade: ${escapeHtml(tutor.grade)}</div>
+                <div class="text-sm text-gray-600">Lunch Period: ${escapeHtml(tutor.lunchPeriod || 'Not set')}</div>
+                <div class="text-sm text-gray-600">Available: ${escapeHtml((tutor.daysAvailable || []).join(', '))}</div>
                 <button
                   type="button"
                   class="mt-2 bg-gray-300 text-gray-600 px-3 py-1 rounded-lg text-sm cursor-not-allowed"
@@ -63,17 +64,11 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Handle tutoring request form submission
+  // Handle tutoring request form submission. Requests go to the general request board.
   const tutoringRequestForm = document.getElementById('tutoringRequestForm');
   if (tutoringRequestForm) {
     tutoringRequestForm.addEventListener('submit', function (e) {
       e.preventDefault();
-
-      const selectedTutorInput = document.getElementById('selectedTutorId');
-      const tutorBanner = document.getElementById('selectedTutorBanner');
-      const tutorId = selectedTutorInput?.value || tutorBanner?.dataset?.tutorId || '';
-      const tutorName = tutorBanner?.dataset?.tutorName || null;
-      const requestType = tutorId ? 'direct' : 'general';
 
       const formData = {
         studentFirstName: document.getElementById('studentFirstName').value,
@@ -86,12 +81,8 @@ document.addEventListener('DOMContentLoaded', function () {
         preferredDate: document.getElementById('preferredDate').value,
         preferredPeriod: document.getElementById('lunchPeriod').value,
         additionalNotes: document.getElementById('additionalNotes').value,
-        tutorId: tutorId,
-        tutorName: tutorName,
-        requestType,
       };
 
-      // Submit form data
       fetch('/api/tutoringRequest', {
         method: 'POST',
         headers: {
@@ -99,24 +90,13 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         body: JSON.stringify(formData),
       })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
+        .then(response => response.json().catch(() => ({})))
         .then(data => {
           if (data.success) {
-            // Show success message
             alert('Your tutoring request has been submitted successfully!');
             tutoringRequestForm.reset();
-            // Clear selected tutor banner and hidden input
-            const banner = document.getElementById('selectedTutorBanner');
-            if (banner) banner.remove();
-            const hiddenInput = document.getElementById('selectedTutorId');
-            if (hiddenInput) hiddenInput.value = '';
           } else {
-            alert('Error submitting request: ' + data.error);
+            alert('Error submitting request: ' + (data.error || 'Please try again.'));
           }
         })
         .catch(error => {
@@ -126,58 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Load session history
-  function loadSessionHistory() {
-    const sessionHistory = document.getElementById('sessionHistory');
-
-    if (!sessionHistory) return;
-
-    // Show loading state
-    sessionHistory.innerHTML = '<div class="text-center"><p>Loading your sessions...</p></div>';
-
-    // Fetch session history for current student
-    fetch('/api/student/sessions')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(sessions => {
-        if (sessions.length === 0) {
-          sessionHistory.innerHTML =
-            '<div class="text-center text-gray-500 italic">No recent sessions found.</div>';
-          return;
-        }
-
-        // Display sessions
-        let html = '<div class="space-y-4">';
-        sessions.forEach(session => {
-          const sessionDate = new Date(session.sessionDate).toLocaleDateString();
-          html += `
-            <div class="border rounded-lg p-4 hover:bg-gray-50">
-              <div class="font-bold">${session.subject} - ${session.class}</div>
-              <div class="text-sm text-gray-600">Date: ${sessionDate}</div>
-              <div class="text-sm text-gray-600">Tutor: ${session.tutorFirstName} ${session.tutorLastName}</div>
-              <div class="text-sm">Focus: ${session.focusOfSession}</div>
-              <div class="text-sm">Work Accomplished: ${session.workAccomplished}</div>
-            </div>
-          `;
-        });
-        html += '</div>';
-        sessionHistory.innerHTML = html;
-      })
-      .catch(error => {
-        console.error('Error fetching sessions:', error);
-        sessionHistory.innerHTML =
-          '<div class="text-red-500">Error loading session history. Please try again.</div>';
-      });
-  }
-
-  // Load session history on page load
-  loadSessionHistory();
-
-  // Add this at the top of the file or after DOMContentLoaded
+  // Fill the subject and class dropdowns for both the search and the request form
   fetch('/api/courses')
     .then(response => response.json())
     .then(courses => {
@@ -208,21 +137,3 @@ document.addEventListener('DOMContentLoaded', function () {
       populateSubjects('requestSubject', 'requestClass');
     });
 });
-
-// Function to request a specific tutor
-function requestTutor(tutorId, tutorName) {
-  alert('Feature currently disabled');
-  void tutorId;
-  void tutorName;
-}
-
-// Function to clear selected tutor
-function clearSelectedTutor() {
-  const banner = document.getElementById('selectedTutorBanner');
-  if (banner) {
-    banner.remove();
-  }
-  // Clear the hidden input so the form requires a new selection
-  const selectedTutorInput = document.getElementById('selectedTutorId');
-  if (selectedTutorInput) selectedTutorInput.value = '';
-}

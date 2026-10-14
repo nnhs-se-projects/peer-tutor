@@ -6,118 +6,74 @@
 
 const express = require('express');
 const route = express.Router();
-const Tutor = require('../model/tutor');
-const Teacher = require('../model/teacher');
+const { OAuth2Client } = require('google-auth-library');
+const { isAllowedEmail, resolveUser, applyUserToSession } = require('../utils/users');
 
-const CLIENT_ID = '730546621620-dnost72pte48o0p59hbc7nj03ra94efl.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID =
+  process.env.GOOGLE_CLIENT_ID ||
+  '730546621620-dnost72pte48o0p59hbc7nj03ra94efl.apps.googleusercontent.com';
 
-// Developer emails - these users always have developer role with full access
-const DEVELOPER_EMAILS = [
-  'eqin@stu.naperville203.org',
-  //'mkfedorovskiy@stu.naperville203.org',
-  //'jxwu@stu.naperville203.org',
-  //'opbhide@stu.naperville203.org',
-];
-
-// Emails that should never be auto-assigned teacher role
-const AUTO_TEACHER_ROLE_EXCLUSIONS = ['skmoore@naperville203.org'];
-
-const isTeacherEmail = email => {
-  const normalizedEmail = (email || '').toLowerCase();
-  const isDistrictEmail = normalizedEmail.endsWith('@naperville203.org');
-  const isStudentEmail = normalizedEmail.includes('@stu.');
-  const isExcluded = AUTO_TEACHER_ROLE_EXCLUSIONS.includes(normalizedEmail);
-
-  return isDistrictEmail && !isStudentEmail && !isExcluded;
-};
+const DOMAIN_ERROR = 'Please sign in with your District 203 Google account.';
 
 // from: https://developers.google.com/identity/gsi/web/guides/verify-google-id-token#node.js
-const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client();
+
+/**
+ * Verify the ID token from Google and return the signed-in email address.
+ * Only verified accounts managed by the district are accepted.
+ */
 async function verify(token) {
   const ticket = await client.verifyIdToken({
     idToken: token,
-    audience: CLIENT_ID, // Specify the CLIENT_ID of the app that accesses the backend
+    audience: GOOGLE_CLIENT_ID,
   });
-  const { sub, email } = ticket.getPayload();
-  console.log(sub, email);
-  return email;
+  const { email, email_verified: emailVerified, hd } = ticket.getPayload();
+
+  // `hd` is only present for accounts managed by a Google Workspace domain
+  if (!email || !emailVerified || !hd || !isAllowedEmail(email)) {
+    const error = new Error(DOMAIN_ERROR);
+    error.status = 403;
+    throw error;
+  }
+
+  return email.toLowerCase();
 }
 
 route.get('/', (req, res) => {
-  res.render('auth');
+  res.render('auth', { googleClientId: GOOGLE_CLIENT_ID });
 });
 
 route.post('/', async (req, res) => {
   try {
     const email = await verify(req.body.credential);
-    req.session.email = email;
+    const user = await resolveUser(email);
 
-    // Debug: Log email for troubleshooting
-    console.log('Login email:', email);
-    console.log('Email lowercase:', email.toLowerCase());
-    console.log('Is developer?', DEVELOPER_EMAILS.includes(email.toLowerCase()));
-
-    // Check if user is a developer (hardcoded list)
-    if (DEVELOPER_EMAILS.includes(email.toLowerCase())) {
-      req.session.role = 'developer';
-      req.session.userName = email.split('@')[0];
-
-      // Ensure developer tutor record exists with developer role
-      const existingTutor = await Tutor.findOne({ email: email });
-      if (existingTutor && existingTutor.role !== 'developer') {
-        existingTutor.role = 'developer';
-        await existingTutor.save();
+    // Start a fresh session on login so an old session ID can't be reused
+    req.session.regenerate(err => {
+      if (err) {
+        console.error('Error creating session:', err);
+        return res.status(500).send('Authentication error');
       }
 
-      console.log('Assigned developer role to:', email);
-      return res.status(201).json({ role: req.session.role });
-    }
-
-    // Look up user role from database
-    // First check if user is a tutor/lead
-    const tutor = await Tutor.findOne({ email: email });
-    if (tutor) {
-      // Use role from database, default to 'tutor' if not set
-      req.session.role = tutor.role || (tutor.tutorLeader ? 'lead' : 'tutor');
-      req.session.userId = tutor._id;
-      req.session.userName = `${tutor.tutorFirstName} ${tutor.tutorLastName}`;
-      req.session.tutorID = tutor.tutorID;
-      return res.status(201).json({ role: req.session.role });
-    }
-
-    // Check if user is a teacher/admin
-    const teacher = await Teacher.findOne({ email: email });
-    if (teacher) {
-      req.session.role = teacher.admin ? 'admin' : 'teacher';
-      req.session.userId = teacher._id;
-      req.session.userName = `${teacher.teacherFirstName} ${teacher.teacherLastName}`;
-      return res.status(201).json({ role: req.session.role });
-    }
-
-    // Auto-assign teacher role for district staff emails (except explicit exclusions)
-    if (isTeacherEmail(email)) {
-      req.session.role = 'teacher';
-      req.session.userName = email.split('@')[0];
-      return res.status(201).json({ role: req.session.role });
-    }
-
-    // Default to student role for unregistered users
-    req.session.role = 'student';
-    req.session.userName = email.split('@')[0];
-
-    res.status(201).json({ role: req.session.role });
+      req.session.email = email;
+      applyUserToSession(req.session, user);
+      res.status(201).json({ role: user.role });
+    });
   } catch (error) {
-    console.error('Error during authentication:', error);
-    res.status(500).send('Authentication error');
+    if (error.status === 403) {
+      return res.status(403).send(DOMAIN_ERROR);
+    }
+    console.error('Error during authentication:', error.message);
+    res.status(401).send('Authentication failed. Please try again.');
   }
 });
 
 // Logout route
 route.get('/logout', (req, res) => {
-  req.session.destroy();
-  res.redirect('/auth');
+  req.session.destroy(() => {
+    res.clearCookie('connect.sid');
+    res.redirect('/auth');
+  });
 });
 
 module.exports = route;
-

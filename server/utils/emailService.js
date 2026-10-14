@@ -9,6 +9,7 @@
  */
 
 const nodemailer = require('nodemailer');
+const { formatDateOnly, SCHOOL_TIME_ZONE } = require('./dates');
 
 let cachedTransporter = null;
 
@@ -55,7 +56,11 @@ function getTransporter() {
   return cachedTransporter;
 }
 
-async function sendEmail({ to, subject, text, html }) {
+/**
+ * Send an email from the program account.
+ * Use `bcc` for messages to several people so they don't see each other's addresses.
+ */
+async function sendEmail({ to, bcc, subject, text, html }) {
   const transporter = getTransporter();
   if (!transporter) {
     throw new Error(getEmailConfigErrorMessage());
@@ -65,7 +70,8 @@ async function sendEmail({ to, subject, text, html }) {
 
   return transporter.sendMail({
     from: senderEmail,
-    to,
+    to: to || senderEmail,
+    bcc,
     subject,
     text,
     html,
@@ -73,16 +79,20 @@ async function sendEmail({ to, subject, text, html }) {
 }
 
 /**
- * Format a Date object into a readable string like "February 26, 2026".
+ * Format a stored date like "February 26, 2026".
  */
 function formatDate(date) {
-  if (!date) return 'N/A';
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  return (
+    formatDateOnly(date, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }) || 'N/A'
+  );
 }
+
+// Join the lines of a plain-text email, dropping optional lines that were left out
+const buildText = lines => lines.filter(line => line !== null).join('\n');
 
 // ─── Tutoring‑request response emails ─────────────────────────────────────────
 
@@ -98,7 +108,7 @@ async function sendRequestAcceptedEmail(request) {
   const to = request.studentEmail;
   const subject = 'Your Tutoring Request Has Been Accepted!';
 
-  const text = [
+  const text = buildText([
     `Hi ${request.studentFirstName},`,
     '',
     'Great news — your tutoring request has been accepted! Here are the details:',
@@ -108,14 +118,12 @@ async function sendRequestAcceptedEmail(request) {
     `  Date:    ${formatDate(request.preferredDate)}`,
     `  Period:  ${request.preferredPeriod}`,
     '',
-    request.responseMessage ? `Message from your tutor: "${request.responseMessage}"` : '',
-    '',
+    request.responseMessage ? `Message from your tutor: "${request.responseMessage}"` : null,
+    request.responseMessage ? '' : null,
     'Please make sure to show up on time. Good luck!',
     '',
     '— Peer Tutoring Team',
-  ]
-    .filter(line => line !== undefined)
-    .join('\n');
+  ]);
 
   try {
     await sendEmail({
@@ -123,9 +131,9 @@ async function sendRequestAcceptedEmail(request) {
       subject,
       text,
     });
-    console.log(`Acceptance email sent to ${to}`);
+    console.log('Acceptance email sent');
   } catch (err) {
-    console.error('Failed to send acceptance email:', err);
+    console.error('Failed to send acceptance email:', err.message);
   }
 }
 
@@ -141,19 +149,17 @@ async function sendRequestDeclinedEmail(request) {
   const to = request.studentEmail;
   const subject = 'Update on Your Tutoring Request';
 
-  const text = [
+  const text = buildText([
     `Hi ${request.studentFirstName},`,
     '',
     'Unfortunately, your tutoring request has been declined.',
     '',
-    request.responseMessage ? `Reason: "${request.responseMessage}"` : '',
-    '',
+    request.responseMessage ? `Reason: "${request.responseMessage}"` : null,
+    request.responseMessage ? '' : null,
     'You can submit a new request at any time to find another tutor.',
     '',
     '— Peer Tutoring Team',
-  ]
-    .filter(line => line !== undefined)
-    .join('\n');
+  ]);
 
   try {
     await sendEmail({
@@ -161,72 +167,45 @@ async function sendRequestDeclinedEmail(request) {
       subject,
       text,
     });
-    console.log(`Declined email sent to ${to}`);
+    console.log('Declined email sent');
   } catch (err) {
-    console.error('Failed to send declined email:', err);
+    console.error('Failed to send declined email:', err.message);
   }
 }
 
-// ─── New tutoring request email (sent to tutor) ──────────────────────────────
+// ─── Absence notices (sent to tutors) ────────────────────────────────────────
 
 /**
- * Send an email to the tutor when a tutee submits a new tutoring request.
+ * Email a tutor about their current number of missed sessions.
+ * Throws if the email could not be sent so callers can report failures.
  *
- * @param {Object} request – The TutoringRequest document (after save)
+ * @param {{email: string, name: string, absenceCount: number}} tutor
  */
-async function sendNewRequestEmail(request) {
-  const transporter = getTransporter();
-  if (!transporter) return;
+async function sendAbsenceNotice({ email, name, absenceCount }) {
+  const plural = absenceCount !== 1 ? 's' : '';
+  const asOf = new Date().toLocaleDateString('en-US', { timeZone: SCHOOL_TIME_ZONE });
 
-  const to = request.tutorEmail;
-  if (!to) {
-    console.error('sendNewRequestEmail: no tutorEmail on request, skipping email');
-    return;
-  }
-
-  const subject = 'New Tutoring Request';
-
-  const text = [
-    `Hi ${request.tutorName || 'Tutor'},`,
-    '',
-    'You have a new tutoring request! Here are the details:',
-    '',
-    `  Student: ${request.studentFirstName} ${request.studentLastName}`,
-    `  Subject: ${request.subject} – ${request.class}`,
-    `  Topic:   ${request.topic}`,
-    `  Date:    ${formatDate(request.preferredDate)}`,
-    `  Period:  ${request.preferredPeriod}`,
-    '',
-    request.additionalNotes
-      ? `Additional notes from the student: "${request.additionalNotes}"`
-      : '',
-    '',
-    'Please log in to accept or decline this request.',
-    '',
-    '— Peer Tutoring Team',
-  ]
-    .filter(line => line !== undefined)
-    .join('\n');
-
-  try {
-    await sendEmail({
-      to,
-      subject,
-      text,
-    });
-    console.log(`New request email sent to tutor at ${to}`);
-  } catch (err) {
-    console.error('Failed to send new request email:', err);
-  }
+  await sendEmail({
+    to: email,
+    subject: `Peer Tutoring – Absence Notice (${absenceCount} missed session${plural})`,
+    text: buildText([
+      `Hi ${name},`,
+      '',
+      `Our records show you have ${absenceCount} unexcused absence${plural} as of ${asOf}.`,
+      '',
+      'Please reach out to your tutor lead or program coordinator if you believe this is an error, or to arrange a makeup session.',
+      '',
+      'Thank you,',
+      'Peer Tutoring Program',
+    ]),
+  });
 }
 
 module.exports = {
-  getTransporter,
   sendEmail,
   isEmailConfigured,
   getEmailConfigErrorMessage,
   sendRequestAcceptedEmail,
   sendRequestDeclinedEmail,
-  sendNewRequestEmail,
+  sendAbsenceNotice,
 };
-

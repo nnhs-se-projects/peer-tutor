@@ -13,24 +13,18 @@ const schema = new mongoose.Schema({
     default: 'tutor',
   },
 
-  // Google OAuth subject ID (for future use)
-  googleId: {
-    type: String,
-    sparse: true,
-  },
-
-  // Account status
+  // Inactive tutors sign in as students and are left off attendance
   isActive: {
     type: Boolean,
     default: true,
   },
 
-  // tutor last name
+  // tutor first name
   tutorFirstName: {
     type: String,
     required: true,
   },
-  // tutor first name
+  // tutor last name
   tutorLastName: {
     type: String,
     required: true,
@@ -40,10 +34,12 @@ const schema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  // tutor email
+  // tutor email (the Google account they sign in with)
   email: {
     type: String,
     required: true,
+    lowercase: true,
+    trim: true,
   },
   // grade of tutor
   grade: {
@@ -79,7 +75,7 @@ const schema = new mongoose.Schema({
     type: Boolean,
     required: true,
   },
-  // attendance of tutor number of day missed
+  // days missed: absences (+1) and tardies (+0.5) minus makeups (-1)
   attendance: {
     type: Number,
     required: true,
@@ -88,9 +84,19 @@ const schema = new mongoose.Schema({
   sessionHistory: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Session', // Corrected reference to match the model name
+      ref: 'Session',
     },
   ],
+  // sessions completed before they were logged on this site
+  pastSessionCount: {
+    type: Number,
+    default: 0,
+  },
+});
+
+// Total shown on the leaderboard and tutor pages
+schema.virtual('totalSessions').get(function () {
+  return (this.sessionHistory ? this.sessionHistory.length : 0) + (this.pastSessionCount || 0);
 });
 
 const Tutor = mongoose.model('Tutor', schema);

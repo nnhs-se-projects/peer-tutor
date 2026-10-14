@@ -3,6 +3,7 @@
  */
 
 const mongoose = require('mongoose');
+const { ATTENDANCE_STATUSES } = require('../utils/attendance');
 
 const attendanceSchema = new mongoose.Schema(
   {
@@ -19,7 +20,7 @@ const attendanceSchema = new mongoose.Schema(
     // Per-tutor attendance entries captured on the form
     tutors: [
       {
-        // tutor unique ID
+        // tutor's student ID number (Tutor.tutorID)
         tutorId: {
           type: Number,
           required: true,
@@ -45,7 +46,7 @@ const attendanceSchema = new mongoose.Schema(
         // 'present', 'tardy', 'absent', or 'makeup'
         status: {
           type: String,
-          enum: ['present', 'tardy', 'absent', 'makeup'],
+          enum: ATTENDANCE_STATUSES,
           required: true,
         },
         // If this makeup is to cover a future planned absence, include that date
@@ -58,11 +59,6 @@ const attendanceSchema = new mongoose.Schema(
         },
       },
     ],
-    // Optional: User who recorded the attendance (unsure if we will include this)
-    // recordedBy: {
-    //   type: String,
-    //   trim: true,
-    // },
   },
   {
     timestamps: true,

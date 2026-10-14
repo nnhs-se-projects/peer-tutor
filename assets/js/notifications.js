@@ -32,19 +32,18 @@ document.addEventListener('DOMContentLoaded', () => {
       .map(
         tutor => `
         <tr class="border-t hover:bg-gray-50">
-          <td class="px-4 py-2">${tutor.name}</td>
-          <td class="px-4 py-2 text-gray-600">${tutor.email}</td>
+          <td class="px-4 py-2">${escapeHtml(tutor.name)}</td>
+          <td class="px-4 py-2 text-gray-600">${escapeHtml(tutor.email)}</td>
           <td class="px-4 py-2 text-center">
             <span class="inline-block px-2 py-1 rounded ${tutor.absenceCount >= 2 ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'} font-semibold">
-              ${tutor.absenceCount}
+              ${escapeHtml(tutor.absenceCount)}
             </span>
           </td>
           <td class="px-4 py-2 text-center">
             <button
               class="notify-single-btn bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded transition-colors"
-              data-email="${tutor.email}"
-              data-name="${tutor.name}"
-              data-absences="${tutor.absenceCount}"
+              data-id="${escapeHtml(tutor.id)}"
+              data-name="${escapeHtml(tutor.name)}"
             >
               Notify
             </button>
@@ -58,9 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add click handlers to individual notify buttons
     document.querySelectorAll('.notify-single-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
-        const email = btn.dataset.email;
         const name = btn.dataset.name;
-        const absences = parseInt(btn.dataset.absences) || 1;
 
         btn.disabled = true;
         btn.textContent = 'Sending...';
@@ -69,13 +66,13 @@ document.addEventListener('DOMContentLoaded', () => {
           const response = await fetch('/api/notifications/absence', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              date: new Date().toLocaleDateString(),
-              tutors: [{ email, name, absenceCount: absences }],
-            }),
+            body: JSON.stringify({ tutorIds: [btn.dataset.id] }),
           });
 
           const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.error || 'Failed to send');
+          }
           if (result.results?.sent?.length) {
             btn.textContent = 'Sent ✓';
             btn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
@@ -151,6 +148,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to send bulk notifications');
+        }
         setAbsenceStatus(result.message || 'Notifications sent');
         notifyAllAbsentBtn.textContent = 'Notify All Listed';
         notifyAllAbsentBtn.disabled = false;
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadAbsentTutors();
       } catch (error) {
         console.error('Error sending bulk notifications:', error);
-        setAbsenceStatus('Failed to send bulk notifications', true);
+        setAbsenceStatus(error.message, true);
         notifyAllAbsentBtn.textContent = 'Notify All Listed';
         notifyAllAbsentBtn.disabled = false;
       }
@@ -179,6 +179,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusEl = document.getElementById('notification-status');
 
   let tutorList = [];
+
+  const setStatus = (text, isError = false) => {
+    if (!statusEl) return;
+    statusEl.textContent = text;
+    statusEl.className = `text-sm mt-2 ${isError ? 'text-red-600' : 'text-green-700'}`;
+  };
 
   const loadTutors = async () => {
     if (!toInput) return;
@@ -243,12 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loadTutors();
 
-  const setStatus = (text, isError = false) => {
-    if (!statusEl) return;
-    statusEl.textContent = text;
-    statusEl.className = `text-sm mt-2 ${isError ? 'text-red-600' : 'text-green-700'}`;
-  };
-
   sendButton.addEventListener('click', async () => {
     const to = Array.from(toInput?.selectedOptions || [])
       .map(opt => opt.value.trim())
@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setStatus('Email sent successfully.');
     } catch (error) {
       console.error('Error sending notification:', error);
-      setStatus('Error sending email. Please try again.', true);
+      setStatus(`Error sending email: ${error.message}`, true);
     }
   });
 });

@@ -1,15 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
-  // Role-based access is now handled by server middleware via Google OAuth
-  // No password needed - user role is verified on the server
-
-  // Load session history for admin
-  function loadSessionHistory() {
+  // Show the most recent sessions logged by any tutor
+  function loadRecentSessions() {
     const sessionHistory = document.getElementById('sessionHistory');
     if (!sessionHistory) return;
     // Show loading state
-    sessionHistory.innerHTML = '<div class="text-center"><p>Loading your sessions...</p></div>';
-    // Fetch session history for admin (reuse student endpoint or create admin-specific if needed)
-    fetch('/api/student/sessions')
+    sessionHistory.innerHTML = '<div class="text-center"><p>Loading sessions...</p></div>';
+    fetch('/api/sessions/recent')
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -25,14 +21,14 @@ document.addEventListener('DOMContentLoaded', function () {
         // Display sessions
         let html = '<div class="space-y-4">';
         sessions.forEach(session => {
-          const sessionDate = new Date(session.sessionDate).toLocaleDateString();
           html += `
             <div class="border rounded-lg p-4 hover:bg-gray-50">
-              <div class="font-bold">${session.subject} - ${session.class}</div>
-              <div class="text-sm text-gray-600">Date: ${sessionDate}</div>
-              <div class="text-sm text-gray-600">Tutor: ${session.tutorFirstName} ${session.tutorLastName}</div>
-              <div class="text-sm text-gray-600">Focus: ${session.focusOfSession || ''}</div>
-              <div class="text-sm text-gray-600">Work Accomplished: ${session.workAccomplished || ''}</div>
+              <div class="font-bold">${escapeHtml(session.department)} - ${escapeHtml(session.class)}</div>
+              <div class="text-sm text-gray-600">Date: ${escapeHtml(session.date)}</div>
+              <div class="text-sm text-gray-600">Tutor: ${escapeHtml(session.tutorName)}</div>
+              <div class="text-sm text-gray-600">Tutee: ${escapeHtml(session.tuteeName)}</div>
+              <div class="text-sm text-gray-600">Focus: ${escapeHtml(session.focusOfSession)}</div>
+              <div class="text-sm text-gray-600">Work Accomplished: ${escapeHtml(session.workAccomplished)}</div>
             </div>
           `;
         });
@@ -45,6 +41,5 @@ document.addEventListener('DOMContentLoaded', function () {
           '<div class="text-red-500">Error loading sessions. Please try again.</div>';
       });
   }
-  loadSessionHistory();
+  loadRecentSessions();
 });
-

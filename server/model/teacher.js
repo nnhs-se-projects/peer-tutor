@@ -1,5 +1,5 @@
 /**
- * schema for a Tutoring Session
+ * schema for a Teacher
  */
 
 const mongoose = require('mongoose');
@@ -9,6 +9,8 @@ const schema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
+    lowercase: true,
+    trim: true,
   },
   // teacher first name
   teacherFirstName: {

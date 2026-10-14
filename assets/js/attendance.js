@@ -1,508 +1,336 @@
-function toggleSearch(column) {
-  const headerText = document.getElementById(`headerText${column}`);
-  const searchInput = document.getElementById(`searchInput${column}`);
-  const icons = headerText.nextElementSibling;
+/**
+ * Attendance page: mark each tutor scheduled today as absent, tardy, or present,
+ * log makeup sessions, and submit the lunch period's attendance.
+ */
 
-  // Calculate the width of the header and apply it to the search input
-  const headerHeight = headerText.offsetHeight + 5;
-  const headerWidth = headerText.offsetWidth + icons.offsetWidth + 100;
+const SCHOOL_TIME_ZONE = 'America/Chicago';
 
-  if (searchInput.style.display === 'none' || searchInput.style.display === '') {
-    headerText.style.display = 'none';
-    searchInput.style.display = 'inline-block';
-    searchInput.style.height = `${headerHeight}px`;
-    searchInput.style.width = `${headerWidth}px`;
+// Today's date in Central time as YYYY-MM-DD
+const todayInSchoolZone = () =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: SCHOOL_TIME_ZONE }).format(new Date());
 
-    icons.style.display = 'none';
-    searchInput.focus();
-  } else {
-    if (searchInput.value === '') {
-      headerText.style.display = 'block';
-      searchInput.style.display = 'none';
-      icons.style.display = 'flex';
-    }
-  }
-}
-
-// Initialize the table with event listeners and animations
 document.addEventListener('DOMContentLoaded', function () {
-  // Add click event listeners to sort icons
-  document.querySelectorAll('.sort-icon').forEach(icon => {
-    icon.addEventListener('click', function () {
-      const dataIndex = parseInt(this.getAttribute('data-index'));
-      sortTable(dataIndex);
-    });
-  });
-
-  // Add click event listeners to search icons
-  document.querySelectorAll('.search-icon').forEach(icon => {
-    icon.addEventListener('click', function () {
-      const dataIndex = parseInt(this.getAttribute('data-index'));
-      toggleSearch(dataIndex);
-    });
-  });
-
-  // Add input event listeners to search inputs
-  document.querySelectorAll('.search-input').forEach(input => {
-    input.addEventListener('input', function () {
-      const dataIndex = parseInt(this.getAttribute('data-index'));
-      filterTable(dataIndex);
-    });
-  });
-
-  // Handle clicking outside search inputs
-  document.addEventListener('click', function (event) {
-    document.querySelectorAll('.search-input').forEach((input, index) => {
-      if (
-        !input.contains(event.target) &&
-        !document.querySelector(`.search-icon[data-index="${index}"]`).contains(event.target)
-      ) {
-        if (input.value === '') {
-          input.style.display = 'none';
-          document.getElementById(`headerText${index}`).style.display = 'block';
-          document.getElementById(`headerText${index}`).nextElementSibling.style.display = 'flex';
-        }
-      }
-    });
-  });
-
-  // Add event listeners to attendance buttons (UI toggle only; DB update happens on submit)
-  document.querySelectorAll('.absent-button, .tardy-button, .present-button').forEach(button => {
-    button.addEventListener('click', () => {
-      disableOtherButtons(button);
-    });
-  });
-
-  // Add event listeners to makeup table buttons
-  document.querySelectorAll('.makeup-row .makeup-button').forEach(button => {
-    button.addEventListener('click', () => {
-      toggleMakeupButton(button);
-    });
-  });
-
-  // Add event listeners for future-makeup checkbox and date inputs
-  document.querySelectorAll('.makeup-row').forEach(row => {
-    const chk = row.querySelector('.future-makeup-checkbox');
-    const dateInput = row.querySelector('.future-absence-date');
-    const btn = row.querySelector('.makeup-button');
-
-    if (chk) {
-      chk.addEventListener('change', () => {
-        if (chk.checked) {
-          if (dateInput) dateInput.style.display = '';
-          // ensure makeup is selected when marking future makeup
-          if (btn && !btn.classList.contains('button-selected')) toggleMakeupButton(btn);
-          row.dataset.futureMakeup = 'true';
-        } else {
-          if (dateInput) dateInput.style.display = 'none';
-          delete row.dataset.futureMakeup;
-          delete row.dataset.futureAbsenceDate;
-        }
-        updateSubmitState();
-      });
-    }
-
-    if (dateInput) {
-      dateInput.addEventListener('change', () => {
-        if (dateInput.value) {
-          row.dataset.futureAbsenceDate = dateInput.value; // YYYY-MM-DD
-          // if date chosen, mark futureMakeup if not already
-          const chk = row.querySelector('.future-makeup-checkbox');
-          if (chk && !chk.checked) {
-            chk.checked = true;
-            row.dataset.futureMakeup = 'true';
-            if (btn && !btn.classList.contains('button-selected')) toggleMakeupButton(btn);
-          }
-        } else {
-          delete row.dataset.futureAbsenceDate;
-        }
-        updateSubmitState();
-      });
-    }
-  });
-
-  // Re-evaluate submit availability when lunch period selection changes
+  const todayName = document.getElementById('studentTable').dataset.today;
   const lunchFilter = document.getElementById('lunchFilter');
-  if (lunchFilter) {
-    lunchFilter.addEventListener('change', () => {
-      updateSubmitState();
-      loadSavedAttendance(lunchFilter.value);
+  const makeupNameSearch = document.getElementById('makeupNameSearch');
+  const submitBtn = document.getElementById('attendanceSubmitBtn');
+
+  const tutorRows = () => Array.from(document.querySelectorAll('.tutor-row'));
+  const makeupRows = () => Array.from(document.querySelectorAll('.makeup-row'));
+
+  // Tutors in the selected lunch period who are scheduled to tutor today
+  const isScheduledRow = row =>
+    row.dataset.lunch === lunchFilter.value && row.dataset.days.split(',').includes(todayName);
+  const scheduledRows = () => tutorRows().filter(isScheduledRow);
+  const selectedMakeupRows = () =>
+    makeupRows().filter(
+      row => row.dataset.lunch === lunchFilter.value && row.dataset.attendanceStatus === 'makeup'
+    );
+
+  // Show today's date under the title
+  document.getElementById('currentDate').innerHTML =
+    `<span style="color: #FF8800; font-weight: 700;">${escapeHtml(todayName)}</span>, ` +
+    new Date().toLocaleDateString('en-US', {
+      timeZone: SCHOOL_TIME_ZONE,
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
     });
-  }
 
-  // Initialize submit button state based on whether every row has a selection
-  updateSubmitState();
-
-  // Load any previously saved attendance for today + the currently selected lunch
-  if (lunchFilter) {
-    loadSavedAttendance(lunchFilter.value);
-  }
-
-  // Animation for table rows on load
-  const rows = document.querySelectorAll('#studentTable tbody tr');
-  rows.forEach((row, index) => {
-    row.style.opacity = '0';
-    setTimeout(() => {
-      row.style.animation = `fadeIn 0.5s ease-in-out forwards ${index * 0.05}s`;
-    }, 100);
+  // Sorting and column search for the main table, limited to tutors scheduled today
+  const mainTable = window.TableTools.init({
+    tableId: 'studentTable',
+    numericColumns: [2],
+    rowFilter: row => !row.classList.contains('tutor-row') || isScheduledRow(row),
   });
 
+  // Makeup rows: tutors in the selected lunch period who have missed days, or anyone
+  // matching the name search (so leads can log makeups ahead of a planned absence)
+  function filterMakeupRows() {
+    const searchQuery = makeupNameSearch.value.trim().toLowerCase();
+    let visibleCount = 0;
+    let lunchCount = 0;
+
+    makeupRows().forEach(row => {
+      const fullName = `${row.dataset.firstName} ${row.dataset.lastName}`.toLowerCase();
+      const daysMissed = parseFloat(row.dataset.daysMissed) || 0;
+      const matchesLunch = row.dataset.lunch === lunchFilter.value;
+      const matchesSearch = !searchQuery || fullName.includes(searchQuery);
+      const visible = matchesLunch && matchesSearch && (daysMissed > 0 || Boolean(searchQuery));
+
+      row.style.display = visible ? '' : 'none';
+      if (matchesLunch) lunchCount++;
+      if (visible) visibleCount++;
+    });
+
+    // Show or hide the "no eligible tutors" placeholder
+    let noMakeupRow = document.getElementById('noMakeupRow');
+    if (visibleCount === 0) {
+      if (!noMakeupRow) {
+        noMakeupRow = document.createElement('tr');
+        noMakeupRow.id = 'noMakeupRow';
+        noMakeupRow.innerHTML = '<td colspan="4" class="text-center py-4"></td>';
+        document.querySelector('#makeupTable tbody').appendChild(noMakeupRow);
+      }
+      noMakeupRow.cells[0].textContent =
+        searchQuery && lunchCount > 0
+          ? 'No tutors matched your search for this lunch period'
+          : 'No tutors need makeup for this lunch period';
+      noMakeupRow.style.display = '';
+    } else if (noMakeupRow) {
+      noMakeupRow.style.display = 'none';
+    }
+  }
+
+  // Submit is enabled once every scheduled tutor is marked (or, on a day with nobody
+  // scheduled for this period, once a makeup is selected)
+  function updateSubmitState() {
+    const scheduled = scheduledRows();
+    const allMarked = scheduled.every(row => row.dataset.attendanceStatus);
+    const canSubmit = allMarked && (scheduled.length > 0 || selectedMakeupRows().length > 0);
+
+    submitBtn.disabled = !canSubmit;
+    submitBtn.classList.toggle('button-disabled', !canSubmit);
+  }
+
+  function refreshRows() {
+    mainTable.applyFilters();
+    filterMakeupRows();
+    updateSubmitState();
+  }
+
+  // Select one of a row's A / T / P buttons; clicking the selected one clears the row
+  function selectAttendanceButton(clickedButton) {
+    const row = clickedButton.closest('tr');
+    const buttons = row.querySelectorAll('.absent-button, .tardy-button, .present-button');
+    const isAlreadySelected = clickedButton.classList.contains('button-selected');
+
+    buttons.forEach(button => {
+      const selected = !isAlreadySelected && button === clickedButton;
+      button.classList.toggle('button-selected', selected);
+      // Other buttons are greyed out but stay clickable
+      button.classList.toggle('button-disabled', !isAlreadySelected && !selected);
+    });
+
+    if (isAlreadySelected) {
+      delete row.dataset.attendanceStatus;
+    } else {
+      row.dataset.attendanceStatus = clickedButton.dataset.action;
+    }
+    updateSubmitState();
+  }
+
+  function setMakeupSelected(row, selected) {
+    row.querySelector('.makeup-button').classList.toggle('button-selected', selected);
+    if (selected) {
+      row.dataset.attendanceStatus = 'makeup';
+    } else {
+      delete row.dataset.attendanceStatus;
+    }
+  }
+
+  function setFutureMakeup(row, checked, date) {
+    const checkbox = row.querySelector('.future-makeup-checkbox');
+    const dateInput = row.querySelector('.future-absence-date');
+
+    checkbox.checked = checked;
+    dateInput.style.display = checked ? '' : 'none';
+    if (date !== undefined) dateInput.value = date;
+
+    if (checked) {
+      row.dataset.futureMakeup = 'true';
+      // A future makeup is still a makeup
+      setMakeupSelected(row, true);
+    } else {
+      delete row.dataset.futureMakeup;
+    }
+  }
+
+  tutorRows().forEach(row => {
+    row.querySelectorAll('.absent-button, .tardy-button, .present-button').forEach(button => {
+      button.addEventListener('click', () => selectAttendanceButton(button));
+    });
+  });
+
+  makeupRows().forEach(row => {
+    const button = row.querySelector('.makeup-button');
+    const checkbox = row.querySelector('.future-makeup-checkbox');
+    const dateInput = row.querySelector('.future-absence-date');
+
+    button.addEventListener('click', () => {
+      setMakeupSelected(row, !button.classList.contains('button-selected'));
+      updateSubmitState();
+    });
+    checkbox.addEventListener('change', () => {
+      setFutureMakeup(row, checkbox.checked);
+      updateSubmitState();
+    });
+    dateInput.addEventListener('change', () => {
+      if (dateInput.value) setFutureMakeup(row, true);
+      updateSubmitState();
+    });
+  });
+
+  // Pre-select the buttons from attendance already saved today for this lunch period
+  async function loadSavedAttendance(lunchPeriod) {
+    try {
+      const res = await fetch(
+        `/attendance/getAttendance?date=${todayInSchoolZone()}&lunchPeriod=${encodeURIComponent(lunchPeriod)}`
+      );
+      const json = res.ok ? await res.json() : null;
+      const savedTutors = json && json.data && Array.isArray(json.data.tutors) ? json.data.tutors : null;
+      if (!savedTutors) return;
+
+      const savedById = new Map(savedTutors.map(t => [String(t.tutorId), t]));
+
+      tutorRows()
+        .filter(row => row.dataset.lunch === lunchPeriod)
+        .forEach(row => {
+          const saved = savedById.get(row.dataset.tutorId);
+          const status = saved && saved.status !== 'makeup' ? saved.status : null;
+          row.querySelectorAll('.absent-button, .tardy-button, .present-button').forEach(btn => {
+            btn.classList.toggle('button-selected', Boolean(status) && btn.dataset.action === status);
+            btn.classList.toggle('button-disabled', Boolean(status) && btn.dataset.action !== status);
+          });
+          if (status) {
+            row.dataset.attendanceStatus = status;
+          } else {
+            delete row.dataset.attendanceStatus;
+          }
+        });
+
+      makeupRows()
+        .filter(row => row.dataset.lunch === lunchPeriod)
+        .forEach(row => {
+          const saved = savedById.get(row.dataset.tutorId);
+          const isMakeup = Boolean(saved) && saved.status === 'makeup';
+          setMakeupSelected(row, isMakeup);
+          // Stored dates are midnight UTC, so read the date part in UTC
+          const futureDate =
+            isMakeup && saved.futureAbsenceDate
+              ? new Date(saved.futureAbsenceDate).toISOString().slice(0, 10)
+              : '';
+          setFutureMakeup(row, isMakeup && Boolean(saved.futureMakeup), futureDate);
+        });
+    } catch (err) {
+      console.warn('Could not load saved attendance:', err);
+    } finally {
+      updateSubmitState();
+    }
+  }
+
+  // Attendance for the selected lunch period, ready to send to the server
+  function buildAttendancePayload() {
+    const tutors = scheduledRows()
+      .filter(row => row.dataset.attendanceStatus)
+      .map(row => ({
+        tutorId: Number(row.dataset.tutorId),
+        status: row.dataset.attendanceStatus,
+      }));
+
+    selectedMakeupRows().forEach(row => {
+      const entry = { tutorId: Number(row.dataset.tutorId), status: 'makeup' };
+      const futureDate = row.querySelector('.future-absence-date').value;
+      if (row.dataset.futureMakeup === 'true') {
+        entry.futureMakeup = true;
+        if (futureDate) entry.futureAbsenceDate = futureDate;
+      }
+      tutors.push(entry);
+    });
+
+    if (tutors.length === 0) return null;
+
+    return {
+      date: todayInSchoolZone(),
+      lunchPeriod: Number(lunchFilter.value),
+      tutors,
+    };
+  }
+
+  // ── Submit with confirmation ──
+  const modal = document.getElementById('attendanceConfirmModal');
+  const okBtn = document.getElementById('modalOkBtn');
+  const noBtn = document.getElementById('modalNoBtn');
+  let submitting = false;
+
+  function showModal() {
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  function hideModal() {
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
+  }
+
+  submitBtn.addEventListener('click', event => {
+    event.preventDefault();
+    if (!submitBtn.disabled) showModal();
+  });
+
+  noBtn.addEventListener('click', hideModal);
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !submitting) hideModal();
+  });
+
+  okBtn.addEventListener('click', async () => {
+    // Ignore extra clicks while the first submission is in flight
+    if (submitting) return;
+
+    const payload = buildAttendancePayload();
+    if (!payload) {
+      hideModal();
+      return;
+    }
+
+    submitting = true;
+    okBtn.disabled = true;
+
+    try {
+      const res = await fetch('/attendance/logSubmission', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `Server error (${res.status})`);
+      }
+
+      window.location.href = '/leadHome?fromAttendance=true';
+    } catch (err) {
+      console.error('Failed to save attendance:', err);
+      hideModal();
+      alert(`Failed to save attendance: ${err.message}`);
+      submitting = false;
+      okBtn.disabled = false;
+    }
+  });
+
+  // ── Export ──
   const exportBtn = document.getElementById('exportBtn');
   if (exportBtn) {
-    exportBtn.addEventListener('click', function () {
-      exportAttendanceToTextFile();
-    });
+    exportBtn.addEventListener('click', exportAttendanceToTextFile);
   }
 
   const exportSpreadsheetBtn = document.getElementById('exportSpreadsheetBtn');
   if (exportSpreadsheetBtn) {
-    exportSpreadsheetBtn.addEventListener('click', async function () {
-      await exportAttendanceToSpreadsheet();
-    });
+    exportSpreadsheetBtn.addEventListener('click', exportAttendanceToSpreadsheet);
   }
+
+  lunchFilter.addEventListener('change', () => {
+    refreshRows();
+    loadSavedAttendance(lunchFilter.value);
+  });
+  makeupNameSearch.addEventListener('input', filterMakeupRows);
+
+  refreshRows();
+  loadSavedAttendance(lunchFilter.value);
 });
 
-function filterTable(column) {
-  const input = document.getElementById(`searchInput${column}`).value.toLowerCase();
-  const table = document.getElementById('studentTable');
-  const rows = table.getElementsByTagName('tr');
-
-  for (let i = 1; i < rows.length; i++) {
-    const cells = rows[i].getElementsByTagName('td');
-    if (cells[column]) {
-      const cellText = cells[column].textContent || cells[column].innerText;
-      rows[i].style.display = cellText.toLowerCase().includes(input) ? '' : 'none';
-    }
-  }
-}
-
-let currentSort = { columnIndex: null, isDescending: false };
-
-function sortTable(column) {
-  const table = document.getElementById('studentTable');
-  const tbody = table.querySelector('tbody') || table;
-  let rows = Array.from(tbody.getElementsByTagName('tr'));
-  const isNumeric = column === 2; // Days Missed column is numeric
-
-  const reverse = currentSort.columnIndex === column ? !currentSort.isDescending : false;
-  rows.sort((rowA, rowB) => {
-    let cellA = rowA.getElementsByTagName('td')[column].textContent.trim();
-    let cellB = rowB.getElementsByTagName('td')[column].textContent.trim();
-
-    if (isNumeric) {
-      return reverse
-        ? parseFloat(cellB) - parseFloat(cellA)
-        : parseFloat(cellA) - parseFloat(cellB);
-    } else {
-      return reverse ? cellB.localeCompare(cellA) : cellA.localeCompare(cellB);
-    }
-  });
-
-  rows.forEach(row => tbody.appendChild(row));
-
-  currentSort = { columnIndex: column, isDescending: reverse };
-  updateSortIcons(column, reverse);
-}
-
-function updateSortIcons(column, isDescending) {
-  document.querySelectorAll('.sort-icon').forEach(icon => {
-    icon.textContent = '↑↓';
-  });
-
-  const icon = document.getElementById(`sortIcon${column}`);
-  icon.textContent = isDescending ? '↓' : '↑';
-}
-
-// Function to toggle attendance buttons in the same row
-function disableOtherButtons(clickedButton) {
-  // Find the parent row
-  const row = clickedButton.closest('tr');
-  if (!row) return;
-
-  // Get all buttons in this row
-  const buttons = row.querySelectorAll('.absent-button, .tardy-button, .present-button');
-
-  // Check if the clicked button is already selected
-  const isAlreadySelected = clickedButton.classList.contains('button-selected');
-
-  const status = clickedButton.dataset.action;
-
-  // If clicking the same button, deselect all
-  if (isAlreadySelected) {
-    buttons.forEach(button => {
-      button.classList.remove('button-disabled');
-      button.classList.remove('button-selected');
-    });
-    delete row.dataset.attendanceStatus;
-  } else {
-    // Clicking a different button: select clicked one, grey out others (but keep clickable)
-    buttons.forEach(button => {
-      if (button !== clickedButton) {
-        button.classList.add('button-disabled');
-        button.classList.remove('button-selected');
-      } else {
-        button.classList.remove('button-disabled');
-        button.classList.add('button-selected');
-      }
-    });
-    row.dataset.attendanceStatus = status;
-  }
-
-  updateSubmitState();
-}
-
-// Fetch previously saved attendance for today + lunchPeriod and pre-select buttons
-async function loadSavedAttendance(lunchPeriod) {
-  if (!lunchPeriod) return;
-
-  try {
-    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const dateStr = `${yyyy}-${mm}-${dd}`;
-
-    const res = await fetch(`/attendance/getAttendance?date=${dateStr}&lunchPeriod=${lunchPeriod}`);
-    if (!res.ok) return;
-
-    const json = await res.json();
-    if (!json.success || !json.data || !Array.isArray(json.data.tutors)) return;
-
-    // Build a map of tutorId → saved status
-    const savedStatuses = {};
-    json.data.tutors.forEach(t => {
-      savedStatuses[t.tutorId] = t; // full tutor subdoc
-    });
-
-    // Reset all tutor-row button states before applying saved data
-    // (prevents stale clicks from persisting after switching lunch periods)
-    document.querySelectorAll('.tutor-row').forEach(row => {
-      const buttons = row.querySelectorAll('.absent-button, .tardy-button, .present-button');
-      buttons.forEach(btn => {
-        btn.classList.remove('button-selected', 'button-disabled');
-      });
-      delete row.dataset.attendanceStatus;
-    });
-    document.querySelectorAll('.makeup-row').forEach(row => {
-      const btn = row.querySelector('.makeup-button');
-      if (btn) btn.classList.remove('button-selected');
-      delete row.dataset.attendanceStatus;
-    });
-
-    // Walk every visible tutor row and pre-select the matching button
-    document.querySelectorAll('.tutor-row').forEach(row => {
-      const tutorId = Number(row.getAttribute('data-tutor-id'));
-      const saved = savedStatuses[tutorId];
-      if (!saved || saved.status === 'makeup') return; // skip makeup entries for main table
-
-      const buttons = row.querySelectorAll('.absent-button, .tardy-button, .present-button');
-      buttons.forEach(btn => {
-        if (btn.dataset.action === saved.status) {
-          btn.classList.add('button-selected');
-          btn.classList.remove('button-disabled');
-        } else {
-          btn.classList.add('button-disabled');
-          btn.classList.remove('button-selected');
-        }
-      });
-      row.dataset.attendanceStatus = saved.status;
-    });
-
-    // Walk makeup rows and pre-select if previously saved as makeup
-    document.querySelectorAll('.makeup-row').forEach(row => {
-      const tutorId = Number(row.getAttribute('data-tutor-id'));
-      const saved = savedStatuses[tutorId];
-      if (!saved || saved.status !== 'makeup') return;
-
-      const btn = row.querySelector('.makeup-button');
-      if (btn) {
-        btn.classList.add('button-selected');
-        row.dataset.attendanceStatus = 'makeup';
-      }
-      // populate future makeup fields if present
-      if (saved.futureMakeup) {
-        const chk = row.querySelector('.future-makeup-checkbox');
-        const dateInput = row.querySelector('.future-absence-date');
-        if (chk) chk.checked = true;
-        if (dateInput && saved.futureAbsenceDate) {
-          // saved.futureAbsenceDate may be an ISO string
-          const d = new Date(saved.futureAbsenceDate);
-          const yyyy = d.getFullYear();
-          const mm = String(d.getMonth() + 1).padStart(2, '0');
-          const dd = String(d.getDate()).padStart(2, '0');
-          dateInput.value = `${yyyy}-${mm}-${dd}`;
-          dateInput.style.display = '';
-          row.dataset.futureAbsenceDate = dateInput.value;
-          row.dataset.futureMakeup = 'true';
-        }
-      }
-    });
-
-    updateSubmitState();
-  } catch (err) {
-    console.warn('Could not load saved attendance:', err);
-  }
-}
-
-// Toggle a makeup button in the makeup table (single button per row, optional)
-function toggleMakeupButton(clickedButton) {
-  const row = clickedButton.closest('tr');
-  if (!row) return;
-
-  const isAlreadySelected = clickedButton.classList.contains('button-selected');
-
-  if (isAlreadySelected) {
-    clickedButton.classList.remove('button-selected');
-    delete row.dataset.attendanceStatus;
-  } else {
-    clickedButton.classList.add('button-selected');
-    row.dataset.attendanceStatus = 'makeup';
-  }
-
-  // Make sure futureMakeup/date dataset values are considered when loading saved attendance
-}
-
-// Disable submit until every tutor row has a selected attendance status
-function updateSubmitState() {
-  const submitBtn = document.getElementById('attendanceSubmitBtn');
-  if (!submitBtn) return;
-
-  const rows = Array.from(document.querySelectorAll('.tutor-row'));
-  const lunchFilter = document.getElementById('lunchFilter');
-  let selectedLunch = lunchFilter ? lunchFilter.value : null;
-
-  if (!selectedLunch && rows.length > 0) {
-    selectedLunch = rows[0].getAttribute('data-lunch');
-  }
-
-  const isLunchComplete = lunchVal => {
-    // Only consider rows that are visible (available today and matching lunch period)
-    const lunchRows = rows.filter(
-      row => row.getAttribute('data-lunch') === lunchVal && row.style.display !== 'none'
-    );
-    return lunchRows.length > 0 && lunchRows.every(row => row.dataset.attendanceStatus);
-  };
-
-  let canSubmit = false;
-
-  if (selectedLunch) {
-    canSubmit = isLunchComplete(selectedLunch);
-  }
-
-  if (canSubmit) {
-    submitBtn.disabled = false;
-    submitBtn.classList.remove('button-disabled');
-  } else {
-    submitBtn.disabled = true;
-    submitBtn.classList.add('button-disabled');
-  }
-}
-
-// Build an attendance payload for the currently selected lunch period
-function buildAttendancePayload() {
-  const lunchFilter = document.getElementById('lunchFilter');
-  const selectedLunch = lunchFilter ? lunchFilter.value : null;
-
-  if (!selectedLunch) return null;
-
-  // Collect main table rows (required — all must have a status)
-  const mainRows = Array.from(document.querySelectorAll('.tutor-row')).filter(
-    row =>
-      row.getAttribute('data-lunch') === selectedLunch &&
-      row.style.display !== 'none' &&
-      row.dataset.attendanceStatus
-  );
-
-  if (mainRows.length === 0) return null;
-
-  const tutors = mainRows.map(row => {
-    const tutorId = row.getAttribute('data-tutor-id');
-    const mongoId = row.getAttribute('data-mongo-id') || '';
-    const firstName = row.getAttribute('data-first-name') || '';
-    const lastName = row.getAttribute('data-last-name') || '';
-    const email = row.getAttribute('data-email') || '';
-
-    return {
-      _id: mongoId,
-      tutorId: tutorId ? Number(tutorId) : undefined,
-      tutorFirstName: firstName,
-      tutorLastName: lastName,
-      email,
-      status: row.dataset.attendanceStatus,
-    };
-  });
-
-  // Collect selected makeup rows (optional — only include those with makeup selected)
-  const makeupRows = Array.from(document.querySelectorAll('.makeup-row')).filter(
-    row =>
-      row.getAttribute('data-lunch') === selectedLunch && row.dataset.attendanceStatus === 'makeup'
-  );
-
-  makeupRows.forEach(row => {
-    const tutorId = row.getAttribute('data-tutor-id');
-    const mongoId = row.getAttribute('data-mongo-id') || '';
-    const firstName = row.getAttribute('data-first-name') || '';
-    const lastName = row.getAttribute('data-last-name') || '';
-    const email = row.getAttribute('data-email') || '';
-
-    const futureMakeup = row.dataset.futureMakeup === 'true' || false;
-    const futureAbsenceDate = row.dataset.futureAbsenceDate || null;
-
-    const tutorObj = {
-      _id: mongoId,
-      tutorId: tutorId ? Number(tutorId) : undefined,
-      tutorFirstName: firstName,
-      tutorLastName: lastName,
-      email,
-      status: 'makeup',
-    };
-    if (futureMakeup) {
-      tutorObj.futureMakeup = true;
-      if (futureAbsenceDate) tutorObj.futureAbsenceDate = futureAbsenceDate;
-    }
-
-    tutors.push(tutorObj);
-  });
-
-  // Send a stable YYYY-MM-DD date so logSubmission always matches the same record
-  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
-  const yyyy = now.getFullYear();
-  const mm = String(now.getMonth() + 1).padStart(2, '0');
-  const dd = String(now.getDate()).padStart(2, '0');
-
-  return {
-    date: `${yyyy}-${mm}-${dd}`,
-    lunchPeriod: Number(selectedLunch),
-    tutors,
-  };
-}
-
-function getAttendanceStatusForTutorRow(row) {
-  if (row.dataset.attendanceStatus) {
-    return (
-      row.dataset.attendanceStatus.charAt(0).toUpperCase() + row.dataset.attendanceStatus.slice(1)
-    );
-  }
-
-  const selectedBtn = row.querySelector(
-    '.absent-button.button-selected, .tardy-button.button-selected, .present-button.button-selected'
-  );
-  if (selectedBtn?.dataset?.action) {
-    const action = selectedBtn.dataset.action;
-    return action.charAt(0).toUpperCase() + action.slice(1);
-  }
-
-  return 'Unmarked';
-}
-
-function getAttendanceStatusForMakeupRow(row) {
-  if (row.dataset.attendanceStatus === 'makeup') {
-    return 'Makeup';
-  }
-
-  const selectedBtn = row.querySelector('.makeup-button.button-selected');
-  return selectedBtn ? 'Makeup' : 'Not Selected';
-}
+const capitalize = text => text.charAt(0).toUpperCase() + text.slice(1);
 
 function buildAttendanceExportData() {
   const mainRows = Array.from(document.querySelectorAll('.tutor-row')).map(row => [
@@ -510,14 +338,14 @@ function buildAttendanceExportData() {
     (row.cells[1]?.textContent || '').trim(),
     (row.cells[2]?.textContent || '').trim(),
     (row.cells[3]?.textContent || '').trim(),
-    getAttendanceStatusForTutorRow(row),
+    row.dataset.attendanceStatus ? capitalize(row.dataset.attendanceStatus) : 'Unmarked',
   ]);
 
   const makeupRows = Array.from(document.querySelectorAll('.makeup-row')).map(row => [
     (row.cells[0]?.textContent || '').trim(),
     (row.cells[1]?.textContent || '').trim(),
     (row.cells[2]?.textContent || '').trim(),
-    getAttendanceStatusForMakeupRow(row),
+    row.dataset.attendanceStatus === 'makeup' ? 'Makeup' : 'Not Selected',
   ]);
 
   return {
@@ -526,14 +354,6 @@ function buildAttendanceExportData() {
     makeupHeaders: ['First Name', 'Last Name', 'Days Missed', 'Makeup'],
     makeupRows,
   };
-}
-
-function getChicagoDateForExport() {
-  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
-  const yyyy = now.getFullYear();
-  const mm = String(now.getMonth() + 1).padStart(2, '0');
-  const dd = String(now.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
 }
 
 function exportAttendanceToTextFile() {
@@ -551,14 +371,10 @@ function exportAttendanceToTextFile() {
   const blob = new Blob([content], { type: 'text/plain' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  if (window.TableExport) {
-    link.download = window.TableExport.buildTimestampedFileName({
-      baseName: 'attendance-export',
-      extension: 'txt',
-    });
-  } else {
-    link.download = `attendance_export_${getChicagoDateForExport()}.txt`;
-  }
+  link.download = window.TableExport.buildTimestampedFileName({
+    baseName: 'attendance-export',
+    extension: 'txt',
+  });
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -566,8 +382,6 @@ function exportAttendanceToTextFile() {
 }
 
 async function exportAttendanceToSpreadsheet() {
-  if (!window.TableExport) return;
-
   const exportData = buildAttendanceExportData();
 
   try {
@@ -594,31 +408,3 @@ async function exportAttendanceToSpreadsheet() {
     alert('Unable to export spreadsheet right now. Please try again.');
   }
 }
-
-// Expose payload builder for inline scripts
-window.buildAttendancePayload = buildAttendancePayload;
-
-async function sendAttendancePayload(payload) {
-  if (!payload) return { success: false, error: 'No payload' };
-  try {
-    const res = await fetch('/attendance/logSubmission', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      console.error('Server returned error:', res.status, body);
-      return { success: false, error: body.error || `Server error (${res.status})` };
-    }
-    return { success: true };
-  } catch (err) {
-    console.error('Failed to send attendance payload', err);
-    return { success: false, error: 'Network error' };
-  }
-}
-
-window.sendAttendancePayload = sendAttendancePayload;
-

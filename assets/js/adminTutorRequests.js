@@ -25,10 +25,16 @@ document.addEventListener('DOMContentLoaded', () => {
       sortStates[index] = sortStates[index] === 'asc' ? 'desc' : 'asc';
       const dir = sortStates[index];
 
+      // Compare a cell's data-sort-value when it has one, otherwise its text.
+      const sortValue = row => {
+        const cell = row.cells[index];
+        if (!cell) return '';
+        return (cell.dataset.sortValue ?? cell.textContent).trim().toLowerCase();
+      };
+
       rows.sort((a, b) => {
-        // Compare text content in the selected column.
-        const aText = (a.cells[index]?.textContent || '').trim().toLowerCase();
-        const bText = (b.cells[index]?.textContent || '').trim().toLowerCase();
+        const aText = sortValue(a);
+        const bText = sortValue(b);
         return dir === 'asc' ? aText.localeCompare(bText) : bText.localeCompare(aText);
       });
 
@@ -98,45 +104,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ── Export Buttons ──
-  const exportBtn = document.getElementById('exportBtn');
-  if (exportBtn) {
-    exportBtn.addEventListener('click', () => {
-      if (!window.TableExport) return;
-
-      const fileName = window.TableExport.buildTimestampedFileName({
-        baseName: 'tutor-requests-export',
-        extension: 'txt',
-      });
-
-      window.TableExport.exportTableToTextFile({
-        tableId: 'requestsTable',
-        fileName,
-        includeHiddenRows: true,
-      });
-    });
-  }
-
-  const exportSpreadsheetBtn = document.getElementById('exportSpreadsheetBtn');
-  if (exportSpreadsheetBtn) {
-    exportSpreadsheetBtn.addEventListener('click', async () => {
-      if (!window.TableExport) return;
-
-      try {
-        const fileName = window.TableExport.buildTimestampedFileName({
-          baseName: 'tutor-requests-export',
-          extension: 'xlsx',
-        });
-
-        await window.TableExport.exportTableToSpreadsheet({
-          tableId: 'requestsTable',
-          fileName,
-          sheetName: 'Tutor Requests',
-          includeHiddenRows: true,
-        });
-      } catch (error) {
-        console.error('Spreadsheet export failed:', error);
-        alert('Unable to export spreadsheet right now. Please try again.');
-      }
-    });
-  }
+  window.TableExport.bindExportButtons({
+    tableId: 'requestsTable',
+    baseName: 'tutor-requests-export',
+    sheetName: 'Tutor Requests',
+  });
 });

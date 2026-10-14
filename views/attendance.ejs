@@ -411,7 +411,7 @@
     </div>
     
     <div class="blue-box">
-      <table id="studentTable" class="bordered-table">
+      <table id="studentTable" class="bordered-table" data-today="<%= currentDay %>">
         <thead>
           <tr>
             <% const headers = ['First Name', 'Last Name', 'Days Missed', 'Days Available', 'Attendance']; %> 
@@ -445,22 +445,18 @@
             <% tutors.forEach(tutor => { %>
             <tr
               data-lunch="<%= tutor.lunchPeriod %>"
-              data-days="<%= tutor.daysAvailable ? tutor.daysAvailable.join(',') : '' %>"
+              data-days="<%= tutor.daysAvailable.join(',') %>"
               data-tutor-id="<%= tutor.tutorID %>"
-              data-mongo-id="<%= tutor._id %>"
-              data-email="<%= tutor.email %>"
-              data-first-name="<%= tutor.tutorFirstName || tutor.firstName || '' %>"
-              data-last-name="<%= tutor.tutorLastName || tutor.lastName || '' %>"
               class="tutor-row"
             >
-              <td><%= tutor.tutorFirstName || tutor.firstName || 'Unknown' %></td>
-              <td><%= tutor.tutorLastName || tutor.lastName || 'Unknown' %></td>
-              <td id="daysMissed-<%= tutor._id %>"><%= tutor.attendance || 0 %></td>
-              <td><%= tutor.daysAvailable ? tutor.daysAvailable.join(', ') : '' %></td>
+              <td><%= tutor.tutorFirstName %></td>
+              <td><%= tutor.tutorLastName %></td>
+              <td><%= tutor.attendance %></td>
+              <td><%= tutor.daysAvailable.join(', ') %></td>
               <td style="min-width: 185px;">
-                <button class="absent-button" data-id="<%= tutor._id %>" data-action="absent">A</button>
-                <button class="tardy-button" data-id="<%= tutor._id %>" data-action="tardy">T</button>
-                <button class="present-button" data-id="<%= tutor._id %>" data-action="present">P</button>
+                <button class="absent-button" data-action="absent">A</button>
+                <button class="tardy-button" data-action="tardy">T</button>
+                <button class="present-button" data-action="present">P</button>
               </td>
             </tr>
             <% }) %>
@@ -495,24 +491,22 @@
           </tr>
         </thead>
         <tbody>
-          <% if (typeof makeupTutors !== 'undefined' && makeupTutors && makeupTutors.length > 0) { %>
+          <% if (makeupTutors.length > 0) { %>
             <% makeupTutors.forEach(tutor => { %>
             <tr
               data-lunch="<%= tutor.lunchPeriod %>"
               data-tutor-id="<%= tutor.tutorID %>"
-              data-mongo-id="<%= tutor._id %>"
-              data-email="<%= tutor.email %>"
-              data-first-name="<%= tutor.tutorFirstName || '' %>"
-              data-last-name="<%= tutor.tutorLastName || '' %>"
-              data-days-missed="<%= tutor.attendance || 0 %>"
+              data-first-name="<%= tutor.tutorFirstName %>"
+              data-last-name="<%= tutor.tutorLastName %>"
+              data-days-missed="<%= tutor.attendance %>"
               class="makeup-row"
             >
-              <td><%= tutor.tutorFirstName || 'Unknown' %></td>
-              <td><%= tutor.tutorLastName || 'Unknown' %></td>
-              <td><%= tutor.attendance || 0 %></td>
+              <td><%= tutor.tutorFirstName %></td>
+              <td><%= tutor.tutorLastName %></td>
+              <td><%= tutor.attendance %></td>
               <td style="min-width: 120px;">
                 <div style="display:flex;gap:8px;align-items:center;">
-                  <button class="makeup-button" data-id="<%= tutor._id %>" data-action="makeup">M</button>
+                  <button class="makeup-button" data-action="makeup">M</button>
                   <label style="font-size:0.9rem;display:flex;align-items:center;gap:6px;margin:0">
                     <input type="checkbox" class="future-makeup-checkbox" /> Future
                   </label>
@@ -522,7 +516,7 @@
             </tr>
             <% }) %>
           <% } else { %>
-            <tr>
+            <tr id="noMakeupRow">
               <td colspan="4" class="text-center py-4">No tutors need makeup today</td>
             </tr>
           <% } %>
@@ -538,170 +532,25 @@
   </div>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-<script src="/js/tableExport.js"></script>
-<script src="/js/attendance.js"></script>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const todayName = dayNames[now.getDay()];
-
-    const dateEl = document.getElementById('currentDate');
-    if (dateEl) {
-      dateEl.innerHTML = '<span style="color: #FF8800; font-weight: 700;">' + todayName + '</span>, ' + now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-    }
-
-    const lunchFilter = document.getElementById('lunchFilter');
-    const makeupNameSearch = document.getElementById('makeupNameSearch');
-
-    // Filter main rows by lunch period AND current day availability
-    function filterRows(selectedPeriod) {
-      document.querySelectorAll('.tutor-row').forEach(row => {
-        const lunchPeriod = row.getAttribute('data-lunch');
-        const days = (row.getAttribute('data-days') || '').split(',').map(d => d.trim());
-        const matchesLunch = lunchPeriod === selectedPeriod;
-        const matchesDay = days.includes(todayName);
-
-        row.style.display = (matchesLunch && matchesDay) ? '' : 'none';
-      });
-
-      // Filter makeup rows by lunch period only (day filtering already done server-side)
-      let visibleMakeupCount = 0;
-      let lunchMakeupCount = 0;
-      const searchQuery = (makeupNameSearch ? makeupNameSearch.value : '').trim().toLowerCase();
-      document.querySelectorAll('.makeup-row').forEach(row => {
-        const lunchPeriod = row.getAttribute('data-lunch');
-        const firstName = (row.getAttribute('data-first-name') || '').toLowerCase();
-        const lastName = (row.getAttribute('data-last-name') || '').toLowerCase();
-        const daysMissed = parseInt(row.getAttribute('data-days-missed') || '0', 10) || 0;
-        const fullName = `${firstName} ${lastName}`.trim();
-
-        const matchesLunch = lunchPeriod === selectedPeriod;
-        const matchesSearch = !searchQuery || fullName.includes(searchQuery);
-        // Tutors with 0 missed days should only appear when leaders are actively searching.
-        const canShowWithoutSearch = daysMissed > 0;
-        const visible = matchesLunch && matchesSearch && (canShowWithoutSearch || !!searchQuery);
-
-        row.style.display = visible ? '' : 'none';
-        if (matchesLunch) lunchMakeupCount++;
-        if (visible) visibleMakeupCount++;
-      });
-
-      // Show or hide the "no eligible tutors" placeholder
-      let noMakeupRow = document.getElementById('noMakeupRow');
-      if (visibleMakeupCount === 0) {
-        let noMatchMessage = 'No tutors need makeup for this lunch period';
-        if (searchQuery && lunchMakeupCount > 0) {
-          noMatchMessage = 'No tutors matched your search for this lunch period';
-        }
-
-        if (!noMakeupRow) {
-          noMakeupRow = document.createElement('tr');
-          noMakeupRow.id = 'noMakeupRow';
-          document.querySelector('#makeupTable tbody').appendChild(noMakeupRow);
-        }
-        noMakeupRow.innerHTML = `<td colspan="4" class="text-center py-4">${noMatchMessage}</td>`;
-        noMakeupRow.style.display = '';
-      } else if (noMakeupRow) {
-        noMakeupRow.style.display = 'none';
-      }
-    }
-
-    if (lunchFilter) {
-      lunchFilter.addEventListener('change', function() {
-        filterRows(this.value);
-      });
-
-      // Apply initial filter on page load
-      filterRows(lunchFilter.value);
-    }
-
-    if (makeupNameSearch && lunchFilter) {
-      makeupNameSearch.addEventListener('input', function() {
-        filterRows(lunchFilter.value);
-      });
-    }
-  });
-</script>
-
-    <!-- Confirmation modal markup -->
-    <div id="attendanceConfirmModal" class="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true">
-      <div class="modal-box">
-        <div class="modal-message">Are you sure you want to submit?</div>
-        <div class="modal-buttons">
-          <button id="modalNoBtn" class="modal-btn modal-btn-cancel">No</button>
-          <button id="modalOkBtn" class="modal-btn modal-btn-ok">Yes</button>
-        </div>
-      </div>
+<!-- Confirmation modal -->
+<div id="attendanceConfirmModal" class="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="modal-box">
+    <div class="modal-message">Are you sure you want to submit?</div>
+    <div class="modal-buttons">
+      <button id="modalNoBtn" class="modal-btn modal-btn-cancel">No</button>
+      <button id="modalOkBtn" class="modal-btn modal-btn-ok">Yes</button>
     </div>
+  </div>
+</div>
 
-    <script>
-      // Show confirmation modal before redirecting to /leadHome
-      document.addEventListener('DOMContentLoaded', function () {
-        const btn = document.getElementById('attendanceSubmitBtn');
-        const modal = document.getElementById('attendanceConfirmModal');
-        const ok = document.getElementById('modalOkBtn');
-        const no = document.getElementById('modalNoBtn');
-
-        function showModal() {
-          if (!modal) return;
-          modal.style.display = 'flex';
-          modal.setAttribute('aria-hidden', 'false');
-        }
-
-        function hideModal() {
-          if (!modal) return;
-          modal.style.display = 'none';
-          modal.setAttribute('aria-hidden', 'true');
-        }
-
-        if (btn) {
-          btn.addEventListener('click', function (e) {
-            e.preventDefault();
-            showModal();
-          });
-        }
-
-        if (no) {
-          no.addEventListener('click', function () {
-            hideModal();
-          });
-        }
-
-        if (ok) {
-          ok.addEventListener('click', async function () {
-            if (window.buildAttendancePayload) {
-              const payload = window.buildAttendancePayload();
-              if (!payload) {
-                console.warn('No attendance payload generated. Ensure a lunch is selected and all tutors are marked.');
-                hideModal();
-                return;
-              }
-
-              // Log the attendance submission record (server handles diff)
-              if (window.sendAttendancePayload) {
-                const result = await window.sendAttendancePayload(payload);
-                if (!result || !result.success) {
-                  hideModal();
-                  alert('Failed to save attendance: ' + (result ? result.error : 'Unknown error'));
-                  return;
-                }
-              }
-              console.log('Attendance submission payload:', payload);
-            }
-            hideModal();
-            window.location.href = '/leadHome?fromAttendance=true';
-          });
-        }
-
-        // allow escape key to close modal
-        document.addEventListener('keydown', function (ev) {
-          if (ev.key === 'Escape') hideModal();
-        });
-      });
-    </script>
+<script
+  src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"
+  integrity="sha384-Pqp51FUN2/qzfxZxBCtF0stpc9ONI6MYZpVqmo8m20SoaQCzf+arZvACkLkirlPz"
+  crossorigin="anonymous"
+></script>
+<script src="/js/tableExport.js"></script>
+<script src="/js/tableTools.js"></script>
+<script src="/js/attendance.js"></script>
 
 <%- include('include/_footer') %>
 <%- include('include/_end') %>

@@ -6,6 +6,26 @@ document.addEventListener('DOMContentLoaded', function () {
   loadRequests();
   loadGeneralRequests();
 
+  // Header and details shared by both request lists. Everything the student typed is escaped.
+  function requestDetailsHtml(request, badgeHtml) {
+    return `
+      <div class="flex justify-between items-start mb-2">
+        <div>
+          <span class="font-bold text-lg">${escapeHtml(request.subject)} - ${escapeHtml(request.class)}</span>
+          ${badgeHtml}
+        </div>
+        <span class="text-sm text-gray-500">${escapeHtml(new Date(request.createdAt).toLocaleDateString())}</span>
+      </div>
+      <div class="text-gray-700 mb-2">
+        <p><strong>Student:</strong> ${escapeHtml(request.studentFirstName)} ${escapeHtml(request.studentLastName)}</p>
+        <p><strong>Topic:</strong> ${escapeHtml(request.topic)}</p>
+        <p><strong>Preferred Date:</strong> ${escapeHtml(formatDateOnly(request.preferredDate))}</p>
+        <p><strong>Period:</strong> ${escapeHtml(request.preferredPeriod)}</p>
+        ${request.additionalNotes ? `<p><strong>Notes:</strong> ${escapeHtml(request.additionalNotes)}</p>` : ''}
+      </div>
+    `;
+  }
+
   if (loadGeneralRequestsBtn) {
     loadGeneralRequestsBtn.addEventListener('click', function () {
       loadGeneralRequests();
@@ -20,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
       .then(response => response.json())
       .then(data => {
         if (!data.success) {
-          requestsContainer.innerHTML = `<p class="text-center py-4 text-red-500">${data.error}</p>`;
+          requestsContainer.innerHTML = `<p class="text-center py-4 text-red-500">${escapeHtml(data.error)}</p>`;
           return;
         }
 
@@ -32,8 +52,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let html = '<div class="space-y-4">';
         data.requests.forEach(request => {
-          const d = new Date(request.preferredDate);
-          const date = d.getUTCMonth() + 1 + '/' + d.getUTCDate() + '/' + d.getUTCFullYear();
           const statusClass =
             request.status === 'pending'
               ? 'bg-yellow-100 text-yellow-800'
@@ -43,13 +61,13 @@ document.addEventListener('DOMContentLoaded', function () {
               ? `
                 <div class="flex gap-2 mt-3">
                   <button
-                    onclick="respondToRequest('${request._id}', 'accepted')"
+                    onclick="respondToRequest('${escapeHtml(request._id)}', 'accepted')"
                     class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
                   >
                     Accept
                   </button>
                   <button
-                    onclick="respondToRequest('${request._id}', 'declined')"
+                    onclick="respondToRequest('${escapeHtml(request._id)}', 'declined')"
                     class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
                   >
                     Decline
@@ -60,20 +78,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
           html += `
             <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
-              <div class="flex justify-between items-start mb-2">
-                <div>
-                  <span class="font-bold text-lg">${request.subject} - ${request.class}</span>
-                  <span class="ml-2 px-2 py-1 rounded text-xs ${statusClass}">${request.status}</span>
-                </div>
-                <span class="text-sm text-gray-500">${new Date(request.createdAt).toLocaleDateString()}</span>
-              </div>
-              <div class="text-gray-700 mb-2">
-                <p><strong>Student:</strong> ${request.studentFirstName} ${request.studentLastName}</p>
-                <p><strong>Topic:</strong> ${request.topic}</p>
-                <p><strong>Preferred Date:</strong> ${date}</p>
-                <p><strong>Period:</strong> ${request.preferredPeriod}</p>
-                ${request.additionalNotes ? `<p><strong>Notes:</strong> ${request.additionalNotes}</p>` : ''}
-              </div>
+              ${requestDetailsHtml(request, `<span class="ml-2 px-2 py-1 rounded text-xs ${statusClass}">${escapeHtml(request.status)}</span>`)}
               ${actionsHtml}
             </div>
           `;
@@ -97,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function () {
       .then(response => response.json())
       .then(data => {
         if (!data.success) {
-          generalRequestsContainer.innerHTML = `<p class="text-center py-4 text-red-500">${data.error}</p>`;
+          generalRequestsContainer.innerHTML = `<p class="text-center py-4 text-red-500">${escapeHtml(data.error)}</p>`;
           return;
         }
 
@@ -109,26 +114,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let html = '<div class="space-y-4">';
         data.requests.forEach(request => {
-          const date = new Date(request.preferredDate).toLocaleDateString();
           html += `
             <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
-              <div class="flex justify-between items-start mb-2">
-                <div>
-                  <span class="font-bold text-lg">${request.subject} - ${request.class}</span>
-                  <span class="ml-2 px-2 py-1 rounded text-xs bg-blue-100 text-blue-800">general</span>
-                </div>
-                <span class="text-sm text-gray-500">${new Date(request.createdAt).toLocaleDateString()}</span>
-              </div>
-              <div class="text-gray-700 mb-2">
-                <p><strong>Student:</strong> ${request.studentFirstName} ${request.studentLastName}</p>
-                <p><strong>Topic:</strong> ${request.topic}</p>
-                <p><strong>Preferred Date:</strong> ${date}</p>
-                <p><strong>Period:</strong> ${request.preferredPeriod}</p>
-                ${request.additionalNotes ? `<p><strong>Notes:</strong> ${request.additionalNotes}</p>` : ''}
-              </div>
+              ${requestDetailsHtml(request, '<span class="ml-2 px-2 py-1 rounded text-xs bg-blue-100 text-blue-800">general</span>')}
               <div class="flex gap-2 mt-3">
                 <button
-                  onclick="takeGeneralRequest('${request._id}')"
+                  onclick="takeGeneralRequest('${escapeHtml(request._id)}')"
                   class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition-colors"
                 >
                   Take Request

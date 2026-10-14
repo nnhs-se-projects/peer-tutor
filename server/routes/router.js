@@ -1,175 +1,480 @@
 /* eslint-disable no-console */
+/**
+ * Page routes and JSON API routes.
+ * Authentication lives in auth.js and attendance in attendance.js.
+ */
+
 const express = require('express');
+const mongoose = require('mongoose');
 const route = express.Router();
-const Session = require('../model/session'); // Import the Session schema
-const Tutor = require('../model/tutor'); // Import the Tutor schema
-const TutoringRequest = require('../model/tutoringRequest'); // Import the TutoringRequest schema
-const Teacher = require('../model/teacher'); // Import the Teacher schema
-const { requireRole } = require('../middleware/roleAuth'); // Import role middleware
+const Session = require('../model/session');
+const Tutor = require('../model/tutor');
+const TutoringRequest = require('../model/tutoringRequest');
+const Teacher = require('../model/teacher');
+const { requireRole, getRolePermissions, isSuperDeveloper } = require('../middleware/roleAuth');
+const asyncRoute = require('../middleware/asyncRoute');
+const { exactMatch } = require('../utils/regex');
+const { findTutorByEmail, isAllowedEmail } = require('../utils/users');
+const { parseDateOnly, todayInSchoolZone, formatDateOnly } = require('../utils/dates');
 const {
   sendEmail,
   isEmailConfigured,
   getEmailConfigErrorMessage,
   sendRequestAcceptedEmail,
   sendRequestDeclinedEmail,
-  sendNewRequestEmail,
+  sendAbsenceNotice,
 } = require('../utils/emailService');
 
-// assigning variable to the JSON file
+// Options for the form dropdowns
 const gradeSelection = require('../model/grades.json');
-
 const newReturningOptions = require('../model/newReturningOptions.json');
 const lunchPeriods = require('../model/lunchPeriods.json');
 const daysOfTheWeek = require('../model/daysOfTheWeek.json');
 
-// assigning variables to the JSON files
-const courseList = require('../model/courseList.json');
+// Subjects with their classes and teachers. This is the only class list, so student
+// requests, tutor expertise, and session logs always use the same class names.
 const courses = require('../model/courses.json');
+const allClasses = [...new Set(Object.values(courses).flatMap(subject => subject.classes))].sort(
+  (a, b) => a.localeCompare(b)
+);
 
-function escapeRegex(input) {
-  return String(input).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const TUTOR_ROLES = Tutor.schema.path('role').enumValues;
+const NO_TUTOR_ACCOUNT = 'Tutor account not found for the current login';
+
+const isObjectId = value => mongoose.isObjectIdOrHexString(value);
+
+// Trimmed text from a request body, or '' when it is missing or not a string
+const cleanText = (value, maxLength = 200) =>
+  typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
+
+const fullName = tutor =>
+  `${tutor.tutorFirstName || 'Unknown'} ${tutor.tutorLastName || 'Tutor'}`.trim();
+
+const getTutorFromSession = req => findTutorByEmail(req.session.email);
+
+const isAdmin = req => getRolePermissions(req.session.role).includes('admin');
+
+// Regular expressions matching each class in a tutor's expertise list
+const tutorClassMatchers = tutor =>
+  (Array.isArray(tutor.classes) ? tutor.classes : [])
+    .map(className => String(className).trim())
+    .filter(Boolean)
+    .map(exactMatch);
+
+// Shape a session for display, falling back to the field names older records used
+function formatSession(session) {
+  const legacyName = (last, first) => (last && first ? `${last}, ${first}` : '');
+  return {
+    date: formatDateOnly(session.sessionDate),
+    dateISO: session.sessionDate ? new Date(session.sessionDate).toISOString() : '',
+    tuteeName: session.tuteeName || legacyName(session.tuteeLastName, session.tuteeFirstName),
+    tutorName: session.tutorName || legacyName(session.tutorLastName, session.tutorFirstName),
+    sessionPeriod: session.sessionPeriod || '',
+    teacher: session.teacher || 'Not Specified',
+    department: session.department || session.subject || '',
+    class: session.class || '',
+    focusOfSession: session.focusOfSession || '',
+    workAccomplished: session.workAccomplished || '',
+    isMakeup: Boolean(session.isMakeup),
+  };
 }
 
-async function getTutorFromSession(req) {
-  const sessionEmail = (req.session?.email || '').trim();
-  if (!sessionEmail) return null;
+// ==================== PAGES ====================
 
-  const tutor = await Tutor.findOne({ email: new RegExp(`^${escapeRegex(sessionEmail)}$`, 'i') });
-  return tutor;
-}
+// Leaderboard
+route.get(
+  '/',
+  asyncRoute(async (req, res) => {
+    const tutors = await Tutor.find().select(
+      'tutorFirstName tutorLastName sessionHistory pastSessionCount'
+    );
 
-// Route to render the authentication page
+    const rankedTutors = tutors
+      .map(tutor => ({
+        firstName: tutor.tutorFirstName || 'Unknown',
+        lastName: tutor.tutorLastName || 'Tutor',
+        totalSessions: tutor.totalSessions,
+      }))
+      .sort((a, b) => b.totalSessions - a.totalSessions);
 
-// No additional logic needed here; the handler ends after sending the response.
-route.get('/auth', (req, res) => {
-  res.render('auth'); // Render the 'auth' EJS template
-});
-
-route.get('/', async (req, res) => {
-  // the req parameter references the HTTP request object, which has
-  //  a number of properties
-  console.log('path: ', req.path);
-
-  try {
-    const tutors = await Tutor.find(); // Fetch tutors from the database
-
-    const formattedTutors = tutors.map(tutor => ({
-      firstName: tutor.tutorFirstName || 'Unknown',
-      lastName: tutor.tutorLastName || 'Tutor',
-      totalSessions: tutor.sessionHistory?.length || 0,
-      email: tutor.email,
-    }));
-
-    // Sort tutors by totalSessions in descending order
-    formattedTutors.sort((a, b) => b.totalSessions - a.totalSessions);
-
-    // Get top 3 tutors for the podium
-    const top3 = formattedTutors.slice(0, 3);
-
-    // Get top 15 tutors for the leaderboard table
-    const top15 = formattedTutors.slice(0, 15);
-
-    // the res parameter references the HTTP response object
     res.render('homepage', {
-      tutors: top15,
-      top3: top3,
+      tutors: rankedTutors.slice(0, 15),
+      top3: rankedTutors.slice(0, 3),
       currentPage: 'homepage',
     });
-  } catch (error) {
-    console.error('Error rendering homepage:', error);
-    res.status(500).send('Error loading the homepage. Please try again later.');
-  }
+  })
+);
+
+route.get('/stuHome', requireRole('student'), (req, res) => {
+  res.render('stuHome', { currentPage: 'stuHome' });
 });
 
-// route to render classes, grades (tutor resources)
 route.get('/tutHome', requireRole('tutor'), (req, res) => {
   res.render('tutHome', { currentPage: 'tutHome' });
 });
 
-// route to student home page (accessible to all authenticated users)
-route.get('/stuHome', requireRole('student'), async (req, res) => {
-  res.render('stuHome', { currentPage: 'stuHome' });
+route.get('/leadHome', requireRole('lead'), (req, res) => {
+  res.render('leadHome', { currentPage: 'leadHome' });
 });
 
-// API endpoints for student functionality
+route.get('/teachHome', requireRole('teacher'), (req, res) => {
+  res.render('teachHome', { currentPage: 'teachHome' });
+});
 
-// Get tutors based on subject/class
-route.get('/api/tutors', async (req, res) => {
-  try {
-    const { subject, class: className } = req.query;
+route.get('/adminHome', requireRole('admin'), (req, res) => {
+  res.render('adminHome', { currentPage: 'adminHome' });
+});
 
-    // Validate required parameters
-    if (!subject || !className) {
+route.get('/notifications', requireRole('lead'), (req, res) => {
+  res.render('notifications', { currentPage: 'notifications' });
+});
+
+route.get(
+  '/expertiseForm',
+  requireRole('tutor'),
+  asyncRoute(async (req, res) => {
+    // Admins open the form with ?mode=add to add someone else as a tutor.
+    // Everyone else edits their own record, which is used to fill in the form.
+    const addingTutor = req.query.mode === 'add' && isAdmin(req);
+    const tutor = addingTutor ? null : await getTutorFromSession(req);
+
+    res.render('expertiseForm', {
+      grades: gradeSelection,
+      options: newReturningOptions,
+      lunchPeriods,
+      daysOfTheWeek,
+      courseList: allClasses,
+      tutor,
+      addingTutor,
+      sessionEmail: req.session.email,
+      currentPage: 'expertiseForm',
+    });
+  })
+);
+
+route.get('/tutorAttendance', requireRole('tutor'), (req, res) => {
+  res.render('tutorAttendance', { currentPage: 'tutorAttendance' });
+});
+
+route.get(
+  '/tutorForm',
+  requireRole('tutor'),
+  asyncRoute(async (req, res) => {
+    const tutor = await getTutorFromSession(req);
+    const requests = tutor
+      ? await TutoringRequest.find({ tutorId: tutor._id, status: 'accepted' }).sort({
+          preferredDate: 1,
+        })
+      : [];
+
+    const acceptedRequests = requests.map(request => ({
+      ...request.toObject(),
+      preferredDateValue: request.preferredDate
+        ? request.preferredDate.toISOString().slice(0, 10)
+        : '',
+      preferredDateLabel: formatDateOnly(request.preferredDate) || 'No date',
+    }));
+
+    res.render('tutorForm', { tutor, acceptedRequests, currentPage: 'tutorForm' });
+  })
+);
+
+route.get(
+  '/tutorTable',
+  requireRole('teacher'),
+  asyncRoute(async (req, res) => {
+    const tutors = await Tutor.find().sort({ tutorLastName: 1, tutorFirstName: 1 });
+
+    const tutorsFormatted = tutors.map(tutor => ({
+      id: tutor._id.toString(),
+      tutorName: fullName(tutor),
+      email: tutor.email,
+      grade: tutor.grade,
+      tutorID: tutor.tutorID,
+      classes: Array.isArray(tutor.classes) ? tutor.classes : [],
+      daysAvailable: Array.isArray(tutor.daysAvailable) ? tutor.daysAvailable : [],
+      lunchPeriod: tutor.lunchPeriod,
+      totalSessions: tutor.totalSessions,
+      absences: tutor.attendance || 0,
+    }));
+
+    res.render('tutorTable', { tutors: tutorsFormatted, currentPage: 'tutorTable' });
+  })
+);
+
+route.get(
+  '/sessionTable',
+  requireRole('teacher'),
+  asyncRoute(async (req, res) => {
+    const sessions = await Session.find().sort({ sessionDate: -1 });
+    res.render('sessionTable', { sessions: sessions.map(formatSession), currentPage: 'sessionTable' });
+  })
+);
+
+route.get('/adminAttendance', requireRole('admin'), (req, res) => {
+  res.render('adminAttendance', { currentPage: 'adminAttendance' });
+});
+
+route.get(
+  '/admin/tutorRequests',
+  requireRole('admin'),
+  asyncRoute(async (req, res) => {
+    const requests = await TutoringRequest.find().sort({ createdAt: -1 });
+
+    const requestsFormatted = requests.map(request => ({
+      ...request.toObject(),
+      // e.g. "Monday, 2/23/2026"
+      preferredDateFormatted:
+        formatDateOnly(request.preferredDate, {
+          weekday: 'long',
+          month: 'numeric',
+          day: 'numeric',
+          year: 'numeric',
+        }) || 'N/A',
+    }));
+
+    res.render('adminTutorRequests', {
+      requests: requestsFormatted,
+      currentPage: 'adminTutorRequests',
+    });
+  })
+);
+
+route.get(
+  '/admin/users',
+  requireRole('admin'),
+  asyncRoute(async (req, res) => {
+    const [tutors, teachers] = await Promise.all([
+      Tutor.find().sort({ tutorLastName: 1, tutorFirstName: 1 }),
+      Teacher.find().sort({ teacherLastName: 1, teacherFirstName: 1 }),
+    ]);
+
+    res.render('adminUsers', {
+      tutors,
+      teachers,
+      currentPage: 'adminUsers',
+      isSuperDeveloper: isSuperDeveloper(req.session.email),
+    });
+  })
+);
+
+// ==================== FORM SUBMISSIONS ====================
+
+// Log a tutoring session for the signed-in tutor
+route.post(
+  '/submitTutorForm',
+  requireRole('tutor'),
+  asyncRoute(async (req, res) => {
+    const tutor = await getTutorFromSession(req);
+    if (!tutor) {
+      return res.status(403).json({ success: false, error: NO_TUTOR_ACCOUNT });
+    }
+
+    const sessionDate = parseDateOnly(req.body.sessionDate);
+    const fields = {
+      tuteeName: cleanText(req.body.tuteeName, 100),
+      sessionPeriod: cleanText(req.body.sessionPeriod, 20),
+      teacher: cleanText(req.body.teacher, 100),
+      department: cleanText(req.body.department, 100),
+      class: cleanText(req.body.class),
+      focusOfSession: cleanText(req.body.focusOfSession, 100),
+      workAccomplished: cleanText(req.body.workAccomplished, 1000),
+    };
+
+    if (!sessionDate || Object.values(fields).some(value => !value)) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'Please fill in all required fields.' });
+    }
+
+    // A linked request has to be one this tutor accepted
+    let linkedRequest = null;
+    if (req.body.tutoringRequestId) {
+      if (isObjectId(req.body.tutoringRequestId)) {
+        linkedRequest = await TutoringRequest.findOne({
+          _id: req.body.tutoringRequestId,
+          tutorId: tutor._id,
+          status: 'accepted',
+        });
+      }
+      if (!linkedRequest) {
+        return res.status(400).json({
+          success: false,
+          error: 'The selected request is not one of your accepted requests.',
+        });
+      }
+    }
+
+    const session = await Session.create({
+      ...fields,
+      sessionDate,
+      tutorName: `${tutor.tutorLastName}, ${tutor.tutorFirstName}`,
+      tutorId: tutor._id,
+      isMakeup: req.body.isMakeup === true,
+    });
+
+    await Tutor.updateOne({ _id: tutor._id }, { $push: { sessionHistory: session._id } });
+
+    if (linkedRequest) {
+      await TutoringRequest.updateOne({ _id: linkedRequest._id }, { status: 'completed' });
+    }
+
+    res.json({ success: true });
+  })
+);
+
+// Save a tutor's expertise and availability. Tutors can only save their own record;
+// admins can also add or update any tutor (the "Add Tutor" button on the tutor table).
+route.post(
+  '/submitExpertiseForm',
+  requireRole('tutor'),
+  asyncRoute(async (req, res) => {
+    const { body } = req;
+    const details = {
+      tutorFirstName: cleanText(body.tutorFirstName, 100),
+      tutorLastName: cleanText(body.tutorLastName, 100),
+      grade: Number(body.grade),
+      returning: body.returning === true,
+      lunchPeriod: Number(body.lunchPeriod),
+      daysAvailable: Array.isArray(body.daysAvailable)
+        ? body.daysAvailable.filter(day => daysOfTheWeek.includes(day))
+        : [],
+      classes: Array.isArray(body.classes)
+        ? [...new Set(body.classes.filter(className => allClasses.includes(className)))]
+        : [],
+    };
+
+    if (
+      !details.tutorFirstName ||
+      !details.tutorLastName ||
+      !gradeSelection.includes(String(body.grade)) ||
+      !lunchPeriods.includes(String(body.lunchPeriod)) ||
+      typeof body.returning !== 'boolean'
+    ) {
       return res.status(400).json({
         success: false,
-        error: 'Subject and class are required parameters',
+        error: 'Please fill in your name, grade, new/returning status, and lunch period.',
       });
     }
 
-    // Query tutors who can teach the specified class
-    const tutors = await Tutor.find({
-      classes: { $elemMatch: { $regex: className, $options: 'i' } },
-    });
+    const tutorID = Number(body.tutorID);
+    const validTutorID = Number.isInteger(tutorID) && tutorID > 0;
+    const newTutorDefaults = { tutorLeader: false, attendance: 0, sessionHistory: [] };
 
-    // Return the tutors
-    res.json(tutors);
-  } catch (error) {
-    console.error('Error finding tutors:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to find tutors',
-    });
-  }
-});
+    if (body.addingTutor) {
+      if (!isAdmin(req)) {
+        return res
+          .status(403)
+          .json({ success: false, error: 'Only admins can add other tutors.' });
+      }
 
-// Get session history for the current student
-route.get('/api/student/sessions', async (req, res) => {
-  try {
-    // Get student email from session
-    const studentEmail = req.session.email;
+      const email = cleanText(body.email).toLowerCase();
+      if (!isAllowedEmail(email) || !validTutorID) {
+        return res.status(400).json({
+          success: false,
+          error: "Please enter the tutor's ID number and district email address.",
+        });
+      }
 
-    if (!studentEmail) {
-      return res.status(401).json({
+      const [tutorWithId, tutorWithEmail] = await Promise.all([
+        Tutor.findOne({ tutorID }),
+        findTutorByEmail(email),
+      ]);
+      if (tutorWithEmail && !(tutorWithId && tutorWithEmail._id.equals(tutorWithId._id))) {
+        return res
+          .status(409)
+          .json({ success: false, error: 'A different tutor already uses that email.' });
+      }
+
+      // An existing ID updates that tutor instead of creating a duplicate
+      if (tutorWithId) {
+        tutorWithId.set({ ...details, email });
+        await tutorWithId.save();
+        return res.json({ success: true, updated: true });
+      }
+
+      await Tutor.create({ ...details, ...newTutorDefaults, tutorID, email, role: 'tutor' });
+      return res.json({ success: true, created: true });
+    }
+
+    // Tutors editing their own record can't change their email, ID, absences, or role
+    const tutor = await getTutorFromSession(req);
+    if (tutor) {
+      tutor.set(details);
+      await tutor.save();
+      return res.json({ success: true, updated: true });
+    }
+
+    // First time filling out the form: create a tutor record for this account
+    if (!validTutorID) {
+      return res.status(400).json({ success: false, error: 'Please enter your ID number.' });
+    }
+    if (await Tutor.exists({ tutorID })) {
+      return res.status(409).json({
         success: false,
-        error: 'User not authenticated',
+        error: 'That ID number already belongs to another tutor. Please ask an admin for help.',
       });
     }
 
-    // Query sessions where tutee email matches current user
-    // For now, we'll return sessions based on tuteeID since email might not be stored
-    // In a real app, you'd match by email or user ID
-    const sessions = await Session.find({}).sort({ sessionDate: -1 }).limit(10);
-
-    res.json(sessions);
-  } catch (error) {
-    console.error('Error fetching student sessions:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch sessions',
+    await Tutor.create({
+      ...details,
+      ...newTutorDefaults,
+      tutorID,
+      email: req.session.email,
+      // Keep the access the account already has (e.g. an admin filling out the form)
+      role: TUTOR_ROLES.includes(req.session.role) ? req.session.role : 'tutor',
     });
-  }
+    res.json({ success: true, created: true });
+  })
+);
+
+// ==================== STUDENT API ====================
+
+// Subjects, classes, and teachers for the form dropdowns
+route.get('/api/courses', (req, res) => {
+  res.json(courses);
 });
 
-// Submit a tutoring request
-route.post('/api/tutoringRequest', async (req, res) => {
-  try {
-    const {
-      studentFirstName,
-      studentLastName,
-      studentID,
-      studentGrade,
-      subject,
-      class: className,
-      topic,
-      preferredDate,
-      preferredPeriod,
-      additionalNotes,
-      tutorId,
-      tutorName,
-      requestType,
-    } = req.body;
+// Tutors who can help with a class (only details students need)
+route.get(
+  '/api/tutors',
+  requireRole('student'),
+  asyncRoute(async (req, res) => {
+    const className = cleanText(req.query.class);
+    if (!className) {
+      return res.status(400).json({ success: false, error: 'Class is a required parameter' });
+    }
 
-    // Validate required fields
+    const tutors = await Tutor.find({ classes: exactMatch(className), isActive: { $ne: false } })
+      .select('tutorFirstName tutorLastName grade lunchPeriod daysAvailable')
+      .sort({ tutorLastName: 1, tutorFirstName: 1 });
+
+    res.json(
+      tutors.map(tutor => ({
+        tutorFirstName: tutor.tutorFirstName,
+        tutorLastName: tutor.tutorLastName,
+        grade: tutor.grade,
+        lunchPeriod: tutor.lunchPeriod,
+        daysAvailable: tutor.daysAvailable,
+      }))
+    );
+  })
+);
+
+// Submit a tutoring request. Every request is posted to the general request board.
+route.post(
+  '/api/tutoringRequest',
+  requireRole('student'),
+  asyncRoute(async (req, res) => {
+    const { body } = req;
+    const subject = cleanText(body.subject);
+    const className = cleanText(body.class);
+    const topic = cleanText(body.topic);
+    const studentFirstName = cleanText(body.studentFirstName, 100);
+    const studentLastName = cleanText(body.studentLastName, 100);
+    const preferredPeriod = cleanText(body.preferredPeriod, 10);
+    const preferredDate = parseDateOnly(body.preferredDate);
+
     if (
       !subject ||
       !className ||
@@ -179,89 +484,55 @@ route.post('/api/tutoringRequest', async (req, res) => {
       !studentFirstName ||
       !studentLastName
     ) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required fields',
-      });
+      return res.status(400).json({ success: false, error: 'Missing required fields' });
     }
 
-    // Get student email from session
-    const studentEmail = req.session.email;
-
-    if (!studentEmail) {
-      return res.status(401).json({
-        success: false,
-        error: 'User not authenticated',
-      });
+    if (!courses[subject] || !courses[subject].classes.includes(className)) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'Please choose a subject and class from the list.' });
     }
 
-    // Direct tutor requests are currently disabled; all student requests are treated as general.
-    const directRequestsEnabled = false;
-    const isGeneralRequest =
-      !directRequestsEnabled ||
-      requestType === 'general' ||
-      !tutorId ||
-      tutorId === 'null' ||
-      tutorId === 'undefined';
-
-    // Get tutor email if this is a direct request and tutorId is provided
-    let tutorEmail = null;
-    if (!isGeneralRequest && tutorId) {
-      const tutor = await Tutor.findById(tutorId);
-      if (tutor) {
-        tutorEmail = tutor.email;
-      }
+    if (!lunchPeriods.includes(preferredPeriod)) {
+      return res.status(400).json({ success: false, error: 'Please choose a lunch period.' });
     }
 
-    // Create new tutoring request
-    const newRequest = new TutoringRequest({
-      studentEmail: studentEmail,
-      studentFirstName: studentFirstName,
-      studentLastName: studentLastName,
-      studentID: studentID || '',
-      studentGrade: studentGrade || '',
-      tutorId: isGeneralRequest ? null : tutorId || null,
-      tutorName: isGeneralRequest ? null : tutorName || null,
-      tutorEmail: tutorEmail,
-      requestType: isGeneralRequest ? 'general' : 'direct',
-      subject: subject,
+    if (body.preferredDate < todayInSchoolZone()) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'The preferred date cannot be in the past.' });
+    }
+
+    const newRequest = await TutoringRequest.create({
+      studentEmail: req.session.email,
+      studentFirstName,
+      studentLastName,
+      studentID: cleanText(body.studentID, 20),
+      studentGrade: cleanText(body.studentGrade, 4),
+      requestType: 'general',
+      subject,
       class: className,
-      topic: topic,
-      preferredDate: new Date(preferredDate + 'T12:00:00Z'),
-      preferredPeriod: preferredPeriod,
-      additionalNotes: additionalNotes || '',
+      topic,
+      preferredDate,
+      preferredPeriod,
+      additionalNotes: cleanText(body.additionalNotes, 1000),
       status: 'pending',
     });
 
-    await newRequest.save();
-
-    // Notify the tutor about the new request
-    try {
-      await sendNewRequestEmail(newRequest);
-    } catch (emailError) {
-      console.error('Email notification to tutor failed:', emailError);
-    }
-
     res.json({ success: true, requestId: newRequest._id });
-  } catch (error) {
-    console.error('Error creating tutoring request:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create tutoring request',
-    });
-  }
-});
+  })
+);
 
-// Get direct tutoring requests assigned to the logged-in tutor
-route.get('/api/tutor/requests', async (req, res) => {
-  try {
+// ==================== TUTOR API ====================
+
+// Requests assigned to the signed-in tutor
+route.get(
+  '/api/tutor/requests',
+  requireRole('tutor'),
+  asyncRoute(async (req, res) => {
     const tutor = await getTutorFromSession(req);
-
     if (!tutor) {
-      return res.status(403).json({
-        success: false,
-        error: 'Tutor account not found for the current login',
-      });
+      return res.status(403).json({ success: false, error: NO_TUTOR_ACCOUNT });
     }
 
     const requests = await TutoringRequest.find({
@@ -270,142 +541,105 @@ route.get('/api/tutor/requests', async (req, res) => {
     }).sort({ createdAt: -1 });
 
     res.json({ success: true, requests });
-  } catch (error) {
-    console.error('Error fetching tutor requests:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch requests',
-    });
-  }
-});
+  })
+);
 
-// Get general tutoring requests a tutor is eligible to claim
-route.get('/api/tutor/general-requests', async (req, res) => {
-  try {
+// Open general requests for classes the tutor can help with
+route.get(
+  '/api/tutor/general-requests',
+  requireRole('tutor'),
+  asyncRoute(async (req, res) => {
     const tutor = await getTutorFromSession(req);
     if (!tutor) {
-      return res.status(403).json({
-        success: false,
-        error: 'Tutor account not found for the current login',
-      });
+      return res.status(403).json({ success: false, error: NO_TUTOR_ACCOUNT });
     }
 
-    const tutorClasses = (Array.isArray(tutor.classes) ? tutor.classes : [])
-      .map(className => String(className).trim())
-      .filter(Boolean);
-
-    if (!tutorClasses.length) {
+    const classMatchers = tutorClassMatchers(tutor);
+    if (!classMatchers.length) {
       return res.json({ success: true, requests: [] });
     }
-
-    const classMatchers = tutorClasses.map(
-      className => new RegExp(`^${escapeRegex(className)}$`, 'i')
-    );
 
     const requests = await TutoringRequest.find({
       requestType: 'general',
       status: 'pending',
       class: { $in: classMatchers },
-    }).sort({ createdAt: -1 });
+      // Requests for days that have already passed drop off the board
+      preferredDate: { $gte: parseDateOnly(todayInSchoolZone()) },
+    })
+      .select(
+        'subject class topic preferredDate preferredPeriod additionalNotes studentFirstName studentLastName createdAt'
+      )
+      .sort({ createdAt: -1 });
 
     res.json({ success: true, requests });
-  } catch (error) {
-    console.error('Error loading general tutoring requests:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to load general request board',
-    });
-  }
-});
+  })
+);
 
 // Claim a general tutoring request
-route.post('/api/tutor/general-requests/:requestId/take', async (req, res) => {
-  try {
+route.post(
+  '/api/tutor/general-requests/:requestId/take',
+  requireRole('tutor'),
+  asyncRoute(async (req, res) => {
     const { requestId } = req.params;
-    const { responseMessage } = req.body;
+    if (!isObjectId(requestId)) {
+      return res.status(404).json({ success: false, error: 'Request not found' });
+    }
 
     const tutor = await getTutorFromSession(req);
     if (!tutor) {
-      return res.status(403).json({
-        success: false,
-        error: 'Tutor account not found for the current login',
-      });
+      return res.status(403).json({ success: false, error: NO_TUTOR_ACCOUNT });
     }
 
-    const request = await TutoringRequest.findById(requestId);
-    if (!request) {
-      return res.status(404).json({
-        success: false,
-        error: 'Request not found',
-      });
-    }
-
-    if (request.requestType !== 'general') {
-      return res.status(400).json({
-        success: false,
-        error: 'This request is not a general-board request',
-      });
-    }
-
-    if (request.status !== 'pending') {
-      return res.status(400).json({
-        success: false,
-        error: 'This request is no longer available',
-      });
-    }
-
-    const tutorClasses = (Array.isArray(tutor.classes) ? tutor.classes : []).map(className =>
-      String(className).trim().toLowerCase()
+    // Claim in a single update so two tutors can't take the same request
+    const request = await TutoringRequest.findOneAndUpdate(
+      {
+        _id: requestId,
+        requestType: 'general',
+        status: 'pending',
+        class: { $in: tutorClassMatchers(tutor) },
+      },
+      {
+        $set: {
+          tutorId: tutor._id,
+          tutorName: fullName(tutor),
+          tutorEmail: tutor.email,
+          status: 'accepted',
+          responseMessage:
+            cleanText(req.body.responseMessage, 500) || 'Accepted from the general request board.',
+          respondedAt: new Date(),
+        },
+      },
+      { new: true }
     );
-    const requestClass = String(request.class || '')
-      .trim()
-      .toLowerCase();
 
-    if (!tutorClasses.includes(requestClass)) {
+    if (!request) {
+      const existing = await TutoringRequest.findById(requestId);
+      if (!existing || existing.requestType !== 'general') {
+        return res.status(404).json({ success: false, error: 'Request not found' });
+      }
+      if (existing.status !== 'pending') {
+        return res
+          .status(409)
+          .json({ success: false, error: 'This request is no longer available' });
+      }
       return res.status(403).json({
         success: false,
         error: 'You can only claim requests for classes in your expertise list',
       });
     }
 
-    request.tutorId = tutor._id;
-    request.tutorName = `${tutor.tutorFirstName} ${tutor.tutorLastName}`.trim();
-    request.tutorEmail = tutor.email;
-    request.status = 'accepted';
-    request.responseMessage = responseMessage || 'Accepted from the general request board.';
-    request.respondedAt = new Date();
-
-    await request.save();
-
-    try {
-      await sendRequestAcceptedEmail(request);
-    } catch (emailError) {
-      console.error('Email notification failed after claiming general request:', emailError);
-    }
-
+    await sendRequestAcceptedEmail(request);
     res.json({ success: true, request });
-  } catch (error) {
-    console.error('Error claiming general request:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to claim request',
-    });
-  }
-});
+  })
+);
 
-// Update tutoring request status (accept/decline)
-route.post('/api/tutor/requests/:requestId/respond', async (req, res) => {
-  try {
+// Accept or decline a request that was sent to the signed-in tutor
+route.post(
+  '/api/tutor/requests/:requestId/respond',
+  requireRole('tutor'),
+  asyncRoute(async (req, res) => {
     const { requestId } = req.params;
-    const { status, responseMessage } = req.body;
-
-    const tutor = await getTutorFromSession(req);
-    if (!tutor) {
-      return res.status(403).json({
-        success: false,
-        error: 'Tutor account not found for the current login',
-      });
-    }
+    const { status } = req.body;
 
     if (!['accepted', 'declined'].includes(status)) {
       return res.status(400).json({
@@ -413,505 +647,122 @@ route.post('/api/tutor/requests/:requestId/respond', async (req, res) => {
         error: 'Invalid status. Must be "accepted" or "declined"',
       });
     }
+    if (!isObjectId(requestId)) {
+      return res.status(404).json({ success: false, error: 'Request not found' });
+    }
 
-    const request = await TutoringRequest.findByIdAndUpdate(
-      requestId,
+    const tutor = await getTutorFromSession(req);
+    if (!tutor) {
+      return res.status(403).json({ success: false, error: NO_TUTOR_ACCOUNT });
+    }
+
+    // Only the tutor the request was sent to can answer it, and only once
+    const request = await TutoringRequest.findOneAndUpdate(
+      { _id: requestId, tutorId: tutor._id, status: 'pending' },
       {
-        status: status,
-        responseMessage: responseMessage || '',
-        respondedAt: new Date(),
+        $set: {
+          status,
+          responseMessage: cleanText(req.body.responseMessage, 500),
+          respondedAt: new Date(),
+        },
       },
       { new: true }
     );
 
     if (!request) {
-      return res.status(404).json({
-        success: false,
-        error: 'Request not found',
-      });
+      return res
+        .status(404)
+        .json({ success: false, error: 'Request not found or already answered' });
     }
 
-    // Send email notification to the tutee
-    try {
-      if (status === 'accepted') {
-        await sendRequestAcceptedEmail(request);
-      } else if (status === 'declined') {
-        await sendRequestDeclinedEmail(request);
-      }
-    } catch (emailError) {
-      console.error('Email notification failed:', emailError);
-      // Don't fail the whole request just because the email didn't send
+    if (status === 'accepted') {
+      await sendRequestAcceptedEmail(request);
+    } else {
+      await sendRequestDeclinedEmail(request);
     }
 
     res.json({ success: true, request });
-  } catch (error) {
-    console.error('Error updating request:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update request',
-    });
-  }
-});
+  })
+);
 
-// route to tutor leader home page
-route.get('/leadHome', requireRole('lead'), async (req, res) => {
-  res.render('leadHome', { currentPage: 'leadHome' });
-});
-
-// route to teacher home page
-route.get('/teachHome', requireRole('teacher'), async (req, res) => {
-  res.render('teachHome', { currentPage: 'teachHome' });
-});
-
-// route to admin home page
-route.get('/adminHome', requireRole('admin'), async (req, res) => {
-  res.render('adminHome', { currentPage: 'adminHome' });
-});
-
-// route to a simple notification test page (lead and above)
-route.get('/notifications', requireRole('lead'), (req, res) => {
-  res.render('notifications', {
-    userEmail: req.session.email || '',
-    currentPage: 'notifications',
-  });
-});
-
-// route to expertise form page (tutor and above)
-route.get('/expertiseForm', requireRole('tutor'), async (req, res) => {
-  // Look up existing tutor record to autofill the form
-  let tutor = null;
-  if (req.session.email) {
-    tutor = await Tutor.findOne({ email: req.session.email });
-  }
-
-  res.render('expertiseForm', {
-    grades: gradeSelection,
-    options: newReturningOptions,
-    lunchPeriods,
-    daysOfTheWeek,
-    courseList,
-    tutor,
-    sessionEmail: req.session.email || '',
-    currentPage: 'expertiseForm',
-  });
-});
-
-// delegate all authentication to the auth.js router
-route.use('/auth', require('./auth'));
-
-// Route to render the tutor attendance (tutor and above)
-route.get('/tutorAttendance', requireRole('tutor'), async (req, res) => {
-  res.render('tutorAttendance', { currentPage: 'tutorAttendance' });
-});
-
-// Route to render the tutor form (tutor and above)
-route.get('/tutorForm', requireRole('tutor'), async (req, res) => {
-  // Look up existing tutor record to autofill identity fields
-  let tutor = null;
-  let acceptedRequests = [];
-  if (req.session.email) {
-    tutor = await Tutor.findOne({ email: req.session.email });
-    if (tutor) {
-      acceptedRequests = await TutoringRequest.find({
-        tutorId: tutor._id,
-        status: 'accepted',
-      }).sort({ preferredDate: 1 });
-    }
-  }
-
-  res.render('tutorForm', { tutor, acceptedRequests, currentPage: 'tutorForm' });
-});
-
-// Route to handle tutor form submission
-route.post('/submitTutorForm', async (req, res) => {
-  try {
-    console.log(req.body);
-    const newSession = new Session({
-      sessionDate: req.body.sessionDate,
-      tuteeName: req.body.tuteeName,
-      tutorName: req.body.tutorName,
-      sessionPeriod: req.body.sessionPeriod,
-      teacher: req.body.teacher,
-      department: req.body.department,
-      class: req.body.class,
-      focusOfSession: req.body.focusOfSession,
-      workAccomplished: req.body.workAccomplished,
-      isMakeup: req.body.isMakeup || false,
-    });
-    const savedSession = await newSession.save();
-    console.log('saved object ID: ', savedSession._id.toString());
-
-    // add the session to the tutor's session history
-    // Match tutor by name since tutorID is no longer on the Session schema
-    const [lastName, firstName] = req.body.tutorName.split(',').map(s => s.trim());
-    const tutor = await Tutor.findOne({
-      tutorFirstName: { $regex: new RegExp(`^${firstName}$`, 'i') },
-      tutorLastName: { $regex: new RegExp(`^${lastName}$`, 'i') },
-    });
+// Attendance summary and session history for a tutor
+route.get(
+  '/api/tutor-attendance/:id',
+  requireRole('tutor'),
+  asyncRoute(async (req, res) => {
+    const tutorID = Number(req.params.id);
+    const tutor = Number.isInteger(tutorID) ? await Tutor.findOne({ tutorID }) : null;
     if (!tutor) {
-      console.log('Tutor not found for session history linking');
-    } else {
-      console.log('Tutor found:', tutor);
-      // add the session to the tutor's session history
-      tutor.sessionHistory.push(savedSession._id);
-      await tutor.save();
-      // eslint-disable-next-line quotes
-      console.log("Session added to tutor's session history");
-    }
-
-    // If this session was linked to a tutoring request, mark it as completed
-    if (req.body.tutoringRequestId) {
-      try {
-        await TutoringRequest.findByIdAndUpdate(req.body.tutoringRequestId, {
-          status: 'completed',
-        });
-        console.log('Marked tutoring request as completed:', req.body.tutoringRequestId);
-      } catch (updateError) {
-        console.error('Error updating tutoring request status:', updateError);
-      }
-    }
-
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Error saving session:', error);
-    res.status(500).json({ success: false, error: 'Failed to save session' });
-  }
-});
-
-// Route to handle expertise form submission
-route.post('/submitExpertiseForm', async (req, res) => {
-  try {
-    const {
-      tutorFirstName,
-      tutorLastName,
-      tutorID,
-      email,
-      grade,
-      returning,
-      lunchPeriod,
-      daysAvailable,
-      classes,
-      tutorLeader,
-      attendance,
-    } = req.body;
-
-    // If a tutor with this ID exists, update instead of creating a duplicate
-    const existingTutor = await Tutor.findOne({ tutorID });
-
-    if (existingTutor) {
-      existingTutor.tutorFirstName = tutorFirstName;
-      existingTutor.tutorLastName = tutorLastName;
-      existingTutor.email = email;
-      existingTutor.grade = grade;
-      existingTutor.returning = returning;
-      existingTutor.lunchPeriod = lunchPeriod;
-      existingTutor.daysAvailable = daysAvailable;
-      existingTutor.classes = classes;
-      existingTutor.tutorLeader = tutorLeader;
-      existingTutor.attendance = attendance;
-
-      await existingTutor.save();
-      return res.json({ success: true, updated: true });
-    }
-
-    const newTutor = new Tutor({
-      tutorFirstName,
-      tutorLastName,
-      tutorID,
-      email,
-      grade,
-      returning,
-      lunchPeriod,
-      daysAvailable,
-      classes,
-      tutorLeader,
-      attendance,
-      sessionHistory: [],
-    });
-    await newTutor.save();
-    res.json({ success: true, created: true });
-  } catch (error) {
-    console.error('Error saving expertise sheet:', error);
-    res.status(500).json({ success: false, error: 'Failed to save expertise sheet' });
-  }
-});
-
-// Route to view tutor database (teacher and above)
-route.get('/tutorTable', requireRole('teacher'), async (req, res) => {
-  try {
-    const tutors = await Tutor.find().sort({ date: -1 });
-
-    // Convert MongoDB objects to objects formatted for the EJS template
-    const tutorsFormatted = tutors.map(tutor => {
-      return {
-        id: tutor._id.toString(),
-        tutorName: `${tutor.tutorFirstName} ${tutor.tutorLastName}`,
-        email: tutor.email,
-        date: tutor.date,
-        grade: tutor.grade,
-        tutorID: tutor.tutorID,
-        classes: Array.isArray(tutor.classes) ? tutor.classes : [],
-        daysAvailable: Array.isArray(tutor.daysAvailable) ? tutor.daysAvailable : [],
-        lunchPeriod: tutor.lunchPeriod,
-        totalSessions: tutor.sessionHistory.length,
-        absences: tutor.attendance || 0,
-      };
-    });
-
-    res.render('tutorTable', { tutors: tutorsFormatted, currentPage: 'tutorTable' });
-  } catch (error) {
-    console.error('Error fetching tutors:', error);
-    res.status(500).send('Error fetching tutors');
-  }
-});
-
-// Route to view session database (teacher and above)
-route.get('/sessionTable', requireRole('teacher'), async (req, res) => {
-  try {
-    const sessions = await Session.find().sort({ sessionDate: -1 });
-
-    // Convert MongoDB objects to objects formatted for the EJS template
-    // Fallbacks handle old records that still use the previous field names
-    const sessionsFormatted = sessions.map(session => {
-      return {
-        date: session.sessionDate
-          ? new Date(session.sessionDate).toLocaleDateString('en-US', {
-              timeZone: 'America/Chicago',
-            })
-          : null,
-        tuteeName:
-          session.tuteeName ||
-          (session.tuteeLastName && session.tuteeFirstName
-            ? `${session.tuteeLastName}, ${session.tuteeFirstName}`
-            : ''),
-        tutorName:
-          session.tutorName ||
-          (session.tutorLastName && session.tutorFirstName
-            ? `${session.tutorLastName}, ${session.tutorFirstName}`
-            : ''),
-        sessionPeriod: session.sessionPeriod,
-        teacher: session.teacher || 'Not Specified',
-        department: session.department || session.subject || '',
-        class: session.class,
-        focusOfSession: session.focusOfSession || '',
-        assignment: session.workAccomplished,
-        isMakeup: session.isMakeup ? 'Yes' : 'No',
-      };
-    });
-
-    res.render('sessionTable', { sessions: sessionsFormatted, currentPage: 'sessionTable' });
-  } catch (error) {
-    console.error('Error fetching sessions:', error);
-    res.status(500).send('Error fetching sessions');
-  }
-});
-
-// Route to render the attendance (lead and above)
-// DISABLED: This route is now handled by routes/attendance.js mounted at /attendance
-// route.get('/attendance', requireRole('lead'), async (req, res) => { ... });
-
-// REMOVED: POST /updateAttendance/:id — attendance counter updates are now
-// handled by logSubmission's diff logic in routes/attendance.js.
-
-// Import external route files
-// NOTE: Attendance routes are mounted in server.js at /attendance — do NOT mount again here.
-
-// The homepage route can be handled in the main router
-// Removing duplicate route for /homepage
-
-// API endpoint to get tutor attendance data
-route.get('/api/tutor-attendance/:id', async (req, res) => {
-  try {
-    const tutorID = parseInt(req.params.id); // Convert string to number
-
-    // Find the tutor in the database
-    const tutorData = await Tutor.findOne({ tutorID: tutorID });
-
-    if (!tutorData) {
       return res.status(404).json({ error: 'Tutor not found' });
     }
 
-    // Get tutor's sessions via populated sessionHistory
-    const populatedTutor = await Tutor.findOne({ tutorID: tutorID }).populate('sessionHistory');
-    const sessions = populatedTutor ? populatedTutor.sessionHistory : [];
+    // Tutors can only look up their own record; leads and admins can look up anyone
+    const canViewOthers = getRolePermissions(req.session.role).includes('lead');
+    if (!canViewOthers && (tutor.email || '').toLowerCase() !== req.session.email) {
+      return res.status(403).json({ error: 'You can only view your own attendance.' });
+    }
 
-    const response = {
-      name: `${tutorData.tutorFirstName} ${tutorData.tutorLastName}`,
-      daysMissed: tutorData.attendance || 0,
-      sessionCount: sessions.length,
-      sessions: sessions.map(session => ({
-        date: session.sessionDate,
-        department: session.department || session.subject || '',
-        student:
-          session.tuteeName ||
-          (session.tuteeLastName && session.tuteeFirstName
-            ? `${session.tuteeLastName}, ${session.tuteeFirstName}`
-            : ''),
-        period: session.sessionPeriod,
-      })),
-    };
+    // Count before populating, since populate leaves out sessions that no longer exist
+    const sessionCount = tutor.totalSessions;
+    await tutor.populate('sessionHistory');
 
-    res.json(response);
-  } catch (error) {
-    console.error('Error fetching tutor data:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+    res.json({
+      name: fullName(tutor),
+      daysMissed: tutor.attendance || 0,
+      sessionCount,
+      sessions: tutor.sessionHistory.map(session => {
+        const formatted = formatSession(session);
+        return {
+          date: formatted.date,
+          department: formatted.department,
+          student: formatted.tuteeName,
+          period: formatted.sessionPeriod,
+        };
+      }),
+    });
+  })
+);
 
-// API endpoint to get courses for subject/class dropdowns
-route.get('/api/courses', (req, res) => {
-  res.json(courses);
-});
+// ==================== ADMIN API ====================
 
-// API endpoint to delete a tutor by id
-route.post('/api/tutors/delete', async (req, res) => {
-  const { id } = req.body;
+// Most recent sessions for the admin home page
+route.get(
+  '/api/sessions/recent',
+  requireRole('admin'),
+  asyncRoute(async (req, res) => {
+    const sessions = await Session.find().sort({ sessionDate: -1 }).limit(10);
+    res.json(sessions.map(formatSession));
+  })
+);
 
-  if (!id) {
-    return res.status(400).json({ success: false, error: 'Missing tutor id' });
-  }
+route.post(
+  '/api/tutors/delete',
+  requireRole('admin'),
+  asyncRoute(async (req, res) => {
+    const { id } = req.body;
+    if (!isObjectId(id)) {
+      return res.status(400).json({ success: false, error: 'Missing tutor id' });
+    }
 
-  try {
     const deleted = await Tutor.findByIdAndDelete(id);
     if (!deleted) {
       return res.status(404).json({ success: false, error: 'Tutor not found' });
     }
 
     res.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting tutor:', error);
-    res.status(500).json({ success: false, error: 'Failed to delete tutor' });
-  }
-});
+  })
+);
 
-// API endpoint to list tutor names and emails for notifications
-route.get('/api/tutor-emails', async (req, res) => {
-  try {
-    const tutors = await Tutor.find({ email: { $exists: true, $ne: '' } })
-      .select('tutorFirstName tutorLastName email lunchPeriod classes')
-      .sort({ tutorLastName: 1, tutorFirstName: 1 });
-
-    const results = tutors.map(tutor => ({
-      name: `${tutor.tutorFirstName || 'Unknown'} ${tutor.tutorLastName || 'Tutor'}`.trim(),
-      email: tutor.email,
-      lunchPeriod: tutor.lunchPeriod,
-      classes: Array.isArray(tutor.classes) ? tutor.classes : [],
-    }));
-
-    res.json({ success: true, tutors: results });
-  } catch (error) {
-    console.error('Error fetching tutor emails:', error);
-    res.status(500).json({ success: false, error: 'Failed to load tutor emails' });
-  }
-});
-
-// API endpoint to send a notification email (supports one or many recipients)
-route.post('/api/notifications/send', async (req, res) => {
-  const { to, subject, message } = req.body;
-
-  const recipientList = Array.isArray(to)
-    ? to.map(addr => (typeof addr === 'string' ? addr.trim() : '')).filter(Boolean)
-    : (typeof to === 'string' ? [to.trim()] : []).filter(Boolean);
-
-  if (!recipientList.length || !subject || !message) {
-    return res
-      .status(400)
-      .json({ success: false, error: 'Missing recipients, subject, or message' });
-  }
-
-  if (!isEmailConfigured()) {
-    return res.status(500).json({
-      success: false,
-      error: getEmailConfigErrorMessage(),
-    });
-  }
-
-  try {
-    await sendEmail({
-      to: recipientList,
-      subject,
-      text: message,
-    });
-
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Error sending notification email:', error);
-    res.status(500).json({ success: false, error: 'Failed to send email' });
-  }
-});
-
-route.get('/adminAttendance', requireRole('admin'), (req, res) => {
-  res.render('adminAttendance', { currentPage: 'adminAttendance' });
-});
-
-// Route to render admin tutor requests page
-route.get('/admin/tutorRequests', requireRole('admin'), async (req, res) => {
-  try {
-    const requests = await TutoringRequest.find().sort({ createdAt: -1 });
-
-    // Format the preferred date for display
-    const requestsFormatted = requests.map(r => {
-      const obj = r.toObject();
-      if (obj.preferredDate) {
-        const date = new Date(obj.preferredDate);
-        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        obj.preferredDateFormatted =
-          days[date.getUTCDay()] +
-          ', ' +
-          (date.getUTCMonth() + 1) +
-          '/' +
-          date.getUTCDate() +
-          '/' +
-          date.getUTCFullYear();
-      } else {
-        obj.preferredDateFormatted = 'N/A';
-      }
-      return obj;
-    });
-
-    res.render('adminTutorRequests', {
-      requests: requestsFormatted,
-      user: req.session,
-      currentPage: 'adminTutorRequests',
-    });
-  } catch (error) {
-    console.error('Error loading admin tutor requests:', error);
-    res.status(500).send('Error loading tutor requests page');
-  }
-});
-
-// Route to render admin user management page (admin and above)
-route.get('/admin/users', requireRole('admin'), async (req, res) => {
-  try {
-    const tutors = await Tutor.find().sort({ tutorLastName: 1, tutorFirstName: 1 });
-    const teachers = await Teacher.find().sort({ teacherLastName: 1, teacherFirstName: 1 });
-
-    res.render('adminUsers', {
-      tutors,
-      teachers,
-      user: req.session,
-      currentPage: 'adminUsers',
-      isSuperDeveloper: require('../middleware/roleAuth').isSuperDeveloper(req.session.email),
-    });
-  } catch (error) {
-    console.error('Error loading admin users page:', error);
-    res.status(500).send('Error loading user management page');
-  }
-});
-
-// API endpoint to update a user's role (admin and above)
-route.post('/api/admin/users/:id/role', requireRole('admin'), async (req, res) => {
-  try {
+route.post(
+  '/api/admin/users/:id/role',
+  requireRole('admin'),
+  asyncRoute(async (req, res) => {
     const { id } = req.params;
     const { role } = req.body;
 
-    const validRoles = ['student', 'tutor', 'lead', 'teacher', 'admin', 'developer'];
-    if (!validRoles.includes(role)) {
+    if (!TUTOR_ROLES.includes(role)) {
       return res.status(400).json({ success: false, error: 'Invalid role' });
     }
-
-    const { isSuperDeveloper } = require('../middleware/roleAuth');
-    const callerIsSuperDev = isSuperDeveloper(req.session.email);
 
     // Only developers can assign the developer role
     if (role === 'developer' && req.session.role !== 'developer') {
@@ -920,160 +771,174 @@ route.post('/api/admin/users/:id/role', requireRole('admin'), async (req, res) =
         .json({ success: false, error: 'Only developers can assign the developer role' });
     }
 
-    // Only super developers can change the role of another developer
-    const targetTutor = await Tutor.findById(id);
+    const targetTutor = isObjectId(id) ? await Tutor.findById(id) : null;
     if (!targetTutor) {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
-    if (targetTutor.role === 'developer' && !callerIsSuperDev) {
+
+    // Only super developers can change the role of another developer
+    if (targetTutor.role === 'developer' && !isSuperDeveloper(req.session.email)) {
       return res
         .status(403)
         .json({ success: false, error: "Only super developers can change a developer's role" });
     }
 
-    const tutor = await Tutor.findByIdAndUpdate(id, { role }, { new: true });
-    if (!tutor) {
-      return res.status(404).json({ success: false, error: 'User not found' });
-    }
+    await Tutor.updateOne({ _id: id }, { role });
+    res.json({ success: true, role });
+  })
+);
 
-    res.json({ success: true, role: tutor.role });
-  } catch (error) {
-    console.error('Error updating user role:', error);
-    res.status(500).json({ success: false, error: 'Failed to update role' });
-  }
-});
+// ==================== NOTIFICATION API (leads and above) ====================
 
-// ==================== ABSENCE NOTIFICATION API ENDPOINTS ====================
-
-// API endpoint to get tutors with absences above a threshold
-route.get('/api/tutors/absences', async (req, res) => {
-  try {
-    const minAbsences = parseInt(req.query.min) || 1;
-
-    // attendance field stores positive absence count
-    const tutors = await Tutor.find({ attendance: { $gte: minAbsences } }).sort({ attendance: -1 });
+// Tutor names and emails for the notification recipient list
+route.get(
+  '/api/tutor-emails',
+  requireRole('lead'),
+  asyncRoute(async (req, res) => {
+    const tutors = await Tutor.find({ email: { $exists: true, $ne: '' } })
+      .select('tutorFirstName tutorLastName email lunchPeriod classes')
+      .sort({ tutorLastName: 1, tutorFirstName: 1 });
 
     const results = tutors.map(tutor => ({
-      name: `${tutor.tutorFirstName || 'Unknown'} ${tutor.tutorLastName || 'Tutor'}`.trim(),
+      name: fullName(tutor),
+      email: tutor.email,
+      lunchPeriod: tutor.lunchPeriod,
+      classes: Array.isArray(tutor.classes) ? tutor.classes : [],
+    }));
+
+    res.json({ success: true, tutors: results });
+  })
+);
+
+// Send an email to one or more tutors
+route.post(
+  '/api/notifications/send',
+  requireRole('lead'),
+  asyncRoute(async (req, res) => {
+    const { to } = req.body;
+    const subject = cleanText(req.body.subject);
+    const message = cleanText(req.body.message, 10000);
+    const recipients = [
+      ...new Set(
+        (Array.isArray(to) ? to : [to])
+          .filter(address => typeof address === 'string')
+          .map(address => address.trim().toLowerCase())
+          .filter(Boolean)
+      ),
+    ];
+
+    if (!recipients.length || !subject || !message) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'Missing recipients, subject, or message' });
+    }
+
+    if (!isEmailConfigured()) {
+      return res.status(500).json({ success: false, error: getEmailConfigErrorMessage() });
+    }
+
+    // Only tutors can be emailed from here
+    const tutors = await Tutor.find({ email: { $in: recipients.map(exactMatch) } }).select('email');
+    const tutorEmails = new Set(tutors.map(tutor => tutor.email.toLowerCase()));
+    if (recipients.some(address => !tutorEmails.has(address))) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'Notifications can only be sent to tutors' });
+    }
+
+    // Bcc so tutors don't see each other's addresses
+    await sendEmail({ bcc: recipients, subject, text: message });
+    res.json({ success: true });
+  })
+);
+
+// Minimum days missed from a query or body value, defaulting to 1
+const absenceThreshold = value => {
+  const parsed = parseFloat(value);
+  return parsed > 0 ? parsed : 1;
+};
+
+// Email each tutor their absence count and report who was reached
+async function sendAbsenceNotices(tutors) {
+  const sent = [];
+  const failed = [];
+
+  for (const tutor of tutors) {
+    const name = fullName(tutor);
+    try {
+      await sendAbsenceNotice({ email: tutor.email, name, absenceCount: tutor.attendance || 0 });
+      sent.push({ email: tutor.email, name });
+    } catch (err) {
+      console.error(`Failed to send absence notice to ${name}:`, err.message);
+      failed.push({ email: tutor.email, name, reason: err.message });
+    }
+  }
+
+  return { sent, failed };
+}
+
+// Tutors with at least the given number of days missed
+route.get(
+  '/api/tutors/absences',
+  requireRole('lead'),
+  asyncRoute(async (req, res) => {
+    const tutors = await Tutor.find({
+      attendance: { $gte: absenceThreshold(req.query.min) },
+    }).sort({ attendance: -1 });
+
+    const results = tutors.map(tutor => ({
+      id: tutor._id,
+      name: fullName(tutor),
       email: tutor.email,
       absenceCount: tutor.attendance || 0,
     }));
 
     res.json({ success: true, tutors: results });
-  } catch (error) {
-    console.error('Error fetching tutors with absences:', error);
-    res.status(500).json({ success: false, error: 'Failed to load absent tutors' });
-  }
-});
+  })
+);
 
-// API endpoint to send absence notification email(s)
-route.post('/api/notifications/absence', async (req, res) => {
-  const { date, tutors: tutorList } = req.body;
-
-  if (!tutorList || !Array.isArray(tutorList) || tutorList.length === 0) {
-    return res.status(400).json({ success: false, error: 'No tutors provided' });
-  }
-
-  if (!isEmailConfigured()) {
-    return res.status(500).json({
-      success: false,
-      error: getEmailConfigErrorMessage(),
-    });
-  }
-
-  const sent = [];
-  const failed = [];
-
-  for (const tutor of tutorList) {
-    try {
-      const subject = `Peer Tutoring – Absence Notice (${tutor.absenceCount} missed session${tutor.absenceCount !== 1 ? 's' : ''})`;
-      const message = [
-        `Hi ${tutor.name},`,
-        '',
-        `Our records show you have ${tutor.absenceCount} unexcused absence${tutor.absenceCount !== 1 ? 's' : ''} as of ${date || new Date().toLocaleDateString()}.`,
-        '',
-        'Please reach out to your tutor lead or program coordinator if you believe this is an error, or to arrange a makeup session.',
-        '',
-        'Thank you,',
-        'Peer Tutoring Program',
-      ].join('\n');
-
-      await sendEmail({
-        to: tutor.email,
-        subject,
-        text: message,
-      });
-
-      sent.push({ email: tutor.email, name: tutor.name });
-    } catch (err) {
-      console.error(`Failed to email ${tutor.email}:`, err.message);
-      failed.push({ email: tutor.email, name: tutor.name, reason: err.message });
+// Send absence notices to specific tutors
+route.post(
+  '/api/notifications/absence',
+  requireRole('lead'),
+  asyncRoute(async (req, res) => {
+    const tutorIds = Array.isArray(req.body.tutorIds) ? req.body.tutorIds.filter(isObjectId) : [];
+    if (!tutorIds.length) {
+      return res.status(400).json({ success: false, error: 'No tutors provided' });
     }
-  }
 
-  res.json({ success: true, results: { sent, failed } });
-});
+    if (!isEmailConfigured()) {
+      return res.status(500).json({ success: false, error: getEmailConfigErrorMessage() });
+    }
 
-// API endpoint to send bulk absence notifications based on threshold
-route.post('/api/notifications/absence/bulk', async (req, res) => {
-  try {
-    const minAbsences = parseInt(req.body.minAbsences) || 1;
+    const tutors = await Tutor.find({ _id: { $in: tutorIds } });
+    res.json({ success: true, results: await sendAbsenceNotices(tutors) });
+  })
+);
 
-    const tutors = await Tutor.find({ attendance: { $gte: minAbsences } });
+// Send absence notices to every tutor at or above the threshold
+route.post(
+  '/api/notifications/absence/bulk',
+  requireRole('lead'),
+  asyncRoute(async (req, res) => {
+    const tutors = await Tutor.find({
+      attendance: { $gte: absenceThreshold(req.body.minAbsences) },
+    });
 
     if (tutors.length === 0) {
       return res.json({ success: true, message: 'No tutors found above the absence threshold.' });
     }
 
     if (!isEmailConfigured()) {
-      return res.status(500).json({
-        success: false,
-        error: getEmailConfigErrorMessage(),
-      });
+      return res.status(500).json({ success: false, error: getEmailConfigErrorMessage() });
     }
 
-    const dateStr = new Date().toLocaleDateString();
-    let sentCount = 0;
-    let failedCount = 0;
-
-    for (const tutor of tutors) {
-      try {
-        const name = `${tutor.tutorFirstName} ${tutor.tutorLastName}`.trim();
-        const absences = tutor.attendance || 0;
-        const subject = `Peer Tutoring – Absence Notice (${absences} missed session${absences !== 1 ? 's' : ''})`;
-        const message = [
-          `Hi ${name},`,
-          '',
-          `Our records show you have ${absences} unexcused absence${absences !== 1 ? 's' : ''} as of ${dateStr}.`,
-          '',
-          'Please reach out to your tutor lead or program coordinator if you believe this is an error, or to arrange a makeup session.',
-          '',
-          'Thank you,',
-          'Peer Tutoring Program',
-        ].join('\n');
-
-        await sendEmail({
-          to: tutor.email,
-          subject,
-          text: message,
-        });
-
-        sentCount++;
-      } catch (err) {
-        console.error(`Failed to email ${tutor.email}:`, err.message);
-        failedCount++;
-      }
-    }
-
+    const { sent, failed } = await sendAbsenceNotices(tutors);
     res.json({
       success: true,
-      message: `Sent ${sentCount} notification(s)${failedCount > 0 ? `, ${failedCount} failed` : ''}.`,
+      message: `Sent ${sent.length} notification(s)${failed.length ? `, ${failed.length} failed` : ''}.`,
     });
-  } catch (error) {
-    console.error('Error sending bulk absence notifications:', error);
-    res.status(500).json({ success: false, error: 'Failed to send bulk notifications' });
-  }
-});
+  })
+);
 
 module.exports = route;
-
