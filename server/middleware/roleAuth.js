@@ -34,6 +34,22 @@ const ROLE_HIERARCHY = {
 const getRolePermissions = role => ROLE_HIERARCHY[role] || [role];
 
 /**
+ * Get the roles below a role in the hierarchy, which are the ones it can use with View As
+ * @param {string} role - The user's real role
+ * @returns {string[]} Array of roles the user can view the site as
+ */
+const getViewAsRoles = role => getRolePermissions(role).filter(lower => lower !== role);
+
+/**
+ * Get the role a session is acting as. session.role is always the user's real role. The View As
+ * role only counts while it's below that, so losing a role can't leave its access behind.
+ * @param {Object} session - The Express session
+ * @returns {string} The View As role if one is active, otherwise the real role
+ */
+const getActiveRole = session =>
+  getViewAsRoles(session.role).includes(session.viewAsRole) ? session.viewAsRole : session.role;
+
+/**
  * API calls and form submissions get JSON errors; page loads get a redirect or error page.
  * @param {import('express').Request} req
  */
@@ -71,7 +87,7 @@ const requireRole = (...allowedRoles) => {
     }
 
     // Check if any of the allowed roles match the user's effective roles
-    const userRoles = getRolePermissions(req.session.role);
+    const userRoles = getRolePermissions(getActiveRole(req.session));
     if (!allowedRoles.some(role => userRoles.includes(role))) {
       return denyAccess(req, res, 'Access denied. You do not have permission to do that.');
     }
@@ -83,6 +99,8 @@ const requireRole = (...allowedRoles) => {
 module.exports = {
   requireRole,
   getRolePermissions,
+  getViewAsRoles,
+  getActiveRole,
   isSuperDeveloper,
   wantsJson,
   ROLE_HIERARCHY,

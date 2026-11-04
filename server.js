@@ -12,7 +12,7 @@ const session = require('express-session');
 const { MongoStore } = require('connect-mongo');
 
 const connectDB = require('./server/database/connection');
-const { wantsJson } = require('./server/middleware/roleAuth');
+const { wantsJson, getActiveRole, getViewAsRoles } = require('./server/middleware/roleAuth');
 const { resolveUser, applyUserToSession } = require('./server/utils/users');
 
 // How often the signed-in user's role is re-checked, so role changes apply without logging out
@@ -72,7 +72,10 @@ app.use((req, res, next) => {
   // Make session data available to all views via res.locals
   res.locals.user = {
     email: req.session.email,
-    role: req.session.role,
+    // Views follow View As; realRole and viewAsRoles are for the View As menu itself
+    role: getActiveRole(req.session),
+    realRole: req.session.role,
+    viewAsRoles: getViewAsRoles(req.session.role),
     userName: req.session.userName,
     userId: req.session.userId,
     tutorID: req.session.tutorID,

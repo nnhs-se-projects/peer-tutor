@@ -10,7 +10,13 @@ const Session = require('../model/session');
 const Tutor = require('../model/tutor');
 const TutoringRequest = require('../model/tutoringRequest');
 const Teacher = require('../model/teacher');
-const { requireRole, getRolePermissions, isSuperDeveloper } = require('../middleware/roleAuth');
+const {
+  requireRole,
+  getRolePermissions,
+  getViewAsRoles,
+  getActiveRole,
+  isSuperDeveloper,
+} = require('../middleware/roleAuth');
 const asyncRoute = require('../middleware/asyncRoute');
 const { exactMatch } = require('../utils/regex');
 const { findTutorByEmail, isAllowedEmail } = require('../utils/users');
@@ -51,7 +57,11 @@ const fullName = tutor =>
 
 const getTutorFromSession = req => findTutorByEmail(req.session.email);
 
-const isAdmin = req => getRolePermissions(req.session.role).includes('admin');
+const isAdmin = req => getRolePermissions(getActiveRole(req.session)).includes('admin');
+
+// Super developer access goes by email, so it has to be switched off during View As
+const canChangeDevelopers = req =>
+  isSuperDeveloper(req.session.email) && getActiveRole(req.session) === req.session.role;
 
 // Regular expressions matching each class in a tutor's expertise list
 const tutorClassMatchers = tutor =>
@@ -260,7 +270,7 @@ route.get(
       tutors,
       teachers,
       currentPage: 'adminUsers',
-      isSuperDeveloper: isSuperDeveloper(req.session.email),
+      isSuperDeveloper: canChangeDevelopers(req),
     });
   })
 );
@@ -430,6 +440,22 @@ route.post(
     res.json({ success: true, created: true });
   })
 );
+
+// ==================== VIEW AS ====================
+
+// Preview the site as a role below the user's own. Sending no role goes back to their own.
+route.post('/api/view-as', requireRole('student'), (req, res) => {
+  const { role } = req.body;
+
+  if (role && !getViewAsRoles(req.session.role).includes(role)) {
+    return res
+      .status(403)
+      .json({ success: false, error: 'You can only view as a role below your own.' });
+  }
+
+  req.session.viewAsRole = role || undefined;
+  res.json({ success: true });
+});
 
 // ==================== STUDENT API ====================
 
@@ -700,7 +726,7 @@ route.get(
     }
 
     // Tutors can only look up their own record; leads and admins can look up anyone
-    const canViewOthers = getRolePermissions(req.session.role).includes('lead');
+    const canViewOthers = getRolePermissions(getActiveRole(req.session)).includes('lead');
     if (!canViewOthers && (tutor.email || '').toLowerCase() !== req.session.email) {
       return res.status(403).json({ error: 'You can only view your own attendance.' });
     }
@@ -768,7 +794,7 @@ route.post(
     }
 
     // Only developers can assign the developer role
-    if (role === 'developer' && req.session.role !== 'developer') {
+    if (role === 'developer' && getActiveRole(req.session) !== 'developer') {
       return res
         .status(403)
         .json({ success: false, error: 'Only developers can assign the developer role' });
@@ -780,7 +806,7 @@ route.post(
     }
 
     // Only super developers can change the role of another developer
-    if (targetTutor.role === 'developer' && !isSuperDeveloper(req.session.email)) {
+    if (targetTutor.role === 'developer' && !canChangeDevelopers(req)) {
       return res
         .status(403)
         .json({ success: false, error: "Only super developers can change a developer's role" });

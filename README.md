@@ -73,7 +73,7 @@ After pulling new code on a server, run `npm install` before restarting.
 
 - **Backend:** Express.js server (`server.js`) with EJS templating. Login sessions are stored in MongoDB (`loginSessions` collection), so they survive restarts.
 - **Auth:** Google Sign-In verification (`server/routes/auth.js`). The role for an account is worked out in `server/utils/users.js` and re-checked every minute, so role changes apply without logging out.
-- **Permissions:** every route declares who can use it with `requireRole(...)` (`server/middleware/roleAuth.js`).
+- **Permissions:** every route declares who can use it with `requireRole(...)` (`server/middleware/roleAuth.js`). `req.session.role` is always the user's real role, so any other permission check should use `getActiveRole(req.session)` to follow View As.
 - **Database:** MongoDB via Mongoose models in `server/model/`.
 - **Frontend:** EJS views in `views/` with one shared role-aware navbar (`views/include/_navbar.ejs`), Tailwind CSS + custom CSS, and page-specific client scripts in `assets/js/`. `assets/js/common.js` (loaded on every page) provides `escapeHtml` for anything built with `innerHTML`.
 - **Routing:** page and API routes in `server/routes/router.js`, attendance in `server/routes/attendance.js`, sign-in in `server/routes/auth.js`.
@@ -93,6 +93,8 @@ Roles inherit everything below them: developer ⊃ admin ⊃ lead ⊃ tutor ⊃ 
 | Admin   | Edit past attendance, add/delete tutors, change roles, see all requests               |
 
 Accounts get their role from their tutor record (`role`), from a teacher record (`admin` → admin), or default to teacher for district staff emails and student for everyone else.
+
+**View As:** anyone with a role below theirs gets a View As menu in the navbar. Choosing a role makes the navbar, pages, and permissions match that role until they switch back or log out. It can only go down the hierarchy, so teachers can view as students but not as tutors or leads. It changes the role, not the account, so anything submitted during View As is saved under their own account.
 
 ## Data Schema (MongoDB)
 
