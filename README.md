@@ -94,7 +94,7 @@ Roles inherit everything below them: developer ⊃ admin ⊃ lead ⊃ tutor ⊃ 
 
 Accounts get their role from their tutor record (`role`), from a teacher record (`admin` → admin), or default to teacher for district staff emails and student for everyone else.
 
-**View As:** anyone with a role below theirs gets a View As menu in the navbar. Choosing a role makes the navbar, pages, and permissions match that role until they switch back or log out. It can only go down the hierarchy, so teachers can view as students but not as tutors or leads. It changes the role, not the account, so anything submitted during View As is saved under their own account.
+**View As:** leads, teachers, admins, and developers get a View As menu in the navbar listing the roles below theirs. Tutors and students don't have it. Choosing a role makes the navbar, pages, and permissions match that role until they switch back or log out. It can only go down the hierarchy, so teachers can view as students but not as tutors or leads. It changes the role, not the account, so anything submitted during View As is saved under their own account.
 
 ## Data Schema (MongoDB)
 

@@ -26,6 +26,9 @@ const ROLE_HIERARCHY = {
   student: ['student'],
 };
 
+// View As is for roles that oversee other people's pages
+const ROLES_WITHOUT_VIEW_AS = ['tutor', 'student'];
+
 /**
  * Get all permissions for a role based on hierarchy
  * @param {string} role - The user's role
@@ -34,11 +37,14 @@ const ROLE_HIERARCHY = {
 const getRolePermissions = role => ROLE_HIERARCHY[role] || [role];
 
 /**
- * Get the roles below a role in the hierarchy, which are the ones it can use with View As
+ * Get the roles a role can use with View As, which are the ones below it in the hierarchy
  * @param {string} role - The user's real role
  * @returns {string[]} Array of roles the user can view the site as
  */
-const getViewAsRoles = role => getRolePermissions(role).filter(lower => lower !== role);
+const getViewAsRoles = role =>
+  ROLES_WITHOUT_VIEW_AS.includes(role)
+    ? []
+    : getRolePermissions(role).filter(lower => lower !== role);
 
 /**
  * Get the role a session is acting as. session.role is always the user's real role. The View As
