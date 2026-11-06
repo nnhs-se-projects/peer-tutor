@@ -4,7 +4,7 @@
  */
 
 // These users always sign in with the developer role
-const DEVELOPER_EMAILS = ['eqin@stu.naperville203.org'];
+const DEVELOPER_EMAILS = ['eqin@stu.naperville203.org', 'gschmit@naperville203.org'];
 
 // Super developers can also change the roles of other developers
 const SUPER_DEVELOPER_EMAILS = ['eqin@stu.naperville203.org', 'jxwu@stu.naperville203.org'];
@@ -89,7 +89,12 @@ const requireRole = (...allowedRoles) => {
     // Check if any of the allowed roles match the user's effective roles
     const userRoles = getRolePermissions(getActiveRole(req.session));
     if (!allowedRoles.some(role => userRoles.includes(role))) {
-      return denyAccess(req, res, 'Access denied. You do not have permission to do that.');
+      // View As is what's in the way when the user's own role would have been allowed
+      const realRoles = getRolePermissions(req.session.role);
+      const message = allowedRoles.some(role => realRoles.includes(role))
+        ? "You can't do that in View As. Use the View As menu to go back to your own role."
+        : 'Access denied. You do not have permission to do that.';
+      return denyAccess(req, res, message);
     }
 
     next();

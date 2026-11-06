@@ -5,6 +5,9 @@
 
 const SCHOOL_TIME_ZONE = 'America/Chicago';
 
+// The hint under Submit names the unmarked tutors when there are this few
+const MAX_NAMES_IN_HINT = 5;
+
 // Today's date in Central time as YYYY-MM-DD
 const todayInSchoolZone = () =>
   new Intl.DateTimeFormat('en-CA', { timeZone: SCHOOL_TIME_ZONE }).format(new Date());
@@ -14,6 +17,10 @@ document.addEventListener('DOMContentLoaded', function () {
   const lunchFilter = document.getElementById('lunchFilter');
   const makeupNameSearch = document.getElementById('makeupNameSearch');
   const submitBtn = document.getElementById('attendanceSubmitBtn');
+  const submitHint = document.getElementById('submitHint');
+
+  // Marks only exist on this page until they're submitted
+  let hasUnsavedChanges = false;
 
   const tutorRows = () => Array.from(document.querySelectorAll('.tutor-row'));
   const makeupRows = () => Array.from(document.querySelectorAll('.makeup-row'));
@@ -86,11 +93,26 @@ document.addEventListener('DOMContentLoaded', function () {
   // scheduled for this period, once a makeup is selected)
   function updateSubmitState() {
     const scheduled = scheduledRows();
-    const allMarked = scheduled.every(row => row.dataset.attendanceStatus);
-    const canSubmit = allMarked && (scheduled.length > 0 || selectedMakeupRows().length > 0);
+    const unmarked = scheduled.filter(row => !row.dataset.attendanceStatus);
+    const canSubmit = !unmarked.length && (scheduled.length > 0 || selectedMakeupRows().length > 0);
 
     submitBtn.disabled = !canSubmit;
     submitBtn.classList.toggle('button-disabled', !canSubmit);
+
+    // A disabled button can't explain itself, and the unmarked rows may be far above it
+    let hint = '';
+    if (unmarked.length) {
+      const names = unmarked.map(row => `${row.cells[0].textContent} ${row.cells[1].textContent}`);
+      hint = `Mark ${unmarked.length} more tutor${unmarked.length === 1 ? '' : 's'} to submit`;
+      if (unmarked.length <= MAX_NAMES_IN_HINT) hint += `: ${names.join(', ')}`;
+    }
+    submitHint.textContent = hint;
+  }
+
+  // For changes made by the lead, as opposed to marks loaded from the server
+  function markChanged() {
+    hasUnsavedChanges = true;
+    updateSubmitState();
   }
 
   function refreshRows() {
@@ -117,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function () {
     } else {
       row.dataset.attendanceStatus = clickedButton.dataset.action;
     }
-    updateSubmitState();
+    markChanged();
   }
 
   function setMakeupSelected(row, selected) {
@@ -159,16 +181,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     button.addEventListener('click', () => {
       setMakeupSelected(row, !button.classList.contains('button-selected'));
-      updateSubmitState();
+      markChanged();
     });
     checkbox.addEventListener('change', () => {
       setFutureMakeup(row, checkbox.checked);
-      updateSubmitState();
+      markChanged();
     });
     dateInput.addEventListener('change', () => {
       if (dateInput.value) setFutureMakeup(row, true);
-      updateSubmitState();
+      markChanged();
     });
+  });
+
+  window.addEventListener('beforeunload', event => {
+    if (hasUnsavedChanges) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
   });
 
   // Pre-select the buttons from attendance already saved today for this lunch period
@@ -306,7 +335,8 @@ document.addEventListener('DOMContentLoaded', function () {
         throw new Error(body.error || `Server error (${res.status})`);
       }
 
-      window.location.href = '/leadHome?fromAttendance=true';
+      hasUnsavedChanges = false;
+      window.location.href = `/leadHome?fromAttendance=true&lunch=${payload.lunchPeriod}`;
     } catch (err) {
       console.error('Failed to save attendance:', err);
       hideModal();

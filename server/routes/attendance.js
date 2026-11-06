@@ -65,9 +65,13 @@ router.get(
     // are included so leads can log future makeups; lunch filtering happens in the browser.
     const makeupTutors = tutorsFormatted.filter(tutor => !tutor.daysAvailable.includes(todayName));
 
+    // Open on the lead's own lunch period, which also shows what they've already saved today
+    const signedInTutor = tutorsFormatted.find(tutor => tutor.tutorID === req.session.tutorID);
+
     res.render('attendance', {
       tutors: tutorsFormatted,
       makeupTutors,
+      defaultLunch: signedInTutor ? signedInTutor.lunchPeriod : null,
       currentDay: todayName,
       currentPage: 'attendance',
     });

@@ -320,6 +320,23 @@
     box-shadow: 0 10px 20px rgba(255, 136, 0, 0.28);
   }
 
+  /* .button-disabled keeps greyed A/T/P buttons clickable, but Submit really is disabled */
+  .submit-attendance-button:disabled,
+  .submit-attendance-button:disabled:hover {
+    cursor: not-allowed !important;
+    transform: none;
+    box-shadow: none;
+    opacity: 0.6;
+  }
+
+  .submit-hint {
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 16px;
+  }
+
   /* Confirmation modal */
   .modal-overlay {
     position: fixed;
@@ -397,9 +414,9 @@
       <div class="filter-section">
         <label for="lunchFilter" class="mr-2">Lunch Period:</label>
         <select id="lunchFilter" class="filter-dropdown">
-          <option value="4">Period 4</option>
-          <option value="5">Period 5</option>
-          <option value="6">Period 6</option>
+          <% ['4', '5', '6'].forEach(period => { %>
+          <option value="<%= period %>" <%= period === defaultLunch ? 'selected' : '' %>>Period <%= period %></option>
+          <% }) %>
         </select>
       </div>
       <div class="export-controls">
@@ -525,6 +542,7 @@
     </div>
 
     <!-- Submit button -->
+    <p id="submitHint" class="submit-hint" role="status"></p>
     <div class="submit-attendance-container">
       <button id="attendanceSubmitBtn" class="submit-attendance-button">Submit</button>
     </div>
